@@ -1,10 +1,10 @@
-import {Renderer} from './render.js?v=world2-1016';
-import {createGame,configurePlayers,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,canBomb} from './sim.js?v=world2-1016';
-import {FlightAudio} from './audio.js?v=world2-1016';
-import {drawCockpit} from './instruments.js?v=world2-1016';
-import {combatCue,nearestThreat,waypointScreenPosition} from './guidance.js?v=world2-1016';
-import {AIRFIELDS,ROUTES,routeDefinition,routeFor,destinationFor,approachFor,fieldPoint} from './missions.js?v=world2-1016';
-import {createNetwork,mountNetworkUI} from './network.js?v=world2-1016';
+import {Renderer} from './render.js?v=world3-1016';
+import {createGame,configurePlayers,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,canBomb} from './sim.js?v=world3-1016';
+import {FlightAudio} from './audio.js?v=world3-1016';
+import {drawCockpit} from './instruments.js?v=world3-1016';
+import {combatCue,nearestThreat,waypointScreenPosition} from './guidance.js?v=world3-1016';
+import {AIRFIELDS,ROUTES,routeDefinition,routeFor,destinationFor,approachFor,fieldPoint} from './missions.js?v=world3-1016';
+import {createNetwork,mountNetworkUI} from './network.js?v=world3-1016';
 const $=s=>document.getElementById(s),keys=new Set(),actionQueue=new Set();
 const actionKeys={Space:'fireHeat',KeyR:'fireRadar',KeyF:'flare',KeyC:'chaff',KeyB:'bomb'};const clearControls=()=>{keys.clear();actionQueue.clear()};
 const NEUTRAL={pitch:0,roll:0,yaw:0,throttle:0,brake:false,fireHeat:false,fireRadar:false,flare:false,chaff:false,bomb:false};

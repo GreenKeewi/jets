@@ -2,7 +2,7 @@
 // Protocol: ordered reliable control/actions; unordered zero-retransmit axes/snapshots.
 export const PROTOCOL = 'JETS2';
 export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb'];
-export { mountNetworkUI } from './network-ui.js?v=world2-1016';
+export { mountNetworkUI } from './network-ui.js?v=world3-1016';
 const AXES = ['pitch', 'roll', 'yaw', 'throttle'];
 const COOLDOWN = { fireHeat: 250, fireRadar: 400, flare: 200, chaff: 200, bomb: 300 };
 const MAX_PACKET = 60000;

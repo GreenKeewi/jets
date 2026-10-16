@@ -11,6 +11,13 @@ test('an early practice touchdown cannot claim the route award',()=>{const g=cre
 test('unsafe off-runway touchdown gives a recoverable go-around',()=>{const g=createGame({mode:'freeflight'}),p=g.pilots[0];p.grounded=false;p.pos={x:500,y:.1,z:0};p.speed=120;p.pitch=-.2;step(g,{});assert.equal(g.status,'playing');assert.equal(p.dead,false);assert.ok(p.pos.y>=99);assert.ok(g.events.some(e=>e.type==='recovery'))});
 test('strike bomb destroys the target, then escape completes the objective',()=>{const g=createGame({mode:'strike'}),p=g.pilots[0];g.pilots[1].human=true;p.pos={x:0,y:450,z:TARGET.z-p.speed*Math.sqrt(2*446/45)};assert.equal(canBomb(g,p),true);step(g,{host:{bomb:true}});run(g,6);assert.equal(g.bombed,true);p.pos={...ESCAPE};step(g,{});assert.equal(g.status,'complete');assert.equal(g.result.winner,0)});
 test('intercepting the bomber ends strike mode for the defender',()=>{const g=createGame({mode:'strike',role:'defend'});g.pilots.find(p=>p.bomber).dead=true;step(g,{});assert.equal(g.status,'complete');assert.equal(g.result.winner,0)});
+test('eliminating strike defenders never replaces the bombing and escape objectives',()=>{for(const role of ['attack','defend'])for(const teamSize of [1,2,3]){
+ const g=createGame({mode:'strike',role,teamSize}),bomber=g.pilots.find(p=>p.bomber);
+ for(const p of g.pilots){p.human=true;if(p.team!==bomber.team){p.dead=true;p.hp=0;}}
+ step(g,{});assert.equal(g.status,'playing',`${role} ${teamSize}: target still intact`);assert.equal(g.bombed,false);assert.equal(g.escaped,false);assert.equal(g.result,null);
+ g.bombed=true;g.targetHp=0;step(g,{});assert.equal(g.status,'playing',`${role} ${teamSize}: escape still required`);
+ bomber.pos={...ESCAPE};step(g,{});assert.equal(g.status,'complete');assert.equal(g.escaped,true);assert.equal(g.result.winner,bomber.team);
+}});
 test('six connected players receive alternating authoritative seats',()=>{const g=createGame({teamSize:3});configurePlayers(g,['host','p1','p2','p3','p4','p5']);assert.deepEqual(g.pilots.map(p=>[p.id,p.team]),[['host',0],['p2',0],['p4',0],['p1',1],['p3',1],['p5',1]]);assert.ok(g.pilots.every(p=>p.human))});
 test('snapshot roundtrip retains mission rules, rejects wrong formats',()=>{const a=createGame({mode:'strike'}),b=createGame();run(a,4);assert.equal(applySnapshot(b,snapshot(a)),true);assert.deepEqual(snapshot(a),snapshot(b));assert.equal(applySnapshot(b,{version:99,pilots:[]}),false);assert.equal(applySnapshot(b,{version:1,pilots:Array(7).fill({})}),false)});
 

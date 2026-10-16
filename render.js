@@ -1,10 +1,10 @@
 import * as THREE from './vendor/three.module.js';
-import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=world2-1016';
-import {surfaceHeight} from './world.js?v=world2-1016';
-import {routeFor,destinationFor,fieldPoint} from './missions.js?v=world2-1016';
-import {Scenery} from './scenery.js?v=world2-1016';
-import {createAircraft,animateAircraft} from './aircraft.js?v=world2-1016';
-import {batchStatic} from './geometry.js?v=world2-1016';
+import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=world3-1016';
+import {surfaceHeight} from './world.js?v=world3-1016';
+import {routeFor,destinationFor,fieldPoint} from './missions.js?v=world3-1016';
+import {Scenery} from './scenery.js?v=world3-1016';
+import {createAircraft,animateAircraft} from './aircraft.js?v=world3-1016';
+import {batchStatic} from './geometry.js?v=world3-1016';
 export const makeJet=createAircraft;
 const COLORS={mint:0x9cead6,orange:0xffac7a};
 function canvasTexture(width,height,draw){const c=document.createElement('canvas');c.width=width;c.height=height;draw(c.getContext('2d'),width,height);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return tex}

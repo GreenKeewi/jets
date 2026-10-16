@@ -1,6 +1,6 @@
-import {surfaceHeight} from './world.js?v=world2-1016';
-import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=world2-1016';
-export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=world2-1016';
+import {surfaceHeight} from './world.js?v=world3-1016';
+import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=world3-1016';
+export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=world3-1016';
 // Flight and combat rules are renderer-independent so missions can be replayed deterministically.
 export const RUNWAY=AIRFIELDS.home;
 export const ROUTE=ROUTES.local.gates;
@@ -123,7 +123,7 @@ function mission(g,dt){
  }
  if(g.mode==='strike'){const bomber=g.pilots.find(p=>p.bomber);if(bomber?.dead){g.status='complete';g.result={title:bomber.team===0?'Strike intercepted':'Interceptor victory',text:'The bomber was stopped before reaching its escape zone.',winner:1-bomber.team};return}if(g.bombed&&bomber&&horizontal(bomber.pos,ESCAPE)<ESCAPE.radius&&bomber.pos.y>100){g.escaped=true;g.status='complete';g.result={title:bomber.team===0?'Clean getaway':'Bomber escaped',text:'The target was destroyed and the strike aircraft reached safety.',winner:bomber.team};return}}
  const alive=[g.pilots.some(p=>!p.dead&&p.team===0),g.pilots.some(p=>!p.dead&&p.team===1)];
- if(!alive[0]||!alive[1]){g.status='complete';g.result={title:alive[0]?'Air superiority':'Squadron defeated',text:alive[0]?'The skies are yours. Every opposing aircraft is down.':'Your squadron has been intercepted. Try another sortie.',winner:alive[0]?0:1}}
+ if(g.mode==='dogfight'&&(!alive[0]||!alive[1])){g.status='complete';g.result={title:alive[0]?'Air superiority':'Squadron defeated',text:alive[0]?'The skies are yours. Every opposing aircraft is down.':'Your squadron has been intercepted. Try another sortie.',winner:alive[0]?0:1}}
  if(g.time>480){g.status='complete';g.result={title:'Sortie complete',text:'Fuel reserve reached. The squadron is returning to base.',winner:null}}
 }
 export function step(g,inputs={},dt=1/60){if(g.status!=='playing')return;dt=clamp(dt,0,.05);g.time+=dt;g.tick++;for(const p of g.pilots)updatePilot(g,p,p.human?(inputs[p.id]||{}):ai(g,p,dt),dt);updateMissiles(g,dt);
