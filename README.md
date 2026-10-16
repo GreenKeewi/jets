@@ -38,6 +38,13 @@ Strike success requires both destruction of the depot and arrival in the escape 
 
 ## Current controls and multiplayer verification
 
-This control/gun release uses pairing protocol `JETS3`. Reload both players before exchanging fresh codes; older `JETS2` codes are rejected with a clear version message. Gun damage, ammunition, cooldown, bullets and mission outcomes remain host-authoritative; guests send bounded input actions and receive snapshots.
+This control/gun release uses pairing protocol `JETS4`. Reload both players before exchanging fresh codes; older `JETS2`/`JETS3` codes are rejected with a clear version message. Gun damage, ammunition, cooldown, bullets and mission outcomes remain host-authoritative; guests send bounded realtime held-gun state and discrete weapon actions, and receive snapshots.
 
 Normal-animation browser fixtures exercise actual keys at all four cardinal headings in chase/cockpit, including projected forward/wingtip movement, cockpit bank, power/pitch, press-only Q/E, gun tracers, and results Escape. A separate three-document application integration fixture covers guest controls and both replay paths after late joins. This executor's managed Chromium policy `WebRtcIPHandling: disable_non_proxied_udp` returns no native LAN candidates. The integration transport fixture is explicitly **not native WebRTC or a physical Wi-Fi test**. No browser policy or proxy bypass is used. Accessible current reports are published under `evidence/controls/`.
+
+
+## Guest gun cadence under jitter
+
+The gun uses realtime held input with a 250 ms freshness timeout. The host simulation alone sets its 10-round/second cadence and ammunition. A release stops firing on arrival; a lost release/update expires the gun state, and reliable missile/countermeasure traffic cannot renew it. Q/E remain discrete, press-only missiles. JETS4 rejects older pairing versions so both players must reload and exchange fresh codes.
+
+The deterministic transport-plus-host-simulation regression reproduces four local shots versus two guest shots with the previous dual 100 ms cooldowns and 20/19/20/19 ms delays; the repair produces four versus four. Separate regressions cover release, dropped updates, expiry, reordering and the existing pause/replay generation boundaries. See `evidence/gun-jitter/README.md`. Native LAN connectivity remains unverified under this cloud browser's managed policy.

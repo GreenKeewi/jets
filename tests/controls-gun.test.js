@@ -40,7 +40,7 @@ test('swept rounds hit between frames, respect terrain occlusion, and ignore fri
  g=fixture();advanceGunRounds(g,.05,{ground:(x,z)=>z>=200&&z<=300?900:0});assert.equal(g.pilots[0].hp,100);assert.equal(g.bullets.length,0);
  g=fixture(0);advanceGunRounds(g,.05,{ground:()=>0});assert.equal(g.pilots[0].hp,100);assert.equal(g.bullets.length,1);
 });
-test('host-clock gun actions are bounded and six simultaneous streams stay inside the snapshot budget',()=>{
- let now=0;const guard=createInputGuard(()=>now);assert.equal(guard({t:'actions',q:0,input:{fireGun:true}},'actions').fireGun,true);now=50;assert.equal(guard({t:'actions',q:1,input:{fireGun:true}},'actions').fireGun,false);now=101;assert.equal(guard({t:'actions',q:2,input:{fireGun:true}},'actions').fireGun,true);
+test('held gun input is isolated from pulse actions and six simultaneous streams stay inside the snapshot budget',()=>{
+ let now=0;const guard=createInputGuard(()=>now);assert.equal(guard({t:'axes',q:0,input:{fireGun:true}},'axes').fireGun,true);now=99;assert.equal(guard({t:'axes',q:1,input:{fireGun:true}},'axes').fireGun,true);assert.equal(guard({t:'actions',q:0,input:{fireGun:true}},'actions').fireGun,false);
  const g=air(createGame({teamSize:3})),ids=['host','p1','p2','p3','p4','p5'];configurePlayers(g,ids);run(g,2,Object.fromEntries(ids.map(id=>[id,{fireGun:true,flare:true,chaff:true}])));const before=JSON.stringify(snapshot(g)),packet={t:'snapshot',q:1,value:snapshot(g)},encoded=serializePacket(packet);assert(encoded);assert(new TextEncoder().encode(encoded).length<=60000);assert.equal(JSON.stringify(snapshot(g)),before);
 });

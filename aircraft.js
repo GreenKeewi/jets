@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js';
-import {batchStatic} from './geometry.js?v=controls4-1016';
+import {batchStatic} from './geometry.js?v=gun5-1016';
 const paint=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.52,metalness:.34,...extra});
 function block(w,h,d,material,x=0,y=0,z=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);return m}
 function panel(points,material,thickness=.12){

@@ -1,4 +1,4 @@
-import {flightForward,gunMuzzle} from './view-axes.js?v=controls4-1016';
+import {flightForward,gunMuzzle} from './view-axes.js?v=gun5-1016';
 export const GUN={capacity:300,interval:.1,speed:850,life:1.35,damage:10,maxRounds:96,tracerLength:42};
 export function fireGunRound(g,p){
  const rounds=g.bullets||(g.bullets=[]);if(p.dead||!Number.isFinite(p.gunAmmo)||p.gunAmmo<=0||p.gunCD>1e-8||rounds.length>=GUN.maxRounds)return false;

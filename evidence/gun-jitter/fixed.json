@@ -1,0 +1,6 @@
+{
+  "method": "Deterministic RTC transport fixture + actual host/guest network pipeline + 60Hz host simulation. Sender at 0/100/200/300 ms; delays 20/19/20/19 ms. Not native WebRTC.",
+  "hostShots": 4,
+  "guestShots": 4,
+  "deliveries": 5
+}

@@ -1,13 +1,15 @@
 // Data-only, manually signalled WebRTC. No discovery, signalling service, STUN or TURN.
 // Protocol: ordered reliable control/actions; unordered zero-retransmit axes/snapshots.
-export const PROTOCOL = 'JETS3';
-export const ACTIONS = ['fireGun', 'fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb'];
-export { mountNetworkUI } from './network-ui.js?v=controls4-1016';
+export const PROTOCOL = 'JETS4';
+export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb'];
+export { mountNetworkUI } from './network-ui.js?v=gun5-1016';
+const HELD = ['fireGun'];
+const GUN_INPUT_EXPIRY = 250;
 const AXES = ['pitch', 'roll', 'yaw', 'throttle'];
-const COOLDOWN = { fireGun: 100, fireHeat: 250, fireRadar: 400, flare: 200, chaff: 200, bomb: 300 };
+const COOLDOWN = { fireHeat: 250, fireRadar: 400, flare: 200, chaff: 200, bomb: 300 };
 const MAX_PACKET = 60000;
 const HIGH_WATER = 131072;
-const neutral = () => Object.fromEntries([...AXES.map(k => [k, 0]), ...ACTIONS.map(k => [k, false]), ['brake', false]]);
+const neutral = () => Object.fromEntries([...AXES.map(k => [k, 0]), ...[...ACTIONS, ...HELD].map(k => [k, false]), ['brake', false]]);
 const now = () => performance.now();
 const uuid = () => crypto.randomUUID();
 const plain = o => !!o && typeof o === 'object' && !Array.isArray(o);
@@ -39,13 +41,13 @@ export function serializePacket(packet, maxBytes = MAX_PACKET) {
 }
 
 export function validateInput(input) {
-  if (!plain(input) || Object.keys(input).some(k => ![...AXES, ...ACTIONS, 'brake'].includes(k))) return null;
+  if (!plain(input) || Object.keys(input).some(k => ![...AXES, ...ACTIONS, ...HELD, 'brake'].includes(k))) return null;
   const out = neutral();
   for (const k of AXES) {
     if (input[k] !== undefined && (typeof input[k] !== 'number' || !Number.isFinite(input[k]) || Math.abs(input[k]) > 1)) return null;
     out[k] = input[k] ?? 0;
   }
-  for (const k of [...ACTIONS, 'brake']) {
+  for (const k of [...ACTIONS, ...HELD, 'brake']) {
     if (input[k] !== undefined && typeof input[k] !== 'boolean') return null;
     out[k] = input[k] ?? false;
   }
@@ -60,8 +62,8 @@ export function decodePairing(code, expectedType) {
     const trimmed = code.trim();
     if (!trimmed.startsWith(`${PROTOCOL}.`)) throw Error();
     const p = JSON.parse(atob(trimmed.slice(PROTOCOL.length + 1).replace(/\s/g, '')));
-    if (plain(p) && Number.isInteger(p.v) && p.v !== 3) { const error=incompatible(); error.name='VersionMismatchError'; throw error; }
-    if (!plain(p) || p.v !== 3 || !['offer', 'answer'].includes(p.type) || (expectedType && p.type !== expectedType)) throw Error();
+    if (plain(p) && Number.isInteger(p.v) && p.v !== 4) { const error=incompatible(); error.name='VersionMismatchError'; throw error; }
+    if (!plain(p) || p.v !== 4 || !['offer', 'answer'].includes(p.type) || (expectedType && p.type !== expectedType)) throw Error();
     if (!/^[\w-]{16,64}$/.test(p.session) || !/^[\w-]{16,64}$/.test(p.pair) || !/^p[1-5]$/.test(p.slot)) throw Error();
     if (!plain(p.description) || p.description.type !== p.type || typeof p.description.sdp !== 'string' || p.description.sdp.length > MAX_PACKET) throw Error();
     if (!p.description.sdp.startsWith('v=0') || !p.description.sdp.includes('m=application') || /m=(audio|video)\s/.test(p.description.sdp)) throw Error();
@@ -108,6 +110,7 @@ export function createInputGuard(clock = now) {
     b.tokens = Math.min(rate, b.tokens + Math.max(0, t - b.at) * rate / 1000); b.at = t;
     if (b.tokens < 1) return null;
     b.tokens--; sequences[channel] = packet.q;
+    if (channel !== 'axes') for (const k of HELD) input[k] = false;
     for (const k of ACTIONS) {
       if (channel === 'axes') input[k] = false;
       else if (input[k] && t - lastAction[k] >= COOLDOWN[k]) lastAction[k] = t;
@@ -288,7 +291,7 @@ export function createNetwork(callbacks = {}) {
         await p.pc.setLocalDescription(await p.pc.createOffer()); await waitForIce(p.pc); requireLocalCandidates(p.pc);
         if (connections.get(id) !== p) throw new Error('Offer was cancelled. Create a fresh offer.');
         setStatus(`Offer for ${id} ready. Give it only to that guest, then paste their answer.`);
-        return encodePairing({ v: 3, type: 'offer', session: sessionId, pair: p.pair, slot: id, description: p.pc.localDescription.toJSON() });
+        return encodePairing({ v: 4, type: 'offer', session: sessionId, pair: p.pair, slot: id, description: p.pc.localDescription.toJSON() });
       } catch (error) { drop(p, error.message); throw error; }
     },
     async acceptAnswer(code) {
@@ -312,7 +315,7 @@ export function createNetwork(callbacks = {}) {
         await p.pc.setLocalDescription(await p.pc.createAnswer()); await waitForIce(p.pc); requireLocalCandidates(p.pc);
         if (connections.get('host') !== p) throw new Error('Pairing was cancelled. Ask for a fresh offer.');
         setStatus('Answer ready. Give the whole answer to the host, who must paste it into their pairing panel.');
-        return encodePairing({ v: 3, type: 'answer', session: offer.session, pair: offer.pair, slot: offer.slot, description: p.pc.localDescription.toJSON() });
+        return encodePairing({ v: 4, type: 'answer', session: offer.session, pair: offer.pair, slot: offer.slot, description: p.pc.localDescription.toJSON() });
       } catch (error) { drop(p, error.message); throw error; }
     },
     submitInput(value) {
@@ -338,6 +341,8 @@ export function createNetwork(callbacks = {}) {
       const result = {};
       for (const [id, value] of inputs) {
         result[id] = now() - value.axesAt > 750 ? neutral() : { ...value.axes };
+        // A lost release packet must not leave the gun firing until axes expiry.
+        if (now() - value.axesAt > GUN_INPUT_EXPIRY) result[id].fireGun = false;
         for (const k of ACTIONS) result[id][k] = typeof value.actions[k] === 'number' && now() - value.actions[k] <= 750;
         value.actions = {};
       }

@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.js';
-import {terrainHeight,worldNoise,coastPoint,northernRidgeHeight,SEA_LEVEL} from './world.js?v=controls4-1016';
-import {createAircraft} from './aircraft.js?v=controls4-1016';
-import {AIRFIELDS,fieldPoint,fieldCoordinates} from './missions.js?v=controls4-1016';
+import {terrainHeight,worldNoise,coastPoint,northernRidgeHeight,SEA_LEVEL} from './world.js?v=gun5-1016';
+import {createAircraft} from './aircraft.js?v=gun5-1016';
+import {AIRFIELDS,fieldPoint,fieldCoordinates} from './missions.js?v=gun5-1016';
 const standard=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.88,metalness:.08,...extra});
 function box(w,h,d,mat,x=0,y=0,z=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);return m}
 function canvasTexture(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}

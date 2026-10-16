@@ -1,8 +1,8 @@
-import {flightForward} from './view-axes.js?v=controls4-1016';
-import {GUN,fireGunRound,advanceGunRounds} from './guns.js?v=controls4-1016';
-import {surfaceHeight} from './world.js?v=controls4-1016';
-import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=controls4-1016';
-export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=controls4-1016';
+import {flightForward} from './view-axes.js?v=gun5-1016';
+import {GUN,fireGunRound,advanceGunRounds} from './guns.js?v=gun5-1016';
+import {surfaceHeight} from './world.js?v=gun5-1016';
+import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=gun5-1016';
+export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=gun5-1016';
 // Flight and combat rules are renderer-independent so missions can be replayed deterministically.
 export const RUNWAY=AIRFIELDS.home;
 export const ROUTE=ROUTES.local.gates;

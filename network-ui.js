@@ -1,7 +1,7 @@
 // Optional pairing panel. Native controls keep all text exchange keyboard accessible.
 export function mountNetworkUI(container, network) {
   if (!container) return () => {};
-  const protocol=network.protocol||'JETS3';
+  const protocol=network.protocol||'JETS4';
   container.innerHTML = `<section class="net-panel" aria-label="LAN multiplayer pairing">
     <h3>Fly together · direct LAN</h3>
     <p>One host, up to five guests. Each guest exchanges a different offer and answer with the host. Same Wi-Fi alone does not discover or guarantee a connection.</p>
