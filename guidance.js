@@ -1,0 +1,20 @@
+import {angle,dist,horizontal,clamp} from './sim.js?v=world2-1016';
+export function waypointScreenPosition(projected,forwardDot,width,height,cockpit=false){
+ let x=forwardDot>0?clamp(projected.x,80,width-80):width/2,y=forwardDot>0?clamp(projected.y,140,height-190):height*.7;
+ // Keep edge-clamped guidance clear of the task card and essential flight instruments.
+ if(x<380&&y<190)y=Math.min(height-150,205);
+ if(!cockpit&&x<230&&y>height*.34&&y<height*.66)x=Math.min(width-80,260);
+ return{x,y};
+}
+export function combatCue(game,p){
+ if(game.mode==='freeflight'||p.dead||game.mode==='strike'&&p.bomber)return null;
+ const enemies=game.pilots.filter(q=>q.team!==p.team&&!q.dead);if(!enemies.length)return null;
+ const target=enemies.find(q=>q.id===p.targetId)||enemies.find(q=>game.mode==='strike'&&q.bomber)||enemies.sort((a,b)=>dist(a.pos,p.pos)-dist(b.pos,p.pos))[0];
+ if(target.id===p.targetId&&p.lock>.45)return null;
+ const heading=angle(Math.atan2(target.pos.x-p.pos.x,target.pos.z-p.pos.z)-p.yaw),vertical=Math.atan2(target.pos.y-p.pos.y,Math.max(1,horizontal(target.pos,p.pos)))-p.pitch;
+ const range=dist(target.pos,p.pos),distance=range>=1000?`${(range/1000).toFixed(1)} km`:`${Math.round(range/10)*10} m`;
+ if(Math.abs(heading)>.48)return{key:heading>0?'D':'A',text:heading>0?'Turn right':'Turn left',distance,kind:target.bomber?'BOMBER':'BANDIT'};
+ if(Math.abs(vertical)>.28)return{key:vertical>0?'W':'S',text:vertical>0?'Climb toward target':'Descend toward target',distance,kind:target.bomber?'BOMBER':'BANDIT'};
+ return null;
+}
+export function nearestThreat(game,p){return game.missiles.filter(m=>m.targetId===p.id&&!m.decoyed&&dist(m.pos,p.pos)<1100).sort((a,b)=>dist(a.pos,p.pos)-dist(b.pos,p.pos))[0]||null}

@@ -22,9 +22,10 @@ test('connection guard rejects replay, identity injection and bursts; cooldown i
 });
 test('manual pairing rejects malformed, wrong-kind, camera/audio and unreasonable payloads', () => {
   assert.throws(()=>decodePairing('garbage'));
-  assert.throws(()=>decodePairing('JETS1.'+'x'.repeat(100001)));
-  const payload={v:1,type:'offer',session:'s'.repeat(20),pair:'p'.repeat(20),slot:'p1',description:{type:'offer',sdp:'v=0\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\n'}};
-  const code=()=>`JETS1.${btoa(JSON.stringify(payload))}`;
+  assert.throws(()=>decodePairing('JETS2.'+'x'.repeat(100001)));
+  assert.throws(()=>decodePairing('JETS1.any-previous-code'),/Reload Jets on both devices/);
+  const payload={v:2,type:'offer',session:'s'.repeat(20),pair:'p'.repeat(20),slot:'p1',description:{type:'offer',sdp:'v=0\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\n'}};
+  const code=()=>`JETS2.${btoa(JSON.stringify(payload))}`;
   assert.equal(decodePairing(code(),'offer').slot,'p1');
   assert.throws(()=>decodePairing(code(),'answer'));
   payload.description.sdp+='m=audio 9 UDP/TLS/RTP/SAVPF 111\r\n';
