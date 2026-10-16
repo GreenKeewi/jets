@@ -42,13 +42,13 @@
       },
       "guestInput": {
         "id": "p1",
-        "rightYaw": -0.13188134502767632,
+        "rightYaw": -0.2889551034644289,
         "powerBefore": 0.5,
-        "powerRaised": 0.6709999999999992,
+        "powerRaised": 0.626666666666666,
         "pitchRaised": 0,
         "gunShots": 8,
         "gunAmmo": 292,
-        "rightTurnYaw": 0.39970096660847304
+        "rightTurnYaw": 0.19325447764126882
       },
       "guestMissiles": [
         {
