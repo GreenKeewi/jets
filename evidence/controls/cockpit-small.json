@@ -1,0 +1,17 @@
+{
+  "pass": true,
+  "method": "Native keyboard cockpit at 683x384; nonoverlapping weapon/instrument rectangles; pause/resume restores firing focus",
+  "weapons": {
+    "left": 18,
+    "right": 207.125,
+    "top": 261,
+    "bottom": 364
+  },
+  "instruments": {
+    "left": 230,
+    "right": 671,
+    "top": 271,
+    "bottom": 386
+  },
+  "horizontalScroll": false
+}

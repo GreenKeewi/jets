@@ -1,0 +1,68 @@
+
+> skybreak-jets@1.0.0 test
+> node --test tests/*.test.js
+
+✔ A/D and horizontal arrows turn to the matching screen side at every cardinal heading (17.448905ms)
+✔ Up/Down change only power, W/S pitch, and Q/E never become axes or held missile fire (0.342913ms)
+✔ camera up, heading, radar and turn hints share pilot-relative left/right at cardinal headings (0.736503ms)
+✔ both replay paths can use a nonmutating roster-normalized configuration for late guests (0.80773ms)
+✔ held gun fires ten rounds per second without lock and preserves missile stocks (13.218641ms)
+✔ unguided gun rounds damage an aimed hostile and can complete combat, but miss off-axis aircraft (13.474969ms)
+✔ swept rounds hit between frames, respect terrain occlusion, and ignore friendly aircraft (0.754059ms)
+✔ host-clock gun actions are bounded and six simultaneous streams stay inside the snapshot budget (34.837004ms)
+✔ a fresh sortie clears previous guest controls and queued action pulses (11.776312ms)
+✔ reliable action traffic cannot keep stale realtime axes active (1.818823ms)
+✔ a buffer-full exception during reliable queue flush preserves the command for retry (1.44952ms)
+✔ late events from a removed connection cannot recreate its input state (1.806595ms)
+✔ old in-flight axes and weapon actions cannot affect a new sortie (1.347368ms)
+✔ old world snapshots cannot roll a guest back after a new sortie begins (1.191223ms)
+✔ pause/resume drops pending inputs and rejects even current-generation input while paused (0.806748ms)
+✔ a direct reliable send buffer exception queues and retries the command exactly once (0.594941ms)
+✔ a peer that never drains reliable control is removed before its queue can grow without bound (1.09554ms)
+✔ normal and ace difficulty are carried in authoritative start settings and invalid values are rejected (1.024074ms)
+✔ only supported host-selected routes reach guests and late-join settings (1.279075ms)
+✔ untrusted input rejects identity, nonfinite/out-of-range axes and invalid button types (1.296522ms)
+✔ connection guard rejects replay, identity injection and bursts; cooldown is host-clock based (2.875345ms)
+✔ manual pairing rejects malformed, wrong-kind, camera/audio and unreasonable payloads (1.264954ms)
+✔ snapshot interpolation chooses matching identity and shortest heading arc without mutation (0.503774ms)
+✔ six simultaneous flare/chaff volleys stay within wire budget without changing authoritative state (71.493861ms)
+✔ all authored destination routes fly, approach and stop on the correct heading and elevation (224.979887ms)
+✔ only the host pilot advances a shared freeflight takeoff (13.48365ms)
+✔ a guest landing or hillside recovery cannot change the host mission phase (0.965061ms)
+✔ route guidance computes inputs without changing mission or pilot state (1.348003ms)
+✔ east-west runway rejects a north-facing touchdown and accepts its actual heading/elevation (0.356843ms)
+✔ landing at another airfield cannot complete a selected destination route (0.270244ms)
+✔ every destination recovers a missed approach and completes a second landing pass (66.696006ms)
+✔ slow off-runway taxi safely resets to the correct field threshold and elevation (0.643281ms)
+✔ fast runway overruns recover above actual terrain at every destination (0.351325ms)
+✔ replays are deterministic with a fixed seed (421.501549ms)
+✔ all squad sizes resolve combat with kills before fuel reserve (425.696025ms)
+✔ Ace bots resolve every squad size using the same aircraft health and ammunition (740.599806ms)
+✔ countermeasure type matters and ammunition cooldown is enforced (0.762509ms)
+✔ ground roll, full route, approach, touchdown and stop complete naturally (28.34109ms)
+✔ an early practice touchdown cannot claim the route award (0.256412ms)
+✔ unsafe off-runway touchdown gives a recoverable go-around (0.180099ms)
+✔ strike bomb destroys the target, then escape completes the objective (3.60858ms)
+✔ intercepting the bomber ends strike mode for the defender (0.264445ms)
+✔ eliminating strike defenders never replaces the bombing and escape objectives (0.660116ms)
+✔ six connected players receive alternating authoritative seats (0.259518ms)
+✔ snapshot roundtrip retains mission rules, rejects wrong formats (3.028023ms)
+✔ a player-flown strike can defeat active defenders using timely counters and a clean release (67.746735ms)
+✔ six cooperative pilots spawn fully within the runway and can take off together (6.719576ms)
+✔ airport runway/apron and target hardstand match their visible foundations (1.225996ms)
+✔ coast finder follows the actual waterline around irregular shoreline (1.654247ms)
+✔ a hillside collision recovers free flight above real terrain instead of underground (1.443781ms)
+✔ combat aircraft cannot fly through a ridge (1.14171ms)
+✔ missiles collide with the solid mountain surface (0.346168ms)
+✔ bots look ahead and remain above real terrain during a dogfight (248.874599ms)
+✔ combat bearing hints use aircraft heading and target altitude (0.500908ms)
+✔ strike bearing cues respect the bomber mission and point defenders toward the bomber (0.223995ms)
+✔ edge guidance avoids the flight readouts and task card at Chromebook sizes (0.578965ms)
+ℹ tests 56
+ℹ suites 0
+ℹ pass 56
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1923.962787

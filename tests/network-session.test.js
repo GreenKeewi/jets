@@ -44,13 +44,13 @@ test('late events from a removed connection cannot recreate its input state',()=
 }));
 test('old in-flight axes and weapon actions cannot affect a new sortie',()=>session(async({host,guest,pcs,advance})=>{
   const axes=pcs.guest.channels.find(c=>c.label==='realtime'),actions=pcs.guest.channels.find(c=>c.label==='control');
-  axes.hold=actions.hold=true;guest.submitInput({pitch:.9,flare:true});await settle();
+  axes.hold=actions.hold=true;guest.submitInput({pitch:.9,flare:true,fireGun:true});await settle();
   const priorGeneration=host.state.inputGeneration;
   host.broadcastControl({type:'start',config});await settle();
   assert.ok(host.state.inputGeneration>priorGeneration);
   axes.release();actions.release();await settle();assert.deepEqual(host.consumeInputs(),{});
-  axes.hold=actions.hold=false;advance(10);guest.submitInput({pitch:-.4,flare:true});await settle();
-  const fresh=host.consumeInputs().p1;assert.equal(fresh.pitch,-.4);assert.equal(fresh.flare,true);
+  axes.hold=actions.hold=false;advance(10);guest.submitInput({pitch:-.4,flare:true,fireGun:true});await settle();
+  const fresh=host.consumeInputs().p1;assert.equal(fresh.pitch,-.4);assert.equal(fresh.flare,true);assert.equal(fresh.fireGun,true);
 }));
 test('old world snapshots cannot roll a guest back after a new sortie begins',()=>session(async({host,guest,pcs,advance})=>{
   const realtime=pcs.host.channels.find(c=>c.label==='realtime');realtime.hold=true;

@@ -1,10 +1,10 @@
 // Data-only, manually signalled WebRTC. No discovery, signalling service, STUN or TURN.
 // Protocol: ordered reliable control/actions; unordered zero-retransmit axes/snapshots.
-export const PROTOCOL = 'JETS2';
-export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb'];
-export { mountNetworkUI } from './network-ui.js?v=world3-1016';
+export const PROTOCOL = 'JETS3';
+export const ACTIONS = ['fireGun', 'fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb'];
+export { mountNetworkUI } from './network-ui.js?v=controls4-1016';
 const AXES = ['pitch', 'roll', 'yaw', 'throttle'];
-const COOLDOWN = { fireHeat: 250, fireRadar: 400, flare: 200, chaff: 200, bomb: 300 };
+const COOLDOWN = { fireGun: 100, fireHeat: 250, fireRadar: 400, flare: 200, chaff: 200, bomb: 300 };
 const MAX_PACKET = 60000;
 const HIGH_WATER = 131072;
 const neutral = () => Object.fromEntries([...AXES.map(k => [k, 0]), ...ACTIONS.map(k => [k, false]), ['brake', false]]);
@@ -25,10 +25,10 @@ export function serializePacket(packet, maxBytes = MAX_PACKET) {
   if (world && size() > maxBytes) {
     value = { ...value };
     // These lists are cosmetic on guests; collision and weapon outcomes stay on the host.
-    for (const key of ['countermeasures', 'effects']) {
+    for (const key of ['countermeasures', 'effects', 'bullets']) {
       if (!Array.isArray(value[key])) continue;
       while (value[key].length && size() > maxBytes) {
-        const count = Math.min(key === 'countermeasures' ? 144 : 24, Math.floor(value[key].length / 2));
+        const count = Math.min(key === 'countermeasures' ? 144 : key === 'bullets' ? 48 : 24, Math.floor(value[key].length / 2));
         value[key] = count ? value[key].slice(-count) : [];
         data = stringify();
       }
@@ -60,8 +60,8 @@ export function decodePairing(code, expectedType) {
     const trimmed = code.trim();
     if (!trimmed.startsWith(`${PROTOCOL}.`)) throw Error();
     const p = JSON.parse(atob(trimmed.slice(PROTOCOL.length + 1).replace(/\s/g, '')));
-    if (plain(p) && Number.isInteger(p.v) && p.v !== 2) { const error=incompatible(); error.name='VersionMismatchError'; throw error; }
-    if (!plain(p) || p.v !== 2 || !['offer', 'answer'].includes(p.type) || (expectedType && p.type !== expectedType)) throw Error();
+    if (plain(p) && Number.isInteger(p.v) && p.v !== 3) { const error=incompatible(); error.name='VersionMismatchError'; throw error; }
+    if (!plain(p) || p.v !== 3 || !['offer', 'answer'].includes(p.type) || (expectedType && p.type !== expectedType)) throw Error();
     if (!/^[\w-]{16,64}$/.test(p.session) || !/^[\w-]{16,64}$/.test(p.pair) || !/^p[1-5]$/.test(p.slot)) throw Error();
     if (!plain(p.description) || p.description.type !== p.type || typeof p.description.sdp !== 'string' || p.description.sdp.length > MAX_PACKET) throw Error();
     if (!p.description.sdp.startsWith('v=0') || !p.description.sdp.includes('m=application') || /m=(audio|video)\s/.test(p.description.sdp)) throw Error();
@@ -288,7 +288,7 @@ export function createNetwork(callbacks = {}) {
         await p.pc.setLocalDescription(await p.pc.createOffer()); await waitForIce(p.pc); requireLocalCandidates(p.pc);
         if (connections.get(id) !== p) throw new Error('Offer was cancelled. Create a fresh offer.');
         setStatus(`Offer for ${id} ready. Give it only to that guest, then paste their answer.`);
-        return encodePairing({ v: 2, type: 'offer', session: sessionId, pair: p.pair, slot: id, description: p.pc.localDescription.toJSON() });
+        return encodePairing({ v: 3, type: 'offer', session: sessionId, pair: p.pair, slot: id, description: p.pc.localDescription.toJSON() });
       } catch (error) { drop(p, error.message); throw error; }
     },
     async acceptAnswer(code) {
@@ -312,7 +312,7 @@ export function createNetwork(callbacks = {}) {
         await p.pc.setLocalDescription(await p.pc.createAnswer()); await waitForIce(p.pc); requireLocalCandidates(p.pc);
         if (connections.get('host') !== p) throw new Error('Pairing was cancelled. Ask for a fresh offer.');
         setStatus('Answer ready. Give the whole answer to the host, who must paste it into their pairing panel.');
-        return encodePairing({ v: 2, type: 'answer', session: offer.session, pair: offer.pair, slot: offer.slot, description: p.pc.localDescription.toJSON() });
+        return encodePairing({ v: 3, type: 'answer', session: offer.session, pair: offer.pair, slot: offer.slot, description: p.pc.localDescription.toJSON() });
       } catch (error) { drop(p, error.message); throw error; }
     },
     submitInput(value) {

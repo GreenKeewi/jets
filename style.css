@@ -24,3 +24,7 @@ dialog{color:var(--paper);color-scheme:dark}dialog::backdrop{background:#0a2433a
 /* The default view contains only the next action and essential flight/combat information. */
 #hud:not(.expanded-instruments) #compass,#hud:not(.expanded-instruments) .readout.power,#hud:not(.expanded-instruments) .radar-block,#hud:not(.expanded-instruments) #route-progress{display:none}#hud:not(.expanded-instruments) #health:not(.damaged){display:none}#hud.cockpit-view .readouts{display:none}#hud:not(.expanded-instruments) .flight-brand>span{display:none}
 #hud:not(.expanded-instruments) #flight-tip{display:none}
+
+#crosshair.firing{color:#ffe296;filter:drop-shadow(0 0 4px #ffc45b)}
+
+@media(min-width:600px) and (max-width:900px){.cockpit-dashboard{left:230px;right:12px}#hud.cockpit-view .weapons{max-width:195px}}

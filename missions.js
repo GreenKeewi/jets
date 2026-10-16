@@ -2,7 +2,7 @@
 export const AIRFIELDS={
  home:{id:'home',name:'Coastal Air Base',shortName:'Coastal',x:-1800,z:-2000,elevation:0,heading:0,halfLength:1000,width:100,runway:'36'},
  northpoint:{id:'northpoint',name:'Northpoint Ridge',shortName:'Northpoint',x:4200,z:10300,elevation:72,heading:0,halfLength:850,width:85,runway:'36'},
- westhaven:{id:'westhaven',name:'Westhaven Island',shortName:'Westhaven',x:-9900,z:4200,elevation:8,heading:Math.PI/2,halfLength:850,width:85,runway:'09'},
+ westhaven:{id:'westhaven',name:'Westhaven Island',shortName:'Westhaven',x:-9900,z:4200,elevation:8,heading:Math.PI/2,halfLength:850,width:85,runway:'27'},
 };
 export const ROUTES={
  local:{id:'local',name:'Local loop',destination:'home',description:'Five scenic gates. Return to Coastal Air Base.',duration:'2–3 min',gates:[{x:-1800,y:300,z:-200},{x:0,y:650,z:1300},{x:2100,y:600,z:0},{x:300,y:480,z:-2100},{x:-1800,y:260,z:-3500}]},

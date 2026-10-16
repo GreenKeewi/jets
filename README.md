@@ -14,7 +14,9 @@ The archipelago occupies a 30 × 26 km flight area, with approximately 180 km² 
 
 ## Keyboard
 
-W/S or Up/Down climb/descend; A/D or Left/Right bank and turn; Q/E fine rudder; Shift increases power; Z or minus reduces power; X air/wheel brakes. Space heat seeker; R radar missile; F flares; C chaff; B bomb; V chase/cockpit; G free-flight route assist; I optional expanded instruments; H controls; Escape or P pause; M mute. Release flight controls to level out. Tab, Enter and native select arrow keys navigate menus. Pairing supports Ctrl+A/C/V in its text fields. The default HUD shows the current task and essential flight/combat cues; cockpit view puts speed, altitude, thrust and attitude in its functional panel.
+**A / D** or **Left / Right** bank and turn visually left / right. **Up / Down** increases / reduces engine power; Shift and Z/minus remain power aliases. **W / S** climbs / descends. X air/wheel brakes. **Hold Space for the machine gun**: unguided rounds need no lock, so lead the target with the crosshair. Gun ammunition tops up during the sortie. **Q fires a heat-seeking missile; E fires a radar missile.** Build a short/full lock respectively, then press once. Holding or auto-repeat on Q/E does not steer, change power or launch repeatedly. F flares; C chaff; B bomb; V chase/cockpit; G free-flight route assist; I extra instruments; H controls; Escape or P pause; M mute. Release flight controls to level out. Tab, Enter and native select arrows navigate menus. Pairing fields support Ctrl+A/C/V.
+
+Positive simulation yaw/roll retains the authored world/AI convention. Pilot-facing input, radar, directional hints, aircraft bank, cockpit horizon and clockwise compass headings use one consistent view convention. Westhaven's east–west arrival is labelled runway 27 for its displayed heading; the runway geometry and flight route are unchanged.
 
 ## Direct manual multiplayer
 
@@ -32,4 +34,10 @@ The original generated menu illustration is labeled as illustration. Gameplay is
 
 ## Strike objective regression
 
-Strike success requires both destruction of the depot and arrival in the escape zone; eliminating all defenders keeps the bombing mission active. The simulation suite includes both roles and every squad size. `tests/strike-realtime.cjs` repeats the original reproduction seed through native keyboard combat, bomb release and escape at normal animation speed, without position writes or simulation stepping. See `evidence/strike-regression-20261016.json` for the local browser result. Direct public-origin verification remains blocked by the cloud proxy; successful Pages jobs are recorded separately in the hub release manifest.
+Strike success requires both destruction of the depot and arrival in the escape zone; eliminating all defenders keeps the bombing mission active. The simulation suite includes both roles and every squad size. `tests/strike-realtime.cjs` repeats the original reproduction seed through native keyboard combat, bomb release and escape at normal animation speed, without position writes or simulation stepping. See `evidence/controls/strike-realtime.json` for the current native-key browser result; `evidence/strike-regression-20261016.json` records the preceding release. Direct public-origin verification remains blocked by the cloud proxy; successful Pages jobs are recorded separately in the hub release manifest.
+
+## Current controls and multiplayer verification
+
+This control/gun release uses pairing protocol `JETS3`. Reload both players before exchanging fresh codes; older `JETS2` codes are rejected with a clear version message. Gun damage, ammunition, cooldown, bullets and mission outcomes remain host-authoritative; guests send bounded input actions and receive snapshots.
+
+Normal-animation browser fixtures exercise actual keys at all four cardinal headings in chase/cockpit, including projected forward/wingtip movement, cockpit bank, power/pitch, press-only Q/E, gun tracers, and results Escape. A separate three-document application integration fixture covers guest controls and both replay paths after late joins. This executor's managed Chromium policy `WebRtcIPHandling: disable_non_proxied_udp` returns no native LAN candidates. The integration transport fixture is explicitly **not native WebRTC or a physical Wi-Fi test**. No browser policy or proxy bypass is used. Accessible current reports are published under `evidence/controls/`.

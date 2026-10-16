@@ -1,6 +1,8 @@
-import {surfaceHeight} from './world.js?v=world3-1016';
-import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=world3-1016';
-export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=world3-1016';
+import {flightForward} from './view-axes.js?v=controls4-1016';
+import {GUN,fireGunRound,advanceGunRounds} from './guns.js?v=controls4-1016';
+import {surfaceHeight} from './world.js?v=controls4-1016';
+import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=controls4-1016';
+export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=controls4-1016';
 // Flight and combat rules are renderer-independent so missions can be replayed deterministically.
 export const RUNWAY=AIRFIELDS.home;
 export const ROUTE=ROUTES.local.gates;
@@ -10,18 +12,18 @@ export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const angle=(v)=>Math.atan2(Math.sin(v),Math.cos(v));
 export const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);
 export const horizontal=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
-export function forward(p){return{x:Math.sin(p.yaw)*Math.cos(p.pitch),y:Math.sin(p.pitch),z:Math.cos(p.yaw)*Math.cos(p.pitch)}}
+export const forward=flightForward;
 function random(g){g.rng=(1664525*g.rng+1013904223)>>>0;return g.rng/4294967296}
 function spawnPilot(g,i,team){
  const free=g.mode==='freeflight',strike=g.mode==='strike',attacker=g.role==='defend'?1:0;
  const bomber=strike&&team===attacker&&i===(team===0?0:g.teamSize);
  let pos=free?{x:RUNWAY.x,y:3,z:-2720}:strike?(team===attacker?{x:(i%g.teamSize)*180,y:450,z:-2450-(i%g.teamSize)*200}:{x:1800+(i%g.teamSize)*150,y:650,z:300-(i%g.teamSize)*250}):{x:(i%g.teamSize)*240-180,y:700+(i%g.teamSize)*80,z:team===0?-1850:1850};
- return{id:i===0?'host':`bot${i}`,team,human:i===0,bomber,pos,yaw:free?0:strike?(team===attacker?0:-Math.PI/2):team===0?0:Math.PI,pitch:0,roll:0,speed:free?0:bomber?110:140,throttle:free?0:0.78,hp:100,heat:6,radar:4,flares:6,chaff:6,bombs:bomber?3:0,heatCD:0,radarCD:0,flareCD:0,chaffCD:0,bombCD:0,lock:0,targetId:null,dead:false,grounded:free,landed:false,runwayId:'home',aiTimer:0,aiShot:2+i*.6,aiDefend:0,aiBreak:0,aiNextBreak:7+i*1.9,rearm:0,aiEvade:0,trail:[]};
+ return{id:i===0?'host':`bot${i}`,team,human:i===0,bomber,pos,yaw:free?0:strike?(team===attacker?0:-Math.PI/2):team===0?0:Math.PI,pitch:0,roll:0,speed:free?0:bomber?110:140,throttle:free?0:0.78,hp:100,gunAmmo:GUN.capacity,gunCD:0,gunShots:0,heat:6,radar:4,flares:6,chaff:6,bombs:bomber?3:0,heatCD:0,radarCD:0,flareCD:0,chaffCD:0,bombCD:0,lock:0,targetId:null,dead:false,grounded:free,landed:false,runwayId:'home',aiTimer:0,aiShot:2+i*.6,aiDefend:0,aiBreak:0,aiNextBreak:7+i*1.9,rearm:0,aiEvade:0,trail:[]};
 }
 export function createGame({mode='dogfight',teamSize=1,role='attack',seed=64821,difficulty='normal',routeId='local'}={}){
  if(!['dogfight','strike','freeflight'].includes(mode))mode='dogfight';
  if(!Object.hasOwn(ROUTES,routeId))routeId='local';
- const g={version:1,mode,routeId,destinationId:ROUTES[routeId].destination,teamSize:clamp(Math.floor(teamSize)||1,1,3),role:role==='defend'?'defend':'attack',difficulty:difficulty==='ace'?'ace':'normal',rng:seed>>>0,time:0,tick:0,status:'playing',result:null,pilots:[],missiles:[],countermeasures:[],bombs:[],effects:[],events:[],serial:0,targetHp:100,bombed:false,routeIndex:0,flightStage:'takeoff',approachIndex:0,missionMessage:'',escaped:false};
+ const g={version:1,mode,routeId,destinationId:ROUTES[routeId].destination,teamSize:clamp(Math.floor(teamSize)||1,1,3),role:role==='defend'?'defend':'attack',difficulty:difficulty==='ace'?'ace':'normal',rng:seed>>>0,time:0,tick:0,status:'playing',result:null,pilots:[],missiles:[],bullets:[],countermeasures:[],bombs:[],effects:[],events:[],serial:0,targetHp:100,bombed:false,routeIndex:0,flightStage:'takeoff',approachIndex:0,missionMessage:'',escaped:false};
  for(let i=0;i<(mode==='freeflight'?1:g.teamSize*2);i++)g.pilots.push(spawnPilot(g,i,i<g.teamSize?0:1));
  emit(g,'start',mode==='freeflight'?'Clear for takeoff. Add power, then gently climb.':mode==='strike'?(g.role==='attack'?'Strike package airborne. Reach the target, then escape.':'Intercept the bomber before it escapes.'):'Weapons free. Protect your wingmates.');
  return g;
@@ -45,6 +47,7 @@ function ai(g,p,dt){
  if(incoming&&p.aiDefend<=0){p.aiDefend=(ace?3.2:5)+random(g)*(ace?1.5:2);if(random(g)<(ace?.88:.57)){i.flare=incoming.type==='heat';i.chaff=incoming.type==='radar'}p.aiEvade=2.5+random(g)*1.5}
  if(p.aiEvade>1.5){i.roll+=(p.team===0?0.45:-0.45);i.pitch=clamp(i.pitch+0.15,-1,1)}
  if(g.mode!=='freeflight'&&p.targetId&&p.lock>0.8&&p.aiShot<=0){const enemy=g.pilots.find(q=>q.id===p.targetId);if(enemy&&dist(p.pos,enemy.pos)<(ace?2900:2300)){i.fireHeat=p.heat>0&&(random(g)<.65||p.radar<=0);i.fireRadar=!i.fireHeat&&p.lock>1.45;p.aiShot=(ace?3.5:4.5)+random(g)*(ace?1.8:2.5)}}
+
  const path=forward(p),aheadGround=surfaceHeight(p.pos.x+path.x*p.speed*4,p.pos.z+path.z*p.speed*4);if(p.pos.y<Math.max(surfaceHeight(p.pos.x,p.pos.z)+170,aheadGround+200))i.pitch=Math.max(.7,i.pitch);
  if(p.pos.y>1700)i.pitch=Math.min(-0.5,i.pitch);
  if(p.pos.x<WORLD_BOUNDS.minX||p.pos.x>WORLD_BOUNDS.maxX||p.pos.z<WORLD_BOUNDS.minZ||p.pos.z>WORLD_BOUNDS.maxZ){return steer(p,{x:0,y:650,z:0})}
@@ -59,8 +62,8 @@ export function canBomb(g,p){return p.bomber&&p.bombs>0&&!g.bombed&&p.pos.y>100&
 function counter(g,p,type){const key=type==='flare'?'flares':'chaff',cd=type+'CD';if(!p[key]||p[cd]>0)return;p[key]--;p[cd]=1.2;for(let i=0;i<6;i++)g.countermeasures.push({id:++g.serial,type,ownerId:p.id,pos:{...p.pos},vel:{x:(random(g)-.5)*60,y:(random(g)-.5)*40-12,z:(random(g)-.5)*60},age:0,life:type==='flare'?3.8:5});emit(g,'counter',type==='flare'?'Flares out':'Chaff out',{pilotId:p.id})}
 function updatePilot(g,p,input,dt){
  if(p.dead)return;
- for(const k of ['heatCD','radarCD','flareCD','chaffCD','bombCD'])p[k]=Math.max(0,p[k]-dt);
- p.rearm=(p.rearm||0)+dt;if(p.rearm>22&&g.mode!=='freeflight'){p.rearm=0;p.heat=Math.min(6,p.heat+2);p.radar=Math.min(4,p.radar+1);if(p.human)emit(g,'rearm','Weapons topped up · +2 heat, +1 radar',{pilotId:p.id})}
+ for(const k of ['gunCD','heatCD','radarCD','flareCD','chaffCD','bombCD'])p[k]=Math.max(0,p[k]-dt);
+ p.rearm=(p.rearm||0)+dt;if(p.rearm>22){p.rearm=0;p.gunAmmo=Math.min(GUN.capacity,p.gunAmmo+150);if(g.mode!=='freeflight'){p.heat=Math.min(6,p.heat+2);p.radar=Math.min(4,p.radar+1);if(p.human)emit(g,'rearm','Weapons topped up · gun rounds, +2 heat, +1 radar',{pilotId:p.id})}}
  const i=input||{};p.braking=!!i.brake;p.throttle=clamp(p.throttle+(Number(i.throttle)||0)*dt*.38,0,1);
  const maxSpeed=p.bomber?172:210,minSpeed=p.grounded?0:55;
  const drag=p.grounded?9:10;
@@ -80,7 +83,7 @@ function updatePilot(g,p,input,dt){
  if(g.mode==='freeflight'&&p.grounded){
   const field=AIRFIELDS[p.runwayId]||RUNWAY,local=fieldCoordinates(field,p.pos);
   if(Math.abs(local.across)>field.width+35||Math.abs(local.along)>field.halfLength+80){
-   if(p.speed<45){p.pos=fieldPoint(field,0,-field.halfLength+180,3);p.yaw=field.heading;p.pitch=0;p.roll=0;p.speed=0;p.throttle=0;emit(g,'recovery',`Back on ${field.shortName} runway ${field.runway}. Shift adds power; hold W to lift off.`,{pilotId:p.id});}
+   if(p.speed<45){p.pos=fieldPoint(field,0,-field.halfLength+180,3);p.yaw=field.heading;p.pitch=0;p.roll=0;p.speed=0;p.throttle=0;emit(g,'recovery',`Back on ${field.shortName} runway ${field.runway}. Up adds power; hold W to lift off.`,{pilotId:p.id});}
    else{p.grounded=false;p.landed=false;p.pos.y=Math.max(field.elevation+140,surfaceHeight(p.pos.x,p.pos.z)+140);p.pitch=.18;p.roll=0;p.speed=Math.max(110,p.speed);p.throttle=.8;emit(g,'recovery','Runway overrun · safe go-around. Keep climbing and follow the guide.',{pilotId:p.id});if(p.id==='host'){g.flightStage=g.routeIndex>=routeFor(g).length?'approach':'route';g.approachIndex=0;}}
   }
  }
@@ -97,6 +100,7 @@ function updatePilot(g,p,input,dt){
   }else kill(g,p,'terrain');
  }
  p.pos.y=Math.max(p.grounded?(AIRFIELDS[p.runwayId]?.elevation||0)+3:0,Math.min(6000,p.pos.y));
+ if(i.fireGun)fireGunRound(g,p);
  if(g.mode!=='freeflight'){
  const q=selectTarget(g,p);if(q&&q.id===p.targetId)p.lock=Math.min(3,p.lock+dt);else{p.targetId=q?.id||null;p.lock=q?dt:0}
  if(i.fireHeat)launch(g,p,'heat');if(i.fireRadar)launch(g,p,'radar');if(i.flare)counter(g,p,'flare');if(i.chaff)counter(g,p,'chaff');
@@ -126,7 +130,7 @@ function mission(g,dt){
  if(g.mode==='dogfight'&&(!alive[0]||!alive[1])){g.status='complete';g.result={title:alive[0]?'Air superiority':'Squadron defeated',text:alive[0]?'The skies are yours. Every opposing aircraft is down.':'Your squadron has been intercepted. Try another sortie.',winner:alive[0]?0:1}}
  if(g.time>480){g.status='complete';g.result={title:'Sortie complete',text:'Fuel reserve reached. The squadron is returning to base.',winner:null}}
 }
-export function step(g,inputs={},dt=1/60){if(g.status!=='playing')return;dt=clamp(dt,0,.05);g.time+=dt;g.tick++;for(const p of g.pilots)updatePilot(g,p,p.human?(inputs[p.id]||{}):ai(g,p,dt),dt);updateMissiles(g,dt);
+export function step(g,inputs={},dt=1/60){if(g.status!=='playing')return;dt=clamp(dt,0,.05);g.time+=dt;g.tick++;for(const p of g.pilots)updatePilot(g,p,p.human?(inputs[p.id]||{}):ai(g,p,dt),dt);updateMissiles(g,dt);advanceGunRounds(g,dt,{ground:surfaceHeight,onHit:(round,target)=>emit(g,'gun-hit','Machine gun hit',{pilotId:round.ownerId,targetId:target.id}),onKill:(target,owner)=>kill(g,target,owner)});
  for(const c of g.countermeasures){c.age+=dt;c.pos.x+=c.vel.x*dt;c.pos.y+=c.vel.y*dt;c.pos.z+=c.vel.z*dt;c.vel.y-=12*dt}g.countermeasures=g.countermeasures.filter(c=>c.age<c.life);
  for(const b of g.bombs){b.age+=dt;b.vel.y-=45*dt;b.pos.x+=b.vel.x*dt;b.pos.y+=b.vel.y*dt;b.pos.z+=b.vel.z*dt;if(b.pos.y<=Math.max(4,surfaceHeight(b.pos.x,b.pos.z))){if(horizontal(b.pos,TARGET)<330&&!g.bombed){g.targetHp=0;g.bombed=true;emit(g,'target','Target destroyed. Turn toward ESCAPE.');g.effects.push({id:++g.serial,type:'target',pos:{...TARGET},age:0,life:8})}else emit(g,'miss','Bomb missed. Circle back for another pass.');b.pos.y=-999}}g.bombs=g.bombs.filter(b=>b.pos.y>-100);
  for(const e of g.effects)e.age+=dt;g.effects=g.effects.filter(e=>e.age<e.life);mission(g,dt);

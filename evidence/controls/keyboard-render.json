@@ -1,0 +1,419 @@
+{
+  "method": "Normal rAF with native keyboard. Explicit initial pose/target fixtures cover cardinal headings; no simulation stepping.",
+  "turns": [
+    {
+      "view": "chase",
+      "yaw": 0,
+      "key": "KeyA",
+      "time": 2.3499999999999965,
+      "roll": 0.9332945649123713,
+      "heading": 0.8135570862786574,
+      "projectedForwardDelta": -435.6706746395376,
+      "physicalWingDrop": -21.69680012274739,
+      "projectedWingDrop": 314.49131051751687,
+      "leftVisible": true,
+      "rightVisible": true,
+      "cameraLean": 0,
+      "cameraForwardDot": 0,
+      "cameraUpDot": 1,
+      "gauge": null
+    },
+    {
+      "view": "chase",
+      "yaw": 0,
+      "key": "KeyD",
+      "time": 1.3666666666666667,
+      "roll": -0.9759924017113606,
+      "heading": -0.48048821841053735,
+      "projectedForwardDelta": 231.77156169515536,
+      "physicalWingDrop": 22.362976384924877,
+      "projectedWingDrop": -295.7908950953909,
+      "leftVisible": true,
+      "rightVisible": true,
+      "cameraLean": 0,
+      "cameraForwardDot": 0,
+      "cameraUpDot": 1,
+      "gauge": null
+    },
+    {
+      "view": "chase",
+      "yaw": 1.5707963267948966,
+      "key": "KeyA",
+      "time": 1.016666666666668,
+      "roll": 0.32467878817876406,
+      "heading": 1.58592468216064,
+      "projectedForwardDelta": -6.995327096080928,
+      "physicalWingDrop": -8.61311806489357,
+      "projectedWingDrop": 106.88137528604136,
+      "leftVisible": true,
+      "rightVisible": true,
+      "cameraLean": 0,
+      "cameraForwardDot": 0,
+      "cameraUpDot": 1,
+      "gauge": null
+    },
+    {
+      "view": "chase",
+      "yaw": 1.5707963267948966,
+      "key": "KeyD",
+      "time": 0.966666666666668,
+      "roll": -0.9506924982814525,
+      "heading": 1.2087234891039544,
+      "projectedForwardDelta": 171.86580178781685,
+      "physicalWingDrop": 21.973089354985404,
+      "projectedWingDrop": -282.4089673906794,
+      "leftVisible": true,
+      "rightVisible": true,
+      "cameraLean": 0,
+      "cameraForwardDot": 0,
+      "cameraUpDot": 1,
+      "gauge": null
+    },
+    {
+      "view": "chase",
+      "yaw": 3.141592653589793,
+      "key": "KeyA",
+      "time": 0.8000000000000008,
+      "roll": 0.9051445373370417,
+      "heading": -2.881751156834345,
+      "projectedForwardDelta": -121.85582257895794,
+      "physicalWingDrop": -21.235889484898053,
+      "projectedWingDrop": 269.57587208789676,
+      "leftVisible": true,
+      "rightVisible": true,
+      "cameraLean": 0,
+      "cameraForwardDot": 0,
+      "cameraUpDot": 1,
+      "gauge": null
+    },
+    {
+      "view": "chase",
+      "yaw": 3.141592653589793,
+      "key": "KeyD",
+      "time": 1.0833333333333344,
+      "roll": -0.9538153067236272,
+      "heading": 2.7680958852825817,
+      "projectedForwardDelta": 177.6375497488803,
+      "physicalWingDrop": 22.021979720757827,
+      "projectedWingDrop": -283.45373101306905,
+      "leftVisible": true,
+      "rightVisible": true,
+      "cameraLean": 0,
+      "cameraForwardDot": 0,
+      "cameraUpDot": 1,
+      "gauge": null
+    },
+    {
+      "view": "chase",
+      "yaw": -1.5707963267948966,
+      "key": "KeyA",
+      "time": 0.966666666666668,
+      "roll": 0.9567403372977975,
+      "heading": -1.188237604795772,
+      "projectedForwardDelta": -182.16553262213455,
+      "physicalWingDrop": -22.06757892029009,
+      "projectedWingDrop": 285.0462531962162,
+      "leftVisible": true,
+      "rightVisible": true,
+      "cameraLean": 0,
+      "cameraForwardDot": 0,
+      "cameraUpDot": 1,
+      "gauge": null
+    },
+    {
+      "view": "chase",
+      "yaw": -1.5707963267948966,
+      "key": "KeyD",
+      "time": 0.8666666666666677,
+      "roll": -0.9269865941489195,
+      "heading": -1.8710698770703884,
+      "projectedForwardDelta": 141.39031306889228,
+      "physicalWingDrop": 21.594999264980288,
+      "projectedWingDrop": -276.07244325844573,
+      "leftVisible": true,
+      "rightVisible": true,
+      "cameraLean": 0,
+      "cameraForwardDot": 0,
+      "cameraUpDot": 1,
+      "gauge": null
+    },
+    {
+      "view": "cockpit",
+      "yaw": 0,
+      "key": "KeyA",
+      "time": 1.0833333333333344,
+      "roll": 0.9688104969690079,
+      "heading": 0.43541708090403336,
+      "projectedForwardDelta": -182.1060888490059,
+      "physicalWingDrop": -22.253743019306512,
+      "projectedWingDrop": -385.5334539727846,
+      "leftVisible": false,
+      "rightVisible": false,
+      "cameraLean": -0.4484487565344329,
+      "cameraForwardDot": 0,
+      "cameraUpDot": 0.8938085436841163,
+      "gauge": {
+        "left": 47,
+        "right": 82
+      }
+    },
+    {
+      "view": "cockpit",
+      "yaw": 0,
+      "key": "KeyD",
+      "time": 1.1666666666666674,
+      "roll": -0.6920138596252124,
+      "heading": -0.0945762119555004,
+      "projectedForwardDelta": 37.028257271924815,
+      "physicalWingDrop": 17.228404933292495,
+      "projectedWingDrop": 263.92629986941995,
+      "leftVisible": false,
+      "rightVisible": false,
+      "cameraLean": 0.3260920113226493,
+      "cameraForwardDot": 3.469446951953614e-18,
+      "cameraUpDot": 0.9453380348592504,
+      "gauge": {
+        "left": 72,
+        "right": 52
+      }
+    },
+    {
+      "view": "cockpit",
+      "yaw": 1.5707963267948966,
+      "key": "KeyA",
+      "time": 0.8666666666666677,
+      "roll": 0.9269865941489195,
+      "heading": 1.8710698770703884,
+      "projectedForwardDelta": -114.43516659014051,
+      "physicalWingDrop": -21.594999264980288,
+      "projectedWingDrop": -344.4991753973932,
+      "leftVisible": false,
+      "rightVisible": false,
+      "cameraLean": -0.43041596728343456,
+      "cameraForwardDot": -1.3877787807814457e-17,
+      "cameraUpDot": 0.9026306526522714,
+      "gauge": {
+        "left": 48,
+        "right": 80
+      }
+    },
+    {
+      "view": "cockpit",
+      "yaw": 1.5707963267948966,
+      "key": "KeyD",
+      "time": 0.7666666666666674,
+      "roll": -0.9111520499723624,
+      "heading": 1.3013003095167672,
+      "projectedForwardDelta": 102.43941433147756,
+      "physicalWingDrop": 21.33567759739799,
+      "projectedWingDrop": 338.93043067744554,
+      "leftVisible": false,
+      "rightVisible": false,
+      "cameraLean": 0.42354308350931114,
+      "cameraForwardDot": -1.3877787807814457e-17,
+      "cameraUpDot": 0.9058759608309653,
+      "gauge": {
+        "left": 78,
+        "right": 47
+      }
+    },
+    {
+      "view": "cockpit",
+      "yaw": 3.141592653589793,
+      "key": "KeyA",
+      "time": 0.8666666666666677,
+      "roll": 0.8636532608155861,
+      "heading": -2.841822766248762,
+      "projectedForwardDelta": -115.84347746047479,
+      "physicalWingDrop": -20.525967665103508,
+      "projectedWingDrop": -322.8406141835834,
+      "leftVisible": false,
+      "rightVisible": false,
+      "cameraLean": -0.40278135044119495,
+      "cameraForwardDot": 0,
+      "cameraUpDot": 0.9152962273148335,
+      "gauge": {
+        "left": 50,
+        "right": 78
+      }
+    },
+    {
+      "view": "cockpit",
+      "yaw": 3.141592653589793,
+      "key": "KeyD",
+      "time": 0.8000000000000008,
+      "roll": -0.9220497446429745,
+      "heading": 2.851904478124411,
+      "projectedForwardDelta": 110.26216084120085,
+      "physicalWingDrop": 21.514726560059444,
+      "projectedWingDrop": 342.55765414604525,
+      "leftVisible": false,
+      "rightVisible": false,
+      "cameraLean": 0.42827580799065035,
+      "cameraForwardDot": 1.3877787807814457e-17,
+      "cameraUpDot": 0.903648068824338,
+      "gauge": {
+        "left": 78,
+        "right": 47
+      }
+    },
+    {
+      "view": "cockpit",
+      "yaw": -1.5707963267948966,
+      "key": "KeyA",
+      "time": 0.8833333333333344,
+      "roll": 0.935942094006587,
+      "heading": -1.2502075732563094,
+      "projectedForwardDelta": -122.45281901027528,
+      "physicalWingDrop": -21.739270151313576,
+      "projectedWingDrop": -347.47502438698643,
+      "leftVisible": false,
+      "rightVisible": false,
+      "cameraLean": -0.434292062828239,
+      "cameraForwardDot": 0,
+      "cameraUpDot": 0.9007721155566445,
+      "gauge": {
+        "left": 48,
+        "right": 80
+      }
+    },
+    {
+      "view": "cockpit",
+      "yaw": -1.5707963267948966,
+      "key": "KeyD",
+      "time": 0.9333333333333346,
+      "roll": -0.9220497446429745,
+      "heading": -1.8615699299043154,
+      "projectedForwardDelta": 110.6734305032046,
+      "physicalWingDrop": 21.514726560059444,
+      "projectedWingDrop": 342.5170536414062,
+      "leftVisible": false,
+      "rightVisible": false,
+      "cameraLean": 0.42827580799065035,
+      "cameraForwardDot": -1.3877787807814457e-17,
+      "cameraUpDot": 0.903648068824338,
+      "gauge": {
+        "left": 78,
+        "right": 47
+      }
+    }
+  ],
+  "power": [
+    {
+      "key": "ArrowUp",
+      "before": {
+        "throttle": 0.65,
+        "pitch": 0
+      },
+      "after": {
+        "throttle": 0.9286666666666653,
+        "pitch": 0
+      }
+    },
+    {
+      "key": "ArrowDown",
+      "before": {
+        "throttle": 0.65,
+        "pitch": 0
+      },
+      "after": {
+        "throttle": 0.42200000000000043,
+        "pitch": 0
+      }
+    },
+    {
+      "key": "KeyW",
+      "before": {
+        "throttle": 0.65,
+        "pitch": 0
+      },
+      "after": {
+        "throttle": 0.65,
+        "pitch": 0.35151644735020204
+      }
+    },
+    {
+      "key": "KeyS",
+      "before": {
+        "throttle": 0.65,
+        "pitch": 0
+      },
+      "after": {
+        "throttle": 0.65,
+        "pitch": -0.35151644735020204
+      }
+    }
+  ],
+  "missiles": [
+    {
+      "key": "KeyQ",
+      "ammo": "heat",
+      "before": 6,
+      "held": 5,
+      "secondPress": 4
+    },
+    {
+      "key": "KeyE",
+      "ammo": "radar",
+      "before": 4,
+      "held": 3,
+      "secondPress": 2
+    }
+  ],
+  "errors": [],
+  "gun": {
+    "pilot": {
+      "id": "host",
+      "team": 0,
+      "human": true,
+      "bomber": false,
+      "pos": {
+        "x": 0,
+        "y": 3000,
+        "z": 156.9922539152787
+      },
+      "yaw": 0,
+      "pitch": 0,
+      "roll": 0,
+      "speed": 124.38138459872802,
+      "throttle": 0.65,
+      "hp": 100,
+      "gunAmmo": 288,
+      "gunCD": 0.1,
+      "gunShots": 12,
+      "heat": 6,
+      "radar": 4,
+      "flares": 6,
+      "chaff": 6,
+      "bombs": 0,
+      "heatCD": 0,
+      "radarCD": 0,
+      "flareCD": 0,
+      "chaffCD": 0,
+      "bombCD": 0,
+      "lock": 0,
+      "targetId": null,
+      "dead": false,
+      "grounded": false,
+      "landed": false,
+      "runwayId": "home",
+      "aiTimer": 0,
+      "aiShot": 2,
+      "aiDefend": 0,
+      "aiBreak": 0,
+      "aiNextBreak": 7,
+      "rearm": 1.2833333333333337,
+      "aiEvade": 0,
+      "trail": [],
+      "braking": false
+    },
+    "bullets": 12,
+    "drawVertices": 24,
+    "gunLabel": "288"
+  },
+  "results": {
+    "open": true,
+    "focus": "result-restart"
+  },
+  "pass": true
+}

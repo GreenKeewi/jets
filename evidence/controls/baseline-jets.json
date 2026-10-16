@@ -1,0 +1,125 @@
+{
+  "kind": "Pre-fix runtime confirmation; fixtures set only initial states, normal-rAF native keys thereafter",
+  "turns": [
+    {
+      "yaw": 0,
+      "controls": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 0,
+        "throttle": 0,
+        "fireHeat": false,
+        "fireRadar": false,
+        "flare": false,
+        "chaff": false,
+        "bomb": false,
+        "brake": false
+      },
+      "roll": -0.8595402291494029,
+      "newYaw": -0.18921995761405827,
+      "screenRightForward": 0.18809283267049917
+    },
+    {
+      "yaw": 1.5707963267948966,
+      "controls": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 0,
+        "throttle": 0,
+        "fireHeat": false,
+        "fireRadar": false,
+        "flare": false,
+        "chaff": false,
+        "bomb": false,
+        "brake": false
+      },
+      "roll": 0,
+      "newYaw": 1.5707963267948966,
+      "screenRightForward": 0
+    },
+    {
+      "yaw": 3.141592653589793,
+      "controls": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 0,
+        "throttle": 0,
+        "fireHeat": false,
+        "fireRadar": false,
+        "flare": false,
+        "chaff": false,
+        "bomb": false,
+        "brake": false
+      },
+      "roll": -0.7920104264579532,
+      "newYaw": 3.0076112683930463,
+      "screenRightForward": 0.13358089459352565
+    },
+    {
+      "yaw": -1.5707963267948966,
+      "controls": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 0,
+        "throttle": 0,
+        "fireHeat": false,
+        "fireRadar": false,
+        "flare": false,
+        "chaff": false,
+        "bomb": false,
+        "brake": false
+      },
+      "roll": -0.7920104264579532,
+      "newYaw": -1.7048907205893788,
+      "screenRightForward": 0.13369288954513803
+    }
+  ],
+  "bank": [
+    {
+      "yaw": 0,
+      "up": {
+        "x": 0,
+        "y": 1,
+        "z": 0
+      },
+      "screenRightLean": 0
+    },
+    {
+      "yaw": 1.5707963267948966,
+      "up": {
+        "x": 0.136801410890668,
+        "y": 0.9905984928205386,
+        "z": 0
+      },
+      "screenRightLean": -8.376670498304922e-18
+    },
+    {
+      "yaw": 3.141592653589793,
+      "up": {
+        "x": 0.15578013273002997,
+        "y": 0.9877917544941415,
+        "z": 0
+      },
+      "screenRightLean": 0.15578013273002997
+    },
+    {
+      "yaw": -1.5707963267948966,
+      "up": {
+        "x": 0.1459871676366918,
+        "y": 0.9892864837272449,
+        "z": 0
+      },
+      "screenRightLean": -8.939135878143135e-18
+    }
+  ],
+  "errors": [],
+  "resultsAfterEscape": {
+    "open": false,
+    "status": "complete"
+  },
+  "ice": {
+    "hasCandidates": false,
+    "iceGathering": "complete"
+  },
+  "commit": "dc24281f78877f4354eb3480a995d7304bc2859f"
+}

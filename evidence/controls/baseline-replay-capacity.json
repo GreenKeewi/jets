@@ -1,0 +1,63 @@
+{
+  "baselineCommit": "dc24281f78877f4354eb3480a995d7304bc2859f",
+  "method": "Pre-fix capacity confirmation. Three actual rendered game documents and native keyboard at normal rAF, using the deterministic RTC transport fixture because managed WebRtcIPHandling disables non-proxied UDP. This is application/protocol integration, NOT native WebRTC or Wi-Fi validation. Pixel ratio .35 for concurrent software rendering; no simulation stepping.",
+  "cases": [
+    {
+      "path": "restart",
+      "before": {
+        "ids": [
+          "host",
+          "p1",
+          "p2"
+        ],
+        "teamSize": 1,
+        "pilots": [
+          "host",
+          "p1"
+        ]
+      },
+      "after": {
+        "teamSize": 1,
+        "players": [
+          "host",
+          "p1"
+        ]
+      },
+      "unseated": [
+        "p2"
+      ]
+    },
+    {
+      "path": "fly-again",
+      "before": {
+        "ids": [
+          "host",
+          "p1",
+          "p2"
+        ],
+        "teamSize": 1,
+        "pilots": [
+          "host",
+          "p1"
+        ]
+      },
+      "after": {
+        "teamSize": 1,
+        "players": [
+          "host",
+          "p1"
+        ]
+      },
+      "unseated": [
+        "p2"
+      ]
+    }
+  ],
+  "errors": [],
+  "nativeRtc": {
+    "created": false,
+    "name": "NoLocalCandidatesError",
+    "message": "This browser did not provide any LAN connection candidates. Browser privacy settings, a managed school/work policy or a disabled network interface may block direct WebRTC. Solo play still works. There is no relay fallback."
+  },
+  "confirmed": true
+}
