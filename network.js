@@ -2,9 +2,13 @@
 // Advanced manual LAN pairing stays available without external services.
 // Protocol: ordered reliable control/actions; unordered zero-retransmit axes/snapshots.
 export const PROTOCOL = 'JETS5';
-export const ROOM_BUILD = new URL(import.meta.url).searchParams.get('v') || 'rooms3-1019';
+// Room handshake compatibility changes only when the transport/game protocol changes.
+export const ROOM_BUILD = 'rooms3-1019';
+// Asset versions stay separate so fresh invites load the current page without
+// rejecting an already connected player using compatible gameplay packets.
+export const CLIENT_BUILD = new URL(import.meta.url).searchParams.get('v') || 'rooms3-1019';
 export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb'];
-export { mountNetworkUI } from './network-ui.js?v=rooms3-1019';
+export { mountNetworkUI } from './network-ui.js?v=roomcache1-1019';
 // PeerJS 1.5.5 registers its pass-through serializer as 'raw' (not 'none').
 const ROOM_SERIALIZATION = 'raw';
 const ROOM_ICE = { iceServers: [{ urls: 'stun:stun.cloudflare.com:3478' }] };
@@ -28,7 +32,7 @@ export function normalizeRoomCode(value) {
   return code;
 }
 export function roomInviteLink(code, href = globalThis.location?.href) {
-  const url = new URL(href); url.search = ''; url.searchParams.set('v', ROOM_BUILD); url.hash = `room=${normalizeRoomCode(code)}`; return url.href;
+  const url = new URL(href); url.search = ''; url.searchParams.set('v', CLIENT_BUILD); url.hash = `room=${normalizeRoomCode(code)}`; return url.href;
 }
 const HELD = ['fireGun'];
 const GUN_INPUT_EXPIRY = 250;
@@ -264,7 +268,7 @@ export function createNetwork(callbacks = {}) {
       return;
     }
     if (packet.t === 'welcome' && p.roomConnection && packet.build !== ROOM_BUILD) {
-      drop(p, `The host is running a different room build. Both players should reopen the latest game link, check the matching build label, and create a fresh room.`);
+      drop(p, `The host is running an incompatible room protocol. Both players should reopen the latest game link and create a fresh room.`);
       return;
     }
     if (packet.t === 'reject' && p.roomConnection && !localId && ['full', 'version', 'closed'].includes(packet.reason)) {
@@ -393,7 +397,8 @@ export function createNetwork(callbacks = {}) {
   }
   const api = {
     protocol: PROTOCOL,
-    build: ROOM_BUILD,
+    build: CLIENT_BUILD,
+    compatibility: ROOM_BUILD,
     normalizeRoomCode,
     inviteLink: code => roomInviteLink(code || room),
     async createRoom() {
@@ -441,7 +446,7 @@ export function createNetwork(callbacks = {}) {
         setStatus('Joining the room… The host does not need to paste or accept anything.');
         return code;
       } catch (error) {
-        const failure = /serializers.*constructor/i.test(error.message) ? new Error(`This tab loaded an incompatible room client (build ${ROOM_BUILD}). Close both game tabs, reopen the latest game link, then create a fresh room.`) : error;
+        const failure = /serializers.*constructor/i.test(error.message) ? new Error(`This tab loaded an incompatible room client (build ${CLIENT_BUILD}). Close both game tabs, reopen the latest game link, then create a fresh room.`) : error;
         if (epoch === roomEpoch) {
           disconnect(); diagnostic = failure.message; emit();
         }

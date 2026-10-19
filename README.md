@@ -99,3 +99,16 @@ As requested, this release received only source/syntax and deployment-version ve
 The room-code release retains JETS5 gameplay packets, reliable control/action messages and a separate unordered zero-retransmit realtime channel on the same peer connection. The host assigns pilot identity and owns the simulation. Roster information now precedes a late join's start message. Leaving cancels pending asynchronous room setup, closes its signaling client, and restores solo controls. Room IDs are cryptographically generated and contain no player names. A full room rejects additional guests with a useful message. Reloads require a new host code; there is no permanent lobby or account.
 
 As requested, verification for this release is source inspection, JavaScript syntax checks and deployment/version verification only. No gameplay test suite, mocked transport run or two-device WebRTC playtest was run. The managed browser's previously observed WebRTC/WebGL restrictions remain in place.
+
+
+## Combat flow and responsive power (2026-10-19)
+
+Throttle taps make fine adjustments; holding the power keys now sweeps the lever through its full range in about a second. The existing power percentage is more legible and updates immediately. Airspeed still follows thrust, drag, gravity and aircraft energy rather than jumping to the commanded speed.
+
+Nearby selected enemies get a small dotted gun-lead ring, based on the same round speed and lifetime as the simulation. It is a prediction, not aim assist. Brief center hit ticks replace repeated gun-hit toasts. Weapons retain their acquisition cone and range, while target hysteresis prevents similar formation members from repeatedly stealing a lock. Bots retain a separate pursuit target, lead short intercepts, fire limited aligned gun bursts, unload into short extensions after overshoots or low energy, and cut afterburner before attempting heat-missile flares. Formation, collision and terrain avoidance retain priority.
+
+Numeric instruments, cockpit canvas and expanded radar refresh at approximately 10 Hz; unchanged text is not rewritten. Hidden radar is not redrawn. Aiming, projected target/waypoint positions, horizon, damage, hit feedback and warning changes remain immediate. Rendering lowers resolution in gradual steps after sustained sub-30 fps and recovers more slowly after a long fast interval. No new scene effects or assets were added.
+
+Per the requested deployment-only scope, verification covers syntax, module sources and deployed-version checks. No gameplay tests, simulated sorties, performance benchmark or rendered 3D playtest were run for this release.
+
+Room compatibility remains rooms3-1019, preserving existing compatible room clients. A separate client asset build now versions invite URLs and the visible game-build label, so visual/control-only releases do not require a protocol mismatch. The raw WebRTC transport serializer and matching compatibility checks are unchanged.

@@ -1,7 +1,7 @@
 import {viewAxes,gunMuzzle} from './view-axes.js?v=valleyenergy1-1019';
-import {GUN} from './guns.js?v=valleyenergy1-1019';
+import {GUN} from './guns.js?v=combatflow1-1019';
 import * as THREE from './vendor/three.module.js';
-import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=valleyenergy1-1019';
+import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=combatflow1-1019';
 import {surfaceHeight} from './world.js?v=valleyenergy1-1019';
 import {routeFor,destinationFor,fieldPoint} from './missions.js?v=valleyenergy1-1019';
 import {Scenery} from './scenery.js?v=valleyenergy1-1019';
@@ -50,10 +50,10 @@ export class FlightAirMotion{
 }
 export class Renderer{
  constructor(canvas){
-  this.canvas=canvas;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.04;
+  this.canvas=canvas;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});this.maxPixelRatio=Math.min(devicePixelRatio,1.5);this.pixelRatio=this.maxPixelRatio;this.renderer.setPixelRatio(this.pixelRatio);this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.04;
   this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(68,1,.8,45000);this.scenery=new Scenery(this.scene);
   batchStatic(this.scene,new Set([this.scenery.sky,this.scenery.water,this.scenery.depot,...this.scenery.animated.map(o=>o.node)]),2800);
-  this.jets=new Map();this.effects=new Map();this.vortices=new Map();this.view='chase';this.followReady=false;this.slowFrames=0;this.adaptiveQuality=1;this.reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  this.jets=new Map();this.effects=new Map();this.vortices=new Map();this.view='chase';this.followReady=false;this.frameAverage=1/60;this.slowSeconds=0;this.fastSeconds=0;this.qualityCooldown=4;this.adaptiveQuality=1;this.reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   this.gunGeometry=new THREE.BufferGeometry();this.gunGeometry.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(GUN.maxRounds*6),3).setUsage(THREE.DynamicDrawUsage));this.gunGeometry.setDrawRange(0,0);this.gunTracers=new THREE.LineSegments(this.gunGeometry,new THREE.LineBasicMaterial({color:0xffed9c,transparent:true,opacity:1,toneMapped:false,depthWrite:false}));this.gunTracers.frustumCulled=false;this.scene.add(this.gunTracers);
   this.airMotion=new FlightAirMotion(this.scene);this.muzzleFlashes=new Map();this.effectsGroup=new THREE.Group();this.scene.add(this.effectsGroup);this.dotGeometry=new THREE.SphereGeometry(1,10,7);this.missileGeometry=new THREE.CylinderGeometry(.45,.45,5.2,8);this.missileGeometry.rotateX(Math.PI/2);
   this.effectTexture=canvasTexture(128,128,(c,w,h)=>{const g=c.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,'rgba(255,248,217,1)');g.addColorStop(.27,'rgba(255,180,72,.95)');g.addColorStop(.65,'rgba(229,91,35,.65)');g.addColorStop(1,'rgba(118,67,42,0)');c.fillStyle=g;c.fillRect(0,0,w,h)});
@@ -97,8 +97,23 @@ export class Renderer{
   for(const e of g.effects){const key='effect'+e.id;live.add(key);const node=this.effectObject(key,'explosion'),size=(e.type==='target'?210:e.type==='gun-hit'?10:65)*Math.min(1,e.age*3);node.position.set(e.pos.x,e.pos.y,e.pos.z);node.scale.set(size,size,1);node.material.opacity=Math.max(0,1-e.age/e.life);node.material.color.setHex(e.age>e.life*.5?0x7d8b83:0xffffff)}
   for(const[key,node]of this.effects)if(!live.has(key)){node.removeFromParent();node.material.dispose();if(node.isLine)node.geometry.dispose();this.effects.delete(key)}
  }
- render(g,localId='host',dt=1/60){
-  if(dt>.045)this.slowFrames++;else this.slowFrames=Math.max(0,this.slowFrames-1);if(this.slowFrames>45&&this.adaptiveQuality>.65){this.adaptiveQuality=.65;this.renderer.setPixelRatio(.65);this.resize()}
+ updateQuality(seconds){
+  // Ignore resume/loading gaps. Sustained sub-30 fps eases resolution one small
+  // step at a time; recovery needs a much longer, clearly faster interval.
+  if(!Number.isFinite(seconds)||seconds<=0||seconds>.25||document.hidden){this.slowSeconds=0;this.fastSeconds=0;return;}
+  this.frameAverage+=(seconds-this.frameAverage)*(1-Math.exp(-seconds/1.2));this.qualityCooldown=Math.max(0,this.qualityCooldown-seconds);
+  this.slowSeconds=this.frameAverage>1/30?this.slowSeconds+seconds:Math.max(0,this.slowSeconds-seconds*2);
+  this.fastSeconds=this.frameAverage<1/52?this.fastSeconds+seconds:0;
+  if(this.qualityCooldown>0)return;
+  let next=this.pixelRatio;
+  if(this.slowSeconds>2.2)next=Math.max(Math.min(.65,this.maxPixelRatio),next-.15);
+  else if(this.fastSeconds>10)next=Math.min(this.maxPixelRatio,next+.1);
+  if(Math.abs(next-this.pixelRatio)<.001)return;
+  this.pixelRatio=next;this.adaptiveQuality=Math.min(1,next);this.renderer.setPixelRatio(next);this.resize();
+  this.slowSeconds=0;this.fastSeconds=0;this.qualityCooldown=5;
+ }
+ render(g,localId='host',dt=1/60,frameSeconds=dt){
+  this.updateQuality(frameSeconds);
   if(this.lastGameTime!==undefined&&g.time<this.lastGameTime-.2)for(const pair of this.vortices.values())for(const item of pair){item.points=[];item.last=-1}this.lastGameTime=g.time;for(const[id,pair]of this.vortices)if(!g.pilots.some(p=>p.id===id)){pair.forEach(item=>{item.line.removeFromParent();item.line.geometry.dispose();item.line.material.dispose()});this.vortices.delete(id)}this.updateRoute(g);const p=g.pilots.find(q=>q.id===localId)||g.pilots[0];this.updateAircraft(g,p,dt);this.updateCamera(p,dt);this.scenery.update(g.time,this.camera,this.adaptiveQuality);this.airMotion.update(p,this.camera,g.time,this.reducedMotion,this.adaptiveQuality);this.updateEffects(g);
   this.rings.forEach((ring,index)=>{ring.visible=g.mode==='freeflight'&&g.flightStage==='route'&&index>=g.routeIndex&&index<=g.routeIndex+1;ring.children[0].material.opacity=index===g.routeIndex?.85:.13;ring.lookAt(this.camera.position.x,ring.position.y,this.camera.position.z)});
   this.targetMarker.visible=g.mode==='strike'&&!g.bombed;this.escapeMarker.visible=g.mode==='strike'&&g.bombed;this.landingMarker.visible=g.mode==='freeflight'&&['approach','landed'].includes(g.flightStage);this.scenery.depot.scale.y=g.bombed?.25:1;

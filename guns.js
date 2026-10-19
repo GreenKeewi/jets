@@ -1,5 +1,19 @@
 import {flightForward,gunMuzzle} from './view-axes.js?v=valleyenergy1-1019';
 export const GUN={capacity:300,interval:.1,speed:850,life:1.35,damage:10,maxRounds:96,tracerLength:42};
+// Same straight, constant-speed rounds as the simulation; no aim correction.
+// A bounded solution avoids advertising a lead point beyond the gun's lifetime.
+export function gunIntercept(p,target,maxRange=1000){
+ if(!target||target.dead||p.dead)return null;
+ const muzzle=gunMuzzle(p),f=flightForward(target),speed=GUN.speed+p.speed;
+ const r={x:target.pos.x-muzzle.x,y:target.pos.y-muzzle.y,z:target.pos.z-muzzle.z};
+ const range=Math.hypot(r.x,r.y,r.z);if(range>maxRange||range<20)return null;
+ const v={x:f.x*target.speed,y:f.y*target.speed-(target.stallSink||0),z:f.z*target.speed};
+ const a=v.x*v.x+v.y*v.y+v.z*v.z-speed*speed,b=2*(r.x*v.x+r.y*v.y+r.z*v.z),c=range*range;
+ let time;if(Math.abs(a)<1e-6){if(Math.abs(b)<1e-6)return null;time=-c/b;}
+ else{const disc=b*b-4*a*c;if(disc<0)return null;const root=Math.sqrt(disc),t1=(-b-root)/(2*a),t2=(-b+root)/(2*a);time=Math.min(t1>0?t1:Infinity,t2>0?t2:Infinity);}
+ if(!Number.isFinite(time)||time<=0||time>GUN.life-.08)return null;
+ return{point:{x:target.pos.x+v.x*time,y:target.pos.y+v.y*time,z:target.pos.z+v.z*time},time,range};
+}
 export function fireGunRound(g,p){
  const rounds=g.bullets||(g.bullets=[]);if(p.dead||!Number.isFinite(p.gunAmmo)||p.gunAmmo<=0||p.gunCD>1e-8||rounds.length>=GUN.maxRounds)return false;
  p.gunAmmo--;p.gunShots=(p.gunShots||0)+1;p.gunCD=GUN.interval;

@@ -1,7 +1,7 @@
 import {tryHeatFlare} from './heat-seeker.js?v=valleyenergy1-1019';
 import {freshPilotG,pilotGInput,updatePilotG} from './pilot-g.js?v=valleyenergy1-1019';
-import {flightForward} from './view-axes.js?v=valleyenergy1-1019';
-import {GUN,fireGunRound,advanceGunRounds} from './guns.js?v=valleyenergy1-1019';
+import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=valleyenergy1-1019';
+import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=combatflow1-1019';
 import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=valleyenergy1-1019';
 export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=valleyenergy1-1019';
 import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit} from './flight.js?v=valleyenergy1-1019';
@@ -75,7 +75,7 @@ function spawnPilot(g,i,team,slot=0){
  const free=g.mode==='freeflight',strike=g.mode==='strike',attacker=g.role==='defend'?1:0;
  const bomber=strike&&team===attacker&&slot===0,formation=g.formations[team];
  const pos=free?{x:RUNWAY.x,y:3,z:-2720}:formationPoint(formation.origin,formation.yaw,slot,formation.spacing,formation.type);
- return{...freshPilotG(),id:i===0?'host':`bot${i}`,team,slot,human:i===0,bomber,pos,yaw:free?0:formation.yaw,pitch:0,roll:0,speed:free?0:strike?(team===attacker?110:185):FLIGHT.cruiseSpeed,throttle:free?0:strike&&!bomber?(team===attacker?.55:.635):.78,hp:100,gunAmmo:GUN.capacity,gunCD:0,gunShots:0,heat:6,radar:4,flares:6,chaff:6,bombs:bomber?3:0,heatCD:0,radarCD:0,flareCD:0,chaffCD:0,bombCD:0,lock:0,targetId:null,dead:false,grounded:free,landed:false,runwayId:'home',aiTimer:0,aiShot:2+i*.6,aiDefend:0,aiBreak:0,aiNextBreak:7+i*1.9,rearm:0,aiEvade:0,spawnProtectedUntil:0,collisionGraceUntil:g.time+COMBAT_LIMITS.spawnGrace,respawnAt:null,deaths:0,kills:0,trail:[]};
+ return{...freshPilotG(),id:i===0?'host':`bot${i}`,team,slot,human:i===0,bomber,pos,yaw:free?0:formation.yaw,pitch:0,roll:0,speed:free?0:strike?(team===attacker?110:185):FLIGHT.cruiseSpeed,throttle:free?0:strike&&!bomber?(team===attacker?.55:.635):.78,hp:100,gunAmmo:GUN.capacity,gunCD:0,gunShots:0,heat:6,radar:4,flares:6,chaff:6,bombs:bomber?3:0,heatCD:0,radarCD:0,flareCD:0,chaffCD:0,bombCD:0,lock:0,targetId:null,dead:false,grounded:free,landed:false,runwayId:'home',throttleHeld:0,throttleDirection:0,aiTargetId:null,aiTargetUntil:0,aiGunBurst:0,aiGunRest:0,aiFlarePending:false,aiExtendYaw:0,aiTimer:0,aiShot:2+i*.6,aiDefend:0,aiBreak:0,aiNextBreak:7+i*1.9,rearm:0,aiEvade:0,spawnProtectedUntil:0,collisionGraceUntil:g.time+COMBAT_LIMITS.spawnGrace,respawnAt:null,deaths:0,kills:0,trail:[]};
 }
 export function createGame({mode='dogfight',teamSize=1,teamSizes,skirmish=false,role='attack',seed=64821,difficulty='normal',routeId='local',arenaId='coast'}={}){
  if(!['dogfight','strike','freeflight'].includes(mode))mode='dogfight';
@@ -171,7 +171,7 @@ function terrainAvoidance(g,p,input){
    const returning=p.pos.x<VALLEY.minX+850||p.pos.x>VALLEY.maxX-850;
    const x=returning?500:clamp(p.pos.x+(f.x>=0?1000:-1000),VALLEY.minX+900,VALLEY.maxX-900);
    const target=valleyPoint(x,0,VALLEY.cruiseClearance+(p.slot%2)*35),safe=steer(p,target);
-   i.roll=safe.roll;i.yaw=safe.yaw;i.pitch=safe.pitch;
+   i.roll=safe.roll;i.yaw=safe.yaw;i.pitch=safe.pitch;i.fireGun=false;
   }else if(p.pos.y>valleyFloor(p.pos.x)+430){
    i.pitch=Math.min(i.pitch,-.22);
   }
@@ -184,28 +184,72 @@ function terrainAvoidance(g,p,input){
   if(deficit>0)pullUp=Math.max(pullUp,clamp(deficit/180,.15,.9));
  }
  if(p.pos.y<ground+(valley?135:190))pullUp=Math.max(pullUp,.85);
- if(pullUp){i.pitch=Math.max(i.pitch,pullUp);i.throttle=Math.max(i.throttle||0,.5);}
+ if(pullUp){i.pitch=Math.max(i.pitch,pullUp);i.throttle=Math.max(i.throttle||0,.5);i.fireGun=false;}
  if(!valley&&p.pos.y>1700&&!pullUp)i.pitch=Math.min(-.5,i.pitch);
  // Ease off high-load pursuits before an energy stall; regain speed with power.
  if(p.speed<(p.stallSpeed||83)+25){i.throttle=1;i.roll=clamp(i.roll||0,-.3,.3);if(!pullUp)i.pitch=Math.min(i.pitch||0,.05);}
  return i;
 }
+function pursuitTarget(g,p){
+ let nearest=null,nearestRange=Infinity,current=null,currentRange=Infinity;
+ for(const q of g.pilots){if(q.dead||q.team===p.team||g.time<(q.spawnProtectedUntil||0))continue;
+  const range=dist(p.pos,q.pos);if(q.id===p.aiTargetId){current=q;currentRange=range;}
+  if(range<nearestRange){nearest=q;nearestRange=range;}
+ }
+ // Pursuit and weapon lock are separate. A nearby formation member should not
+ // steal either every frame, but a dead/distant opponent is replaced promptly.
+ const retained=current&&currentRange<6500&&(g.time<(p.aiTargetUntil||0)||nearestRange>currentRange*.6);
+ const enemy=retained?current:nearest;
+ if(enemy?.id!==p.aiTargetId){p.aiTargetId=enemy?.id||null;p.aiTargetUntil=g.time+4;}
+ return enemy;
+}
 function ai(g,p,dt){
- const ace=g.difficulty==='ace';let target;
+ if(g.mode==='freeflight')return{};
+ const ace=g.difficulty==='ace';let target,enemy=null;
  const form=g.mode!=='freeflight'?formationInput(g,p):null;if(form)return terrainAvoidance(g,p,form);
- if(g.mode==='strike'&&p.bomber){target=g.bombed?ESCAPE:{x:TARGET.x,y:430,z:TARGET.z-350};if(!g.bombed&&horizontal(p.pos,target)<420&&p.bombCD<=0){return{...steer(p,target),bomb:true,throttle:0}}}
- else {const enemies=g.pilots.filter(x=>!x.dead&&x.team!==p.team);target=enemies.sort((a,b)=>dist(p.pos,a.pos)-dist(p.pos,b.pos))[0];if(!target)return{};p.targetId=target.id;target=target.pos}
+ if(g.mode==='strike'&&p.bomber){target=g.bombed?ESCAPE:{x:TARGET.x,y:430,z:TARGET.z-350};}
+ else{
+  enemy=pursuitTarget(g,p);if(!enemy)return terrainAvoidance(g,p,{roll:0,pitch:0,yaw:0,throttle:0});
+  const range=dist(p.pos,enemy.pos),ef=forward(enemy),gun=gunIntercept(p,enemy,1000),lead=clamp(range/Math.max(180,p.speed+enemy.speed),.2,ace?1.1:.8);
+  target=gun?.point||{x:enemy.pos.x+ef.x*enemy.speed*lead,y:enemy.pos.y+ef.y*enemy.speed*lead,z:enemy.pos.z+ef.z*enemy.speed*lead};
+ }
  if(g.arenaId==='valley'){const x=clamp(target.x,VALLEY.minX+550,VALLEY.maxX-550);target={x,z:valleyCenter(x)+clamp(target.z-valleyCenter(x),-470,470),y:clamp(target.y,valleyFloor(x)+140,valleyFloor(x)+340)};}
- let i=steer(p,target);const headingError=Math.abs(angle(desiredHeading(p,target)-p.yaw));p.aiNextBreak-=dt;p.aiBreak=Math.max(0,(p.aiBreak||0)-dt);if(p.aiNextBreak<=0&&headingError>.8){p.aiBreak=(ace?2:3)+random(g)*(ace?1.3:2);p.aiNextBreak=(ace?8:11)+random(g)*(ace?5:6)}if(p.aiBreak>0){i.roll=Math.sin(g.time*.7+p.pos.x*.001)*.12;i.pitch=((g.arenaId==='valley'?valleyFloor(p.pos.x)+VALLEY.cruiseClearance:600)-p.pos.y)*.002}const desiredSpeed=p.bomber?115:g.mode==='strike'?185:g.arenaId==='valley'?(ace?265:245):ace?290+(g.pilots.indexOf(p)%3)*8:260+(g.pilots.indexOf(p)%3)*12;i.throttle=p.speed<desiredSpeed?.5:-.25;
- const incoming=g.missiles.find(m=>m.targetId===p.id&&!m.decoyed&&!m.seekerLost&&dist(m.pos,p.pos)<(ace?1500:1250));
- p.aiShot=Math.max(0,(p.aiShot||0)-dt);p.aiDefend=Math.max(0,(p.aiDefend||0)-dt);
- p.aiEvade=Math.max(0,p.aiEvade-dt);
- if(incoming&&p.aiDefend<=0){p.aiDefend=(ace?3.2:5)+random(g)*(ace?1.5:2);if(random(g)<(ace?.88:.57)){i.flare=incoming.type==='heat';i.chaff=incoming.type==='radar'}p.aiEvade=2.5+random(g)*1.5}
- if(p.aiEvade>1.5){i.roll+=(p.team===0?0.45:-0.45);i.pitch=clamp(i.pitch+0.15,-1,1)}
- if(g.mode!=='freeflight'&&p.targetId&&p.lock>0.8&&p.aiShot<=0){const enemy=g.pilots.find(q=>q.id===p.targetId);if(enemy&&dist(p.pos,enemy.pos)<(ace?2900:2300)){i.fireHeat=p.heat>0&&(random(g)<.65||p.radar<=0);i.fireRadar=!i.fireHeat&&p.lock>1.45;p.aiShot=(ace?3.5:4.5)+random(g)*(ace?1.8:2.5)}}
-
- // Predict relative closest approach early enough to clear real airframes at
- // cruise speed. The stable seat order gives both pilots opposite vertical exits.
+ let i=steer(p,target);const headingError=Math.abs(angle(desiredHeading(p,target)-p.yaw));
+ p.aiNextBreak=Math.max(0,(p.aiNextBreak||0)-dt);p.aiBreak=Math.max(0,(p.aiBreak||0)-dt);
+ const lowEnergy=!p.bomber&&p.speed<Math.max(155,(p.stallSpeed||83)+35),overshot=enemy&&dist(p.pos,enemy.pos)<500&&headingError>1.25;
+ if(!p.bomber&&p.aiBreak<=0&&p.aiNextBreak<=0&&(lowEnergy||overshot||headingError>1.6&&p.speed>300)){
+  p.aiBreak=lowEnergy?3.2:ace?1.8:2.5;p.aiNextBreak=p.aiBreak+(ace?4:5);p.aiExtendYaw=p.yaw;
+ }
+ if(p.aiBreak>0){
+  // A short, shallow extension unloads the wing instead of circling ever slower.
+  i.roll=clamp(angle((p.aiExtendYaw??p.yaw)-p.yaw)*1.4,-.18,.18);i.yaw=0;
+  const clearance=p.pos.y-surfaceHeight(p.pos.x,p.pos.z);i.pitch=lowEnergy&&clearance>260?-.1:0;
+ }
+ const desiredSpeed=p.bomber?115:g.mode==='strike'?185:g.arenaId==='valley'?(ace?265:245):ace?290+(p.slot%3)*8:260+(p.slot%3)*12;
+ i.throttle=p.speed<desiredSpeed-5?.5:p.speed>desiredSpeed+5?-.25:0;
+ if(lowEnergy||p.aiBreak>0&&p.speed<desiredSpeed)i.throttle=1;
+ if(p.bomber&&!g.bombed&&horizontal(p.pos,target)<420&&p.bombCD<=0)i.bomb=true;
+ let incoming=null,incomingRange=Infinity;
+ for(const m of g.missiles){if(m.targetId!==p.id||m.decoyed||m.seekerLost||m.age>=m.life)continue;const range=dist(m.pos,p.pos);if(range<(ace?1500:1250)&&range<incomingRange){incoming=m;incomingRange=range;}}
+ p.aiShot=Math.max(0,(p.aiShot||0)-dt);p.aiDefend=Math.max(0,(p.aiDefend||0)-dt);p.aiEvade=Math.max(0,(p.aiEvade||0)-dt);
+ if(incoming&&p.aiDefend<=0){p.aiDefend=(ace?3.2:5)+random(g)*(ace?1.5:2);if(random(g)<(ace?.88:.57)){p.aiFlarePending=incoming.type==='heat';i.chaff=incoming.type==='radar';}p.aiEvade=2.5+random(g)*1.5;}
+ if(incoming?.type==='heat'){
+  // Extinguish afterburner before dispensing; terrain/stall recovery may still
+  // override power below. Bots obey the same flare chances as human pilots.
+  if(p.throttle>.68)i.throttle=-1;
+  if(p.aiFlarePending&&(p.bomber||p.throttle<=.8)){i.flare=true;p.aiFlarePending=false;}
+ }else p.aiFlarePending=false;
+ if(p.aiEvade>1.5){i.roll+=(p.team===0?.45:-.45);i.pitch=clamp(i.pitch+.15,-1,1);}
+ if(g.mode!=='freeflight'&&p.targetId&&p.lock>.8&&p.aiShot<=0){const locked=g.pilots.find(q=>q.id===p.targetId&&!q.dead);if(locked&&dist(p.pos,locked.pos)<(ace?2900:2300)){i.fireHeat=p.heat>0&&(random(g)<.65||p.radar<=0);i.fireRadar=!i.fireHeat&&p.lock>1.45;p.aiShot=(ace?3.5:4.5)+random(g)*(ace?1.8:2.5);}}
+ p.aiGunBurst=Math.max(0,(p.aiGunBurst||0)-dt);p.aiGunRest=Math.max(0,(p.aiGunRest||0)-dt);
+ const gun=!p.bomber&&enemy&&p.aiBreak<=0&&p.aiEvade<=0?gunIntercept(p,enemy,ace?850:700):null;
+ if(gun){const f=forward(p),muzzle=gunMuzzleForAI(p),dx=gun.point.x-muzzle.x,dy=gun.point.y-muzzle.y,dz=gun.point.z-muzzle.z,length=Math.hypot(dx,dy,dz),tolerance=clamp((enemy.bomber?18:11)/gun.range,.012,.045)*(ace?1:.85);
+  const aligned=(dx*f.x+dy*f.y+dz*f.z)/Math.max(1,length)>Math.cos(tolerance);
+  if(aligned&&p.aiGunRest<=0&&p.aiGunBurst<=0){p.aiGunBurst=ace?.36:.24;p.aiGunRest=(ace?.9:1.4)+random(g)*.6;}
+  i.fireGun=aligned&&p.aiGunBurst>0;
+ }
+ // Predict closest approach before committing to a firing pass. Formation,
+ // collision, valley containment and terrain clearance always outrank pursuit.
  const pf=forward(p),ownIndex=g.pilots.indexOf(p);let imminent=null,best=Infinity;
  for(const q of g.pilots){if(q===p||q.dead||dist(p.pos,q.pos)>1100)continue;
   const qf=forward(q),r={x:q.pos.x-p.pos.x,y:q.pos.y-p.pos.y,z:q.pos.z-p.pos.z},v={x:qf.x*q.speed-pf.x*p.speed,y:qf.y*q.speed-pf.y*p.speed,z:qf.z*q.speed-pf.z*p.speed};
@@ -213,12 +257,22 @@ function ai(g,p,dt){
   const separation=Math.hypot(r.x+v.x*t,r.y+v.y*t,r.z+v.z*t);
   if(separation<collisionRadius(p)+collisionRadius(q)+55&&t<best){best=t;imminent=q;}
  }
- if(imminent){const side=angle(desiredHeading(p,imminent.pos)-p.yaw);i.roll=side>=0?-.8:.8;i.pitch=ownIndex<g.pilots.indexOf(imminent)?.85:-.85;}
- if(p.pos.x<WORLD_BOUNDS.minX||p.pos.x>WORLD_BOUNDS.maxX||p.pos.z<WORLD_BOUNDS.minZ||p.pos.z>WORLD_BOUNDS.maxZ)i={...i,...steer(p,g.arenaId==='valley'?valleyPoint(500):{x:0,y:650,z:0})};
+ if(imminent){const side=angle(desiredHeading(p,imminent.pos)-p.yaw);i.roll=side>=0?-.8:.8;i.pitch=ownIndex<g.pilots.indexOf(imminent)?.85:-.85;i.fireGun=false;}
+ if(p.pos.x<WORLD_BOUNDS.minX||p.pos.x>WORLD_BOUNDS.maxX||p.pos.z<WORLD_BOUNDS.minZ||p.pos.z>WORLD_BOUNDS.maxZ)i={...i,...steer(p,g.arenaId==='valley'?valleyPoint(500):{x:0,y:650,z:0}),fireGun:false};
  return terrainAvoidance(g,p,i);
 }
 export function steer(p,target){const heading=angle(desiredHeading(p,target)-p.yaw),d=horizontal(p.pos,target),pitch=Math.atan2(target.y-p.pos.y,Math.max(100,d));return{roll:clamp(heading*2.1,-1,1),pitch:clamp((pitch-p.pitch)*3.8,-1,1),yaw:clamp(heading*0.12,-0.3,0.3),throttle:0}}
-function selectTarget(g,p){let best=null,score=Infinity;const f=forward(p);for(const q of g.pilots){if(q.dead||q.team===p.team||g.time<(q.spawnProtectedUntil||0))continue;const d=dist(p.pos,q.pos);const dot=((q.pos.x-p.pos.x)*f.x+(q.pos.y-p.pos.y)*f.y+(q.pos.z-p.pos.z)*f.z)/Math.max(1,d);const a=Math.acos(clamp(dot,-1,1));if(d<4200&&a<0.58&&d*(a+0.2)<score){best=q;score=d*(a+0.2)}}return best}
+function selectTarget(g,p){
+ let best=null,score=Infinity,current=null,currentScore=Infinity;const f=forward(p);
+ for(const q of g.pilots){if(q.dead||q.team===p.team||g.time<(q.spawnProtectedUntil||0))continue;
+  const d=dist(p.pos,q.pos),dot=((q.pos.x-p.pos.x)*f.x+(q.pos.y-p.pos.y)*f.y+(q.pos.z-p.pos.z)*f.z)/Math.max(1,d),a=Math.acos(clamp(dot,-1,1));
+  if(d>=4200||a>=.58)continue;const candidate=d*(a+.2);
+  if(q.id===p.targetId){current=q;currentScore=candidate;}if(candidate<score){best=q;score=candidate;}
+ }
+ // The same acquisition cone/range still applies. Switch only for a clearly
+ // better candidate, so a close formation does not reset lock every tick.
+ return current&&score>=currentScore*.65?current:best;
+}
 function launch(g,p,type){if(g.time<(p.spawnProtectedUntil||0))return;const cd=type==='heat'?'heatCD':'radarCD';if(p[cd]>0||p[type]<=0)return;const target=g.pilots.find(q=>q.id===p.targetId&&!q.dead);if(!target||p.lock<(type==='heat'?0.45:1.45))return;
  p[type]--;p[cd]=type==='heat'?1.65:2.5;const f=forward(p);g.missiles.push({id:++g.serial,type,ownerId:p.id,team:p.team,targetId:target.id,pos:{x:p.pos.x+f.x*18,y:p.pos.y+f.y*18-2,z:p.pos.z+f.z*18},dir:f,speed:p.speed+90,age:0,life:type==='heat'?13:17,decoyed:false,seekerLost:false,lostTime:0});emit(g,'launch',type==='heat'?'Fox two · heat seeker away':'Fox one · radar missile away',{pilotId:p.id});}
 export function bombSolution(p){const t=Math.sqrt(Math.max(0,p.pos.y-4)*2/45),f=forward(p);return{x:p.pos.x+f.x*p.speed*t,y:4,z:p.pos.z+f.z*p.speed*t}}
@@ -228,7 +282,13 @@ function updatePilot(g,p,input,dt){
  if(p.dead)return;
  for(const k of ['gunCD','heatCD','radarCD','flareCD','chaffCD','bombCD'])p[k]=Math.max(0,p[k]-dt);
  p.rearm=(p.rearm||0)+dt;if(p.rearm>22){p.rearm=0;p.gunAmmo=Math.min(GUN.capacity,p.gunAmmo+150);if(g.mode!=='freeflight'){p.heat=Math.min(6,p.heat+2);p.radar=Math.min(4,p.radar+1);if(p.human)emit(g,'rearm','Weapons topped up · gun rounds, +2 heat, +1 radar',{pilotId:p.id})}}
- const i=pilotGInput(p,input||{}),before=forward(p),wasGrounded=p.grounded;p.braking=!!i.brake;p.throttle=clamp(p.throttle+(Number(i.throttle)||0)*dt*.38,0,1);
+ const i=pilotGInput(p,input||{}),before=forward(p),wasGrounded=p.grounded;p.braking=!!i.brake;
+ const powerInput=clamp(Number(i.throttle)||0,-1,1),manualPower=p.human&&Math.abs(powerInput)>.9,direction=manualPower?Math.sign(powerInput):0;
+ p.throttleHeld=direction&&direction===p.throttleDirection?(p.throttleHeld||0)+dt:0;p.throttleDirection=direction;
+ // Fine taps, fast held travel. Assist and AI retain their gentler power rate;
+ // only the throttle lever is quicker, never the aircraft's energy response.
+ const powerRate=manualPower?(p.throttleHeld<.16?.6:1.25):.38;
+ p.throttle=clamp(p.throttle+powerInput*dt*powerRate,0,1);
  if(p.grounded){p.pitch=0;p.roll=0;p.yaw+=clamp(Number(i.roll)||0,-1,1)*dt*(p.speed<60?0.32:0.15)+clamp(Number(i.yaw)||0,-1,1)*dt*.28;
  if(p.speed>72&&Number(i.pitch)>.12){p.grounded=false;p.landed=false;p.pitch=.08;p.pos.y=(AIRFIELDS[p.runwayId]?.elevation||0)+4;emit(g,'takeoff','Positive climb. Gear up — follow the route.',{pilotId:p.id});if(g.mode==='freeflight'&&p.id==='host'){g.flightStage=g.routeIndex>=routeFor(g).length?'approach':'route';if(g.flightStage==='approach')g.approachIndex=0}}
  }else{

@@ -39,7 +39,7 @@ export function mountNetworkUI(container, network, { onLaunch } = {}) {
     document.head.append(style);
   }
   const el = name => container.querySelector(`[data-net="${name}"]`);
-  el('build').textContent = `Room build: ${network.build || 'unknown'} · both players should show the same version`;
+  el('build').textContent = `Game build: ${network.build || 'unknown'} · room compatibility: ${network.compatibility || network.build || 'unknown'}`;
   let busy = false, activeOperation = 0;
   function message(text) { el('status').textContent = text; }
   function refresh() {
