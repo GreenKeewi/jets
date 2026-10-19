@@ -64,3 +64,14 @@ Rendering work is bounded: 48 near-air wisps (24 in adaptive low quality), insta
 ### Verification of this release
 
 The deterministic suite covers speed, legacy routes/controls/network behavior, asymmetric and three-team squads, formation geometry, directional ambushes, swept collisions, countermeasure and seeker behavior, scores and repeated respawns. Controller/DOM tests use test doubles and are explicitly not a 3D playtest. The native-key suite in tests/squad-browser.cjs is ready for a WebGL-capable environment. Actual rendered browser verification was blocked here: the installed test browser could not launch in the executor sandbox, while the reachable cloud browser reports WebGL disabled even for the previous public release. No browser security or network settings were changed.
+
+
+## High-G pilot limits and heat defense
+
+Sustained positive G is estimated from actual speed and flight-path acceleration along the pilot's up axis. Exposure builds above 5.5 G: tunnel vision comes first, then a brief blackout. Turn and weapon inputs are neutralized during blackout so the airframe unloads, and vision returns gradually. Release turn keys before taking control again. Bots share the same limits and ease off when strained. Respawn creates a fresh pilot; pause, help, and result screens remain readable. This is an arcade approximation rather than a medical or aircraft model.
+
+Each incoming heat missile gets one seeded flare-defeat roll per release burst, not per particle or frame. Flares can fail at any power setting. Fighter afterburner above 82% power sharply reduces flare effectiveness; cutting power before release improves the odds. Evasive flight still works through the existing seeker angle, turn and tracking limits. Radar missiles retain their separate chaff behavior.
+
+In cockpit view, the dashes around the fixed central plus now follow the projected world horizon. They move with pitch, rotate with the visible horizon, and mark the sky side with UP.
+
+Verification for this follow-on release was limited to source/syntax and deployment-version checks, as requested. No additional gameplay tests or rendered playtest were run.

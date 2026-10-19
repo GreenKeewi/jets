@@ -1,12 +1,14 @@
-import {flightForward} from './view-axes.js?v=squads7-1019';
-import {GUN,fireGunRound,advanceGunRounds} from './guns.js?v=squads7-1019';
-import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=squads7-1019';
-export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=squads7-1019';
-import {FLIGHT,fighterTargetSpeed} from './flight.js?v=squads7-1019';
-export {FLIGHT,fighterTargetSpeed} from './flight.js?v=squads7-1019';
-import {surfaceHeight} from './world.js?v=squads7-1019';
-import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=squads7-1019';
-export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=squads7-1019';
+import {tryHeatFlare} from './heat-seeker.js?v=highg1-1019';
+import {freshPilotG,pilotGInput,updatePilotG} from './pilot-g.js?v=highg1-1019';
+import {flightForward} from './view-axes.js?v=highg1-1019';
+import {GUN,fireGunRound,advanceGunRounds} from './guns.js?v=highg1-1019';
+import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=highg1-1019';
+export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=highg1-1019';
+import {FLIGHT,fighterTargetSpeed} from './flight.js?v=highg1-1019';
+export {FLIGHT,fighterTargetSpeed} from './flight.js?v=highg1-1019';
+import {surfaceHeight} from './world.js?v=highg1-1019';
+import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=highg1-1019';
+export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=highg1-1019';
 // Flight and combat rules are renderer-independent so missions can be replayed deterministically.
 export const RUNWAY=AIRFIELDS.home;
 export const ROUTE=ROUTES.local.gates;
@@ -50,7 +52,7 @@ function spawnPilot(g,i,team,slot=0){
  const free=g.mode==='freeflight',strike=g.mode==='strike',attacker=g.role==='defend'?1:0;
  const bomber=strike&&team===attacker&&slot===0,formation=g.formations[team];
  const pos=free?{x:RUNWAY.x,y:3,z:-2720}:formationPoint(formation.origin,formation.yaw,slot,formation.spacing,formation.type);
- return{id:i===0?'host':`bot${i}`,team,slot,human:i===0,bomber,pos,yaw:free?0:formation.yaw,pitch:0,roll:0,speed:free?0:strike?(team===attacker?110:185):FLIGHT.cruiseSpeed,throttle:free?0:strike&&!bomber?(team===attacker?.55:.635):.78,hp:100,gunAmmo:GUN.capacity,gunCD:0,gunShots:0,heat:6,radar:4,flares:6,chaff:6,bombs:bomber?3:0,heatCD:0,radarCD:0,flareCD:0,chaffCD:0,bombCD:0,lock:0,targetId:null,dead:false,grounded:free,landed:false,runwayId:'home',aiTimer:0,aiShot:2+i*.6,aiDefend:0,aiBreak:0,aiNextBreak:7+i*1.9,rearm:0,aiEvade:0,spawnProtectedUntil:0,collisionGraceUntil:g.time+COMBAT_LIMITS.spawnGrace,respawnAt:null,deaths:0,kills:0,trail:[]};
+ return{...freshPilotG(),id:i===0?'host':`bot${i}`,team,slot,human:i===0,bomber,pos,yaw:free?0:formation.yaw,pitch:0,roll:0,speed:free?0:strike?(team===attacker?110:185):FLIGHT.cruiseSpeed,throttle:free?0:strike&&!bomber?(team===attacker?.55:.635):.78,hp:100,gunAmmo:GUN.capacity,gunCD:0,gunShots:0,heat:6,radar:4,flares:6,chaff:6,bombs:bomber?3:0,heatCD:0,radarCD:0,flareCD:0,chaffCD:0,bombCD:0,lock:0,targetId:null,dead:false,grounded:free,landed:false,runwayId:'home',aiTimer:0,aiShot:2+i*.6,aiDefend:0,aiBreak:0,aiNextBreak:7+i*1.9,rearm:0,aiEvade:0,spawnProtectedUntil:0,collisionGraceUntil:g.time+COMBAT_LIMITS.spawnGrace,respawnAt:null,deaths:0,kills:0,trail:[]};
 }
 export function createGame({mode='dogfight',teamSize=1,teamSizes,skirmish=false,role='attack',seed=64821,difficulty='normal',routeId='local'}={}){
  if(!['dogfight','strike','freeflight'].includes(mode))mode='dogfight';
@@ -164,12 +166,12 @@ function launch(g,p,type){if(g.time<(p.spawnProtectedUntil||0))return;const cd=t
  p[type]--;p[cd]=type==='heat'?1.65:2.5;const f=forward(p);g.missiles.push({id:++g.serial,type,ownerId:p.id,team:p.team,targetId:target.id,pos:{x:p.pos.x+f.x*18,y:p.pos.y+f.y*18-2,z:p.pos.z+f.z*18},dir:f,speed:p.speed+90,age:0,life:type==='heat'?13:17,decoyed:false,seekerLost:false,lostTime:0});emit(g,'launch',type==='heat'?'Fox two · heat seeker away':'Fox one · radar missile away',{pilotId:p.id});}
 export function bombSolution(p){const t=Math.sqrt(Math.max(0,p.pos.y-4)*2/45),f=forward(p);return{x:p.pos.x+f.x*p.speed*t,y:4,z:p.pos.z+f.z*p.speed*t}}
 export function canBomb(g,p){return p.bomber&&p.bombs>0&&!g.bombed&&p.pos.y>100&&p.pos.y<1000&&horizontal(bombSolution(p),TARGET)<330}
-function counter(g,p,type){const key=type==='flare'?'flares':'chaff',cd=type+'CD';if(!p[key]||p[cd]>0)return;p[key]--;p[cd]=1.2;for(let i=0;i<6;i++)g.countermeasures.push({id:++g.serial,type,ownerId:p.id,pos:{...p.pos},vel:{x:(random(g)-.5)*60,y:(random(g)-.5)*40-12,z:(random(g)-.5)*60},age:0,life:type==='flare'?3.8:5});emit(g,'counter',type==='flare'?'Flares out':'Chaff out',{pilotId:p.id})}
+function counter(g,p,type){const key=type==='flare'?'flares':'chaff',cd=type+'CD';if(!p[key]||p[cd]>0)return;p[key]--;p[cd]=1.2;const burstId=g.serial+1;for(let i=0;i<6;i++)g.countermeasures.push({id:++g.serial,burstId,type,ownerId:p.id,pos:{...p.pos},vel:{x:(random(g)-.5)*60,y:(random(g)-.5)*40-12,z:(random(g)-.5)*60},age:0,life:type==='flare'?3.8:5});emit(g,'counter',type==='flare'?'Flares out':'Chaff out',{pilotId:p.id})}
 function updatePilot(g,p,input,dt){
  if(p.dead)return;
  for(const k of ['gunCD','heatCD','radarCD','flareCD','chaffCD','bombCD'])p[k]=Math.max(0,p[k]-dt);
  p.rearm=(p.rearm||0)+dt;if(p.rearm>22){p.rearm=0;p.gunAmmo=Math.min(GUN.capacity,p.gunAmmo+150);if(g.mode!=='freeflight'){p.heat=Math.min(6,p.heat+2);p.radar=Math.min(4,p.radar+1);if(p.human)emit(g,'rearm','Weapons topped up · gun rounds, +2 heat, +1 radar',{pilotId:p.id})}}
- const i=input||{};p.braking=!!i.brake;p.throttle=clamp(p.throttle+(Number(i.throttle)||0)*dt*.38,0,1);
+ const i=pilotGInput(p,input||{}),before=forward(p),wasGrounded=p.grounded;p.braking=!!i.brake;p.throttle=clamp(p.throttle+(Number(i.throttle)||0)*dt*.38,0,1);
  const maxSpeed=p.bomber?194:FLIGHT.maxFighterSpeed,minSpeed=p.grounded?0:55;
  const targetSpeed=p.bomber?p.throttle*172:fighterTargetSpeed(p.throttle,{freeflight:g.mode==='freeflight'});
  p.speed=clamp(p.speed+(targetSpeed-p.speed)*dt*.24-(i.brake?(p.grounded?45:33):0)*dt-p.pitch*dt*10,minSpeed,maxSpeed);
@@ -182,7 +184,7 @@ function updatePilot(g,p,input,dt){
  p.pitch+=(wantedPitch-p.pitch)*Math.min(1,dt*1.8);
  p.yaw=angle(p.yaw+(Math.sin(p.roll)*.62+clamp(Number(i.yaw)||0,-1,1)*.17)*dt*(clamp(p.speed/100,.35,1.3)));
  }
- const f=forward(p);p.pos.x+=f.x*p.speed*dt;p.pos.z+=f.z*p.speed*dt;
+ const f=forward(p);updatePilotG(p,before,f,dt,wasGrounded);p.pos.x+=f.x*p.speed*dt;p.pos.z+=f.z*p.speed*dt;
  if(!p.grounded)p.pos.y+=f.y*p.speed*dt-Math.max(0,83-p.speed)*dt*.48;
  if(g.mode==='freeflight'&&p.grounded){
   const field=AIRFIELDS[p.runwayId]||RUNWAY,local=fieldCoordinates(field,p.pos);
@@ -204,7 +206,7 @@ function updatePilot(g,p,input,dt){
   }else kill(g,p,'terrain');
  }
  p.pos.y=Math.max(p.grounded?(AIRFIELDS[p.runwayId]?.elevation||0)+3:0,Math.min(6000,p.pos.y));
- if(p.dead)return;
+ if(p.dead||p.blackedOut)return;
  if(i.fireGun&&g.time>=(p.spawnProtectedUntil||0))fireGunRound(g,p);
  if(g.mode!=='freeflight'){
  const q=selectTarget(g,p);if(q&&q.id===p.targetId)p.lock=Math.min(3,p.lock+dt);else{p.targetId=q?.id||null;p.lock=q?dt:0}
@@ -234,7 +236,7 @@ function updateMissiles(g,dt,previous){
   const specs=MISSILE[m.type]||MISSILE.heat,target=g.pilots.find(p=>p.id===m.targetId&&!p.dead&&g.time>=(p.spawnProtectedUntil||0)),from={...m.pos};
   if(target&&!m.decoyed&&!m.seekerLost){
    const appropriate=m.type==='heat'?'flare':'chaff',d=dist(m.pos,target.pos);
-   const decoy=g.countermeasures.find(c=>c.ownerId===target.id&&c.type===appropriate&&c.age<2.2&&dist(c.pos,m.pos)<1100);
+   const decoy=m.type==='heat'?tryHeatFlare(m,target,g.countermeasures,()=>random(g)):g.countermeasures.find(c=>c.ownerId===target.id&&c.type===appropriate&&c.age<2.2&&dist(c.pos,m.pos)<1100);
    if(decoy){m.decoyed=true;m.decoyPos={...decoy.pos};emit(g,'evade',`${appropriate==='flare'?'Heat seeker':'Radar missile'} defeated`,{pilotId:target.id});}
    else{
     const sight=unitVector({x:target.pos.x-m.pos.x,y:target.pos.y-m.pos.y,z:target.pos.z-m.pos.z});

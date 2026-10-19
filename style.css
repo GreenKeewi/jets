@@ -40,3 +40,14 @@ dialog{color:var(--paper);color-scheme:dark}dialog::backdrop{background:#0a2433a
 #respawn-panel{pointer-events:auto;position:absolute;left:50%;top:40%;transform:translate(-50%,-15%);display:flex;flex-direction:column;align-items:center;background:#102e3be8;border:1px solid #bddace55;border-radius:15px;padding:23px 30px;box-shadow:0 12px 60px #09263066;max-width:calc(100vw - 35px);width:355px;text-align:center}#respawn-panel>strong{font-size:24px;margin:12px 0 0;letter-spacing:-.5px}#respawn-panel p{font-size:11px;line-height:1.6;color:#c9e1d6}#respawn-button{width:100%;margin-top:5px;justify-content:center;gap:13px}#respawn-button kbd{color:#214840;border-color:#1c504555}#respawn-button:disabled{opacity:.6;cursor:wait}
 #spawn-protection{position:absolute;left:50%;top:95px;transform:translateX(-50%);font-size:9px;color:#c4f6dc;background:#163b42d9;padding:7px 10px;border:1px solid #97d9bf55;border-radius:5px;letter-spacing:.7px}#match-score{position:absolute;left:50%;top:60px;transform:translateX(-50%);font-size:9px;color:#d6ecdf;letter-spacing:.6px;white-space:pre;background:#1738438c;border-radius:4px;padding:5px 8px}
 @media(max-width:560px){#threat{top:205px;max-width:90vw;gap:7px}#threat strong,#threat span{font-size:8px}#threat small{font-size:8px}#match-score{top:67px;font-size:8px}#spawn-protection{top:172px;font-size:8px;white-space:nowrap}.roster-fields{gap:12px}.roster-fields label{flex:1;min-width:110px}#respawn-panel{top:42%;padding:19px 22px}}
+
+/* Smooth high-G vision loss: no flashes, filter passes, or blocked menu controls. */
+#g-vision{position:absolute;inset:0;z-index:5;pointer-events:none}
+#hud .flight-top{position:relative;z-index:6}
+#g-warning{position:absolute;z-index:6;left:50%;top:32%;transform:translateX(-50%);max-width:85vw;width:max-content;padding:11px 16px;border:1px solid #e5bf84aa;border-radius:7px;background:#152934f5;color:#ffe3b1;font-size:11px;line-height:1.6;letter-spacing:.4px;text-align:center}
+#flight-envelope #g-load{font-size:11px;font-weight:700;color:#d3ecdd}#flight-envelope #g-load.high-g{color:#ffd18f}
+@media(max-width:560px){#g-warning{top:35%;font-size:9px;padding:8px 12px}}
+
+#attitude-dashes{position:absolute;inset:0;transform-origin:center;pointer-events:none}
+#hud.cockpit-view #attitude-dashes i{width:24px;border-top-width:2px}#hud.cockpit-view #attitude-dashes i:first-child{left:-13px}#hud.cockpit-view #attitude-dashes i:nth-child(2){right:-13px}
+#hud.cockpit-view #attitude-dashes::after{content:'UP';position:absolute;top:8px;left:-13px;font-size:7px;line-height:1;letter-spacing:1px;color:#d0f4d9}
