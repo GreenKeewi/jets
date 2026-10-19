@@ -115,7 +115,7 @@ Room compatibility remains rooms3-1019, preserving existing compatible room clie
 
 ## Combat missions, damage, pilot styles and sound
 
-Air combat now has four working mission choices: the existing dogfight/skirmish, Escort, Intercept and Survive an ambush. Escort protects an unarmed AI transport along a short coastal or valley route. Intercept gives the other squad that transport and asks you to stop it before the exit. Both have a 150-second mission limit, route checkpoints and explicit results. Ambush starts the attackers behind your formation; the ambushed squad wins by surviving 90 seconds or eliminating the attackers. Mission results and the pause menu offer a direct retry. These objective missions do not respawn aircraft. The existing eight-minute solo skirmish and R rejoin remain available under Dogfight.
+**Objective missions are currently disabled and hidden in the player UI.** The retained implementation has four mission choices: the existing dogfight/skirmish, Escort, Intercept and Survive an ambush. Escort protects an unarmed AI transport along a short coastal or valley route. Intercept gives the other squad that transport and asks you to stop it before the exit. Both have a 150-second mission limit, route checkpoints and explicit results. Ambush starts the attackers behind your formation; the ambushed squad wins by surviving 90 seconds or eliminating the attackers. Mission results and the pause menu offer a direct retry. These objective missions do not respawn aircraft. The existing eight-minute solo skirmish and R rejoin remain available under Dogfight.
 
 The host owns routes, deadlines, damage and results. All six human seats remain fighter seats; an objective transport uses one additional AI seat, never exceeds the 12-aircraft cap, and cannot be claimed by late joins. Existing room setup and JETS5 transport are retained.
 
@@ -126,3 +126,11 @@ Confirmed hits show short spark streaks, and damaged living aircraft below 75% a
 Four reusable nearby-aircraft audio voices provide stereo bearing, bounded Doppler pitch and a close-pass rush. Engine layers follow throttle, afterburner, speed and cockpit view. Enemy lock is a slow advisory; heat missiles use paired falling whistles and radar missiles use a three-note rise, with directional bearing and faster urgent repetition. Audio starts through existing player gestures, respects mute/pause/hidden tabs, and cancels pending tones. No audio downloads or media permissions are needed.
 
 Verification for this release is source inspection, JavaScript syntax and deployed-version checks only, as requested. No optional gameplay suite, simulated sortie, listening test, performance benchmark or rendered WebGL playtest was run.
+
+## Objective mission release switch
+
+Escort, Intercept and Survive an ambush are retained behind `COMBAT_MISSIONS_ENABLED=false` in `combat-missions.js`. The selector and help text are hidden by default in HTML and remain hidden/disabled in the controller. Launch configuration and simulation creation normalize mission IDs to Dogfight; objective snapshots and older hosts starting objective missions are rejected, with a reload notice for guests. There is no URL, saved-setting or network override. Ordinary Dogfight/skirmish, Strike & escape, Free flight, bot personalities, damage effects, audio and throttle behavior remain available.
+
+To re-enable, set the source flag to `true` and publish with fresh versions for `combat-missions.js`, `sim.js`, `render.js`, `game.js` and the game entry point. The UI and mission implementation then resume together. Keep `network.js` room compatibility at `rooms3-1019` and the raw serializer unchanged; its import version only controls the client build/invite cache.
+
+This disable-only release received source/syntax and deployed-file checks. No optional tests or gameplay runs were performed.

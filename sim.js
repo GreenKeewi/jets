@@ -1,4 +1,4 @@
-import {COMBAT_MISSIONS,missionRoute} from './combat-missions.js?v=missions1-1019';
+import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=dogfightonly1-1019';
 import {tryHeatFlare} from './heat-seeker.js?v=valleyenergy1-1019';
 import {freshPilotG,pilotGInput,updatePilotG} from './pilot-g.js?v=valleyenergy1-1019';
 import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=valleyenergy1-1019';
@@ -92,7 +92,7 @@ export function createGame({mode='dogfight',teamSize=1,teamSizes,skirmish=false,
  if(!['dogfight','strike','freeflight'].includes(mode))mode='dogfight';
  if(!Object.hasOwn(ROUTES,routeId))routeId='local';
  if(mode!=='dogfight'||!Object.hasOwn(ARENAS,arenaId))arenaId='coast';
- missionId=mode==='dogfight'&&Object.hasOwn(COMBAT_MISSIONS,missionId)?missionId:'dogfight';
+ missionId=mode==='dogfight'?combatMissionId(missionId):'dogfight';
  const tactical=missionId!=='dogfight',transportTeam=missionId==='escort'?0:missionId==='intercept'?1:null;
  const sizes=normalizedTeams(mode,teamSize,tactical?undefined:teamSizes);
  if(transportTeam!==null)sizes[transportTeam]++;
@@ -477,6 +477,7 @@ export function step(g,inputs={},dt=1/60){if(g.status!=='playing')return;dt=clam
 }
 export function snapshot(g){return JSON.parse(JSON.stringify(g))}
 export function applySnapshot(g,s){
+ if(combatMissionBlocked(s))return false;
  if(!s||s.version!==1||!Array.isArray(s.pilots)||s.pilots.length<1||s.pilots.length>COMBAT_LIMITS.maxPilots)return false;
  const ids=new Set();
  for(const p of s.pilots){
