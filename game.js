@@ -6,7 +6,7 @@ import {FlightAudio} from './audio.js?v=valleyenergy1-1019';
 import {drawCockpit} from './instruments.js?v=valleyenergy1-1019';
 import {combatCue,nearestThreat,waypointScreenPosition} from './guidance.js?v=valleyenergy1-1019';
 import {AIRFIELDS,ROUTES,routeDefinition,routeFor,destinationFor,approachFor,fieldPoint} from './missions.js?v=valleyenergy1-1019';
-import {createNetwork,mountNetworkUI} from './network.js?v=rooms1-1019';
+import {createNetwork,mountNetworkUI} from './network.js?v=rooms2-1019';
 import {ARENAS} from './arenas.js?v=valleyenergy1-1019';
 import {surfaceHeight} from './world.js?v=valleyenergy1-1019';
 const $=s=>document.getElementById(s),keys=new Set(),actionQueue=new Set();

@@ -4,6 +4,8 @@
 export const PROTOCOL = 'JETS5';
 export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb'];
 export { mountNetworkUI } from './network-ui.js?v=rooms1-1019';
+// PeerJS 1.5.5 registers its pass-through serializer as 'raw' (not 'none').
+const ROOM_SERIALIZATION = 'raw';
 const ROOM_ICE = { iceServers: [{ urls: 'stun:stun.cloudflare.com:3478' }] };
 const ROOM_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const roomPeerId = code => `skybreak-${PROTOCOL.toLowerCase()}-${code.toLowerCase()}`;
@@ -324,7 +326,7 @@ export function createNetwork(callbacks = {}) {
   }
   function acceptRoomConnection(connection) {
     if (role !== 'host' || !room) { connection.close(); return; }
-    if (connection.label !== 'control' || connection.serialization !== 'none' || !connection.reliable || connection.metadata?.protocol !== PROTOCOL) {
+    if (connection.label !== 'control' || connection.serialization !== ROOM_SERIALIZATION || !connection.reliable || connection.metadata?.protocol !== PROTOCOL) {
       rejectRoomConnection(connection, 'version'); return;
     }
     const id = [1, 2, 3, 4, 5].map(n => `p${n}`).find(seat => !connections.has(seat));
@@ -425,7 +427,7 @@ export function createNetwork(callbacks = {}) {
       try {
         const peer = await openRoomPeer(`skybreak-guest-${uuid()}`, epoch);
         if (epoch !== roomEpoch) throw new Error('Joining was cancelled.');
-        const connection = peer.connect(roomPeerId(code), { label: 'control', reliable: true, serialization: 'none', metadata: { protocol: PROTOCOL } });
+        const connection = peer.connect(roomPeerId(code), { label: 'control', reliable: true, serialization: ROOM_SERIALIZATION, metadata: { protocol: PROTOCOL } });
         if (!connection) throw new Error('The room connection could not start. Try again.');
         const p = makePeer('host', uuid(), null, connection);
         // Use the same SCTP connection, but keep physics unreliable and unordered.
