@@ -48,3 +48,7 @@ Normal-animation browser fixtures exercise actual keys at all four cardinal head
 The gun uses realtime held input with a 250 ms freshness timeout. The host simulation alone sets its 10-round/second cadence and ammunition. A release stops firing on arrival; a lost release/update expires the gun state, and reliable missile/countermeasure traffic cannot renew it. Q/E remain discrete, press-only missiles. JETS4 rejects older pairing versions so both players must reload and exchange fresh codes.
 
 The deterministic transport-plus-host-simulation regression reproduces four local shots versus two guest shots with the previous dual 100 ms cooldowns and 20/19/20/19 ms delays; the repair produces four versus four. Separate regressions cover release, dropped updates, expiry, reordering and the existing pause/replay generation boundaries. See `evidence/gun-jitter/README.md`. Native LAN connectivity remains unverified under this cloud browser's managed policy.
+
+## Flight-speed update
+
+Fighters cruise at roughly 554 knots at 78% power and reach Mach 2 at full power. The HUD uses actual metres travelled per second (Mach reference 343 m/s), with nearby world-anchored air wisps, low-altitude whitecaps, a restrained five-degree speed FOV band, afterburner exhaust and transonic vapor. Air motion has a fixed 48-wisp budget, reduced to 24 in adaptive low quality, and honors reduced-motion preferences. Freeflight approach/taxi power and bomber speed remain tuned for the existing routes.

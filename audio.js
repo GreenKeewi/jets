@@ -1,4 +1,11 @@
 // Original procedural jet, wind and radio cues; no downloaded audio or media permissions.
+const clamp=(value,low,high)=>Math.max(low,Math.min(high,Number.isFinite(value)?value:0));
+export function flightSound(p,inside=false){
+ const thrust=clamp(p.throttle,0,1),mach=clamp(Number.isFinite(p.mach)?p.mach:(p.speed||0)/343,0,3),burner=p.bomber?0:clamp((thrust-.82)/.18,0,1),buffet=p.grounded?0:Math.max(0,1-Math.abs(mach-1)/.12);
+ return{jet:.035+thrust*.2+burner*.085+buffet*.014,jetFrequency:(inside?340:450)+thrust*(inside?1050:1700)+burner*420,
+  wind:(clamp(Math.pow(mach,1.4)*.15,0,.5)+(p.braking?.045:0))*(inside?.55:1),windFrequency:(inside?1000:1800)+mach*1450,
+  engineFrequency:35+thrust*52+burner*18,engine:.008+thrust*.024+burner*.014};
+}
 export class FlightAudio{
  constructor(){this.enabled=true;this.ctx=null;this.active=false;this.lastThreat=0;this.lastGunShots=0;this.voices=new Set()}
  init(){
@@ -11,9 +18,9 @@ export class FlightAudio{
  }
  toggle(){this.enabled=!this.enabled;if(this.ctx)this.master.gain.setTargetAtTime(this.enabled&&this.active?.42:0,this.ctx.currentTime,.035);return this.enabled}
  update(p,active,threat,view='chase'){
-  if(!this.ctx)return;active=!!active&&!document.hidden;const a=this.ctx,t=a.currentTime;this.active=active;const shots=p.gunShots||0;if(active&&shots>this.lastGunShots)this.burst(1500,220,.065,view==='cockpit'?.08:.13);this.lastGunShots=shots;const inside=view==='cockpit',thrust=p.throttle||0,speed=Math.min(1.35,(p.speed||0)/210),brake=p.braking?.045:0;
-  this.master.gain.setTargetAtTime(this.enabled&&active?.42:0,t,.035);this.jetGain.gain.setTargetAtTime(active?.035+thrust*.24+(thrust>.9?.04:0):0,t,.22);this.jetFilter.frequency.setTargetAtTime((inside?340:450)+thrust*(inside?1050:1700),t,.25);
-  this.windGain.gain.setTargetAtTime(active?(speed*speed*.26+brake)*(inside?.55:1):0,t,.18);this.windFilter.frequency.setTargetAtTime((inside?1000:1800)+speed*1400,t,.25);this.engine.frequency.setTargetAtTime(35+thrust*52,t,.3);this.engineGain.gain.setTargetAtTime(active?.008+thrust*.024:0,t,.25);
+  if(!this.ctx)return;active=!!active&&!document.hidden;const a=this.ctx,t=a.currentTime;this.active=active;const shots=p.gunShots||0;if(active&&shots>this.lastGunShots)this.burst(1500,220,.065,view==='cockpit'?.08:.13);this.lastGunShots=shots;const sound=flightSound(p,view==='cockpit');
+  this.master.gain.setTargetAtTime(this.enabled&&active?.42:0,t,.035);this.jetGain.gain.setTargetAtTime(active?sound.jet:0,t,.22);this.jetFilter.frequency.setTargetAtTime(sound.jetFrequency,t,.25);
+  this.windGain.gain.setTargetAtTime(active?sound.wind:0,t,.18);this.windFilter.frequency.setTargetAtTime(sound.windFrequency,t,.25);this.engine.frequency.setTargetAtTime(sound.engineFrequency,t,.3);this.engineGain.gain.setTargetAtTime(active?sound.engine:0,t,.25);
   const range=typeof threat==='object'?threat?.range:700,period=range<650?.3:.75;
   if(active&&threat&&t-this.lastThreat>period){this.lastThreat=t;this.beep(typeof threat==='object'&&threat.type==='radar'?620:490,.07,.045);if(range<650)setTimeout(()=>this.active&&this.beep(760,.055,.035),95)}
  }

@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.js';
-import {terrainHeight,worldNoise,coastPoint,northernRidgeHeight,SEA_LEVEL} from './world.js?v=gun5-1016';
-import {createAircraft} from './aircraft.js?v=gun5-1016';
-import {AIRFIELDS,fieldPoint,fieldCoordinates} from './missions.js?v=gun5-1016';
+import {terrainHeight,worldNoise,coastPoint,northernRidgeHeight,SEA_LEVEL} from './world.js?v=speed6-1019';
+import {createAircraft} from './aircraft.js?v=speed6-1019';
+import {AIRFIELDS,fieldPoint,fieldCoordinates} from './missions.js?v=speed6-1019';
 const standard=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.88,metalness:.08,...extra});
 function box(w,h,d,mat,x=0,y=0,z=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);return m}
 function canvasTexture(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
@@ -10,7 +10,7 @@ function ribbon(points,width,mat,height=0.6){const curve=new THREE.CatmullRomCur
 function roof(width,depth,height,mat){const v=[-width/2,0,-depth/2,width/2,0,-depth/2,0,height,-depth/2,-width/2,0,depth/2,width/2,0,depth/2,0,height,depth/2],ix=[0,2,1,3,4,5,0,3,5,0,5,2,2,5,4,2,4,1];const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.setIndex(ix);g.computeVertexNormals();return new THREE.Mesh(g,mat)}
 const hash=n=>{const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)};
 export class Scenery{
- constructor(scene){this.scene=scene;this.animated=[];this.setupSky();this.setupWater();this.buildLand();this.buildAirport();for(const field of[AIRFIELDS.northpoint,AIRFIELDS.westhaven])this.buildRemoteAirport(field);this.buildVillage();this.buildLandmarks();this.buildRemoteLandmarks();this.buildDepot();}
+ constructor(scene){this.scene=scene;this.animated=[];this.setupSky();this.setupWater();this.setupSurfaceDetail();this.buildLand();this.buildAirport();for(const field of[AIRFIELDS.northpoint,AIRFIELDS.westhaven])this.buildRemoteAirport(field);this.buildVillage();this.buildLandmarks();this.buildRemoteLandmarks();this.buildDepot();}
  setupSky(){
   const scene=this.scene;scene.fog=new THREE.FogExp2(0xb5ced5,.000038);scene.add(new THREE.HemisphereLight(0xc1e3ff,0x70866d,1.7));const sunlight=new THREE.DirectionalLight(0xffe2b4,2.9);sunlight.position.set(-5500,4100,-6500);scene.add(sunlight);
   this.sky=new THREE.Mesh(new THREE.SphereGeometry(44000,32,20),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{top:{value:new THREE.Color(0x276fa4)},horizon:{value:new THREE.Color(0xc6d9dc)},sunDir:{value:new THREE.Vector3(-.62,.28,-.73).normalize()}},vertexShader:'varying vec3 direction;void main(){direction=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 direction;uniform vec3 top;uniform vec3 horizon;uniform vec3 sunDir;void main(){vec3 d=normalize(direction);float h=max(0.,d.y);vec3 c=mix(horizon,top,pow(h,.38));float disk=pow(max(0.,dot(d,sunDir)),1400.);float halo=pow(max(0.,dot(d,sunDir)),18.)*.22;c+=vec3(1.,.72,.38)*(disk*2.8+halo);gl_FragColor=vec4(c,1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}'}));scene.add(this.sky);
@@ -22,6 +22,23 @@ export class Scenery{
   const water=new THREE.Mesh(new THREE.PlaneGeometry(180000,180000),standard(0x1e698a,{roughness:.29,metalness:.3,normalMap:wave,normalScale:new THREE.Vector2(.48,.48)}));water.rotation.x=-Math.PI/2;water.position.y=SEA_LEVEL;this.scene.add(water);this.water=water;
   this.shoreMaterial=new THREE.ShaderMaterial({transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-3,side:THREE.DoubleSide,uniforms:{time:{value:0}},vertexShader:'varying vec2 shore;varying vec3 point;void main(){shore=uv;point=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec2 shore;varying vec3 point;uniform float time;void main(){float rim=shore.y;float wave=sin(rim*34.+time*1.2+sin(shore.x*90.)*1.8);float foam=smoothstep(.83,.99,wave)*pow(rim,2.)*.38;vec3 c=mix(vec3(.11,.48,.56),vec3(.31,.72,.66),pow(rim,.7));c=mix(c,vec3(.86,.94,.86),foam);gl_FragColor=vec4(c,pow(rim,.8)*.6);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}'});
   for(const island of['home','northpoint','westhaven']){const coastGeo=new THREE.BufferGeometry(),points=[],uv=[],indices=[],count=420;for(let i=0;i<=count;i++){const angle=i/count*Math.PI*2;for(const distance of[-4,230]){const p=coastPoint(angle,distance,island);points.push(p.x,SEA_LEVEL+.15,p.z);uv.push(i/count,distance<0?1:0)}if(i<count){const n=i*2;indices.push(n,n+1,n+2,n+1,n+3,n+2)}}coastGeo.setAttribute('position',new THREE.Float32BufferAttribute(points,3));coastGeo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));coastGeo.setIndex(indices);this.scene.add(new THREE.Mesh(coastGeo,this.shoreMaterial));}
+ }
+
+ setupSurfaceDetail(){
+  // Sparse 5–17 m whitecaps provide an honest nearby distance reference over water.
+  // A fixed 25 × 25 lattice is recycled only on cell boundaries; samples never drift
+  // with the camera, and cost remains one instanced draw even at Mach 2.
+  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute([-.5,0,0,-.15,0,.48,.1,0,-.1,.5,0,.22,.1,0,-.1,-.15,0,.48],3));geometry.computeVertexNormals();
+  this.whitecaps=new THREE.InstancedMesh(geometry,new THREE.MeshBasicMaterial({color:0x8ab9bf,transparent:true,opacity:.37,depthWrite:false,side:THREE.DoubleSide}),625);this.whitecaps.instanceMatrix.setUsage(THREE.DynamicDrawUsage);this.whitecaps.frustumCulled=false;this.whitecapMatrix=new THREE.Matrix4();this.whitecapScale=new THREE.Vector3();this.whitecapPosition=new THREE.Vector3();this.whitecapRotation=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),-.55);this.whitecapCell='';this.scene.add(this.whitecaps);
+ }
+ updateSurfaceDetail(camera,quality){
+  this.whitecaps.visible=camera.position.y<1800&&quality>.7;if(!this.whitecaps.visible)return;
+  const spacing=110,cx=Math.floor(camera.position.x/spacing),cz=Math.floor(camera.position.z/spacing),key=`${cx},${cz}`;this.whitecaps.material.opacity=.37*Math.max(0,Math.min(1,(1800-camera.position.y)/1000));if(key===this.whitecapCell)return;this.whitecapCell=key;
+  let count=0;for(let ix=-12;ix<=12;ix++)for(let iz=-12;iz<=12;iz++){
+   const xCell=cx+ix,zCell=cz+iz,seed=xCell*157.7+zCell*311.9,x=(xCell+.5)*spacing+(hash(seed)-.5)*70,z=(zCell+.5)*spacing+(hash(seed+17)-.5)*70;if(terrainHeight(x,z)>SEA_LEVEL-1)continue;
+   this.whitecapPosition.set(x,SEA_LEVEL+.25,z);this.whitecapScale.set(5+hash(seed+41)*12,1,1+hash(seed+73)*2);this.whitecapMatrix.compose(this.whitecapPosition,this.whitecapRotation,this.whitecapScale);this.whitecaps.setMatrixAt(count++,this.whitecapMatrix);
+  }
+  this.whitecaps.count=count;this.whitecaps.instanceMatrix.needsUpdate=true;
  }
 
  buildLand(){
@@ -89,5 +106,5 @@ export class Scenery{
   const tip=coastPoint(1.15,-120,'northpoint'),base=terrainHeight(tip.x,tip.z),tower=new THREE.Mesh(new THREE.CylinderGeometry(6,9,38,14),walls);tower.position.set(tip.x,base+19,tip.z);s.add(tower);s.add(box(16,7,16,glass,tip.x,base+42,tip.z));
  }
  buildDepot(){const group=new THREE.Group(),concrete=standard(0x788276),roofMat=standard(0x976d55),metal=standard(0xb2b8a8);group.position.set(0,4,700);group.add(box(245,1,245,standard(0x6f7c70)));group.add(box(170,25,100,concrete,0,13,0));const top=roof(176,106,12,roofMat);top.position.y=26;group.add(top);for(let i=0;i<3;i++){const tank=new THREE.Mesh(new THREE.CylinderGeometry(22,22,35,18),metal);tank.position.set(-115+i*50,18,-95);group.add(tank)}for(let i=0;i<5;i++)group.add(box(14,6,14,standard(0x8b7e61),65+i%2*20,4,-70+Math.floor(i/2)*20));this.depot=group;this.scene.add(group)}
- update(time,camera){for(const chunk of this.forestCells){const dx=chunk.position.x-camera.position.x,dz=chunk.position.z-camera.position.z;chunk.visible=dx*dx+dz*dz+camera.position.y*camera.position.y<81000000}this.sky.position.copy(camera.position);this.wave.offset.x=time*.00045;this.wave.offset.y=time*.00013;this.shoreMaterial.uniforms.time.value=time;for(const o of this.animated){if(o.kind==='boat'){o.node.rotation.z=Math.sin(time*.8+o.seed)*.045;o.node.position.y=o.baseY+Math.sin(time*.7+o.seed)*.4}else if(o.kind==='windsock')o.node.rotation.y=Math.sin(time*.55)*.06}}
+ update(time,camera,quality=1){this.updateSurfaceDetail(camera,quality);for(const chunk of this.forestCells){const dx=chunk.position.x-camera.position.x,dz=chunk.position.z-camera.position.z;chunk.visible=dx*dx+dz*dz+camera.position.y*camera.position.y<81000000}this.sky.position.copy(camera.position);this.wave.offset.x=time*.00045;this.wave.offset.y=time*.00013;this.shoreMaterial.uniforms.time.value=time;for(const o of this.animated){if(o.kind==='boat'){o.node.rotation.z=Math.sin(time*.8+o.seed)*.045;o.node.position.y=o.baseY+Math.sin(time*.7+o.seed)*.4}else if(o.kind==='windsock')o.node.rotation.y=Math.sin(time*.55)*.06}}
 }

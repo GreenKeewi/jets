@@ -1,5 +1,16 @@
 import * as THREE from './vendor/three.module.js';
-import {batchStatic} from './geometry.js?v=gun5-1016';
+import {batchStatic} from './geometry.js?v=speed6-1019';
+export const AIRCRAFT_PALETTES=Object.freeze([
+ {main:0xaabcc5,upper:0x708b9b,accent:0x8bdfd1,mark:'#35515f'},
+ {main:0xc8aa8c,upper:0x9d7c66,accent:0xec9568,mark:'#6d4f40'},
+ {main:0xb6afd0,upper:0x787494,accent:0xc7a3ff,mark:'#49415f'},
+]);
+const bounded=(v,min=0,max=1)=>Math.max(min,Math.min(max,Number.isFinite(v)?v:0));
+// Cues follow the same metre/second scale as flight physics; cruise is dry thrust.
+export function aircraftPower(p){
+ const throttle=bounded(p.throttle),mach=bounded(Number.isFinite(p.mach)?p.mach:(p.speed||0)/343,0,3),burner=p.bomber?0:bounded((throttle-.82)/.18);
+ return{throttle,mach,burner,vapor:p.grounded||p.dead?0:bounded(1-Math.abs(mach-1.01)/.14)*(.3+bounded(Math.abs(p.roll||0)+Math.abs(p.pitch||0))*.7)};
+}
 const paint=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.52,metalness:.34,...extra});
 function block(w,h,d,material,x=0,y=0,z=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);return m}
 function panel(points,material,thickness=.12){
@@ -15,7 +26,7 @@ function body(sections,material){
 function decalTexture(text,color){const c=document.createElement('canvas');c.width=256;c.height=128;const ctx=c.getContext('2d');ctx.fillStyle=color;ctx.font='bold 53px monospace';ctx.textAlign='center';ctx.fillText(text,128,82);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return tex}
 function axisCylinder(radius,length,mat,x,y,z){const m=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,length,16),mat);m.rotation.x=Math.PI/2;m.position.set(x,y,z);return m}
 export function createAircraft(team=0,bomber=false){
- const root=new THREE.Group(),main=paint(team===0?0xaabcc5:0xc8aa8c),upper=paint(team===0?0x708b9b:0x9d7c66),belly=paint(0x344c5b),seam=paint(0x516b79),accent=paint(team===0?0x8bdfd1:0xec9568),black=paint(0x182d39,{roughness:.82}),glass=paint(0x1c5266,{metalness:.68,roughness:.12}),metal=paint(0x63747b,{metalness:.8,roughness:.4});
+ const palette=AIRCRAFT_PALETTES[team]||AIRCRAFT_PALETTES[0],root=new THREE.Group(),main=paint(palette.main),upper=paint(palette.upper),belly=paint(0x344c5b),seam=paint(0x516b79),accent=paint(palette.accent),black=paint(0x182d39,{roughness:.82}),glass=paint(0x1c5266,{metalness:.68,roughness:.12}),metal=paint(0x63747b,{metalness:.8,roughness:.4});
  const length=bomber?18:15,tail=bomber?-16:-12;
  root.add(body(bomber?[[-18,.45,.6],[-14,1.9,1.8],[-6,2.7,2.4],[4,2.5,2.5],[12,1.6,1.7],[18,.1,.15]]:[[-13,.6,.7],[-10,1.7,1.25],[-4,2.0,1.6],[2,1.8,1.6],[7,1.25,1.15],[12,.5,.55],[16,.02,.02]],main));
  // A dark dorsal spine and inlet shoulders break up the silhouette and the flat paint.
@@ -41,15 +52,17 @@ export function createAircraft(team=0,bomber=false){
  // Canted twin fins for the fighter; one broad fin gives the bomber a separate profile.
  for(const side of(bomber?[0]:[-1,1])){const fin=new THREE.Group();fin.position.set(side*(bomber?0:1.35),.85,tail+.4);fin.rotation.z=-side*.19;const mesh=panel([[0,1],[0,7.2],[5,3.8],[6.5,0]],upper,.25);mesh.rotation.set(0,Math.PI/2,0);fin.add(mesh);const cap=block(.3,1.1,2.1,accent,0,5.2,1.6);fin.add(cap);root.add(fin);}
  const gear=new THREE.Group();for(const[x,z]of[[0,bomber?11:8],[-2.2,-4],[2.2,-4]]){gear.add(block(.22,1.7,.22,metal,x,-2.1,z));const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.63,.63,.48,12),black);wheel.rotation.z=Math.PI/2;wheel.position.set(x,-3,z);gear.add(wheel)}root.add(gear);
- const mark=new THREE.Mesh(new THREE.PlaneGeometry(bomber?6:4.5,2.3),new THREE.MeshBasicMaterial({map:decalTexture(bomber?'B—04':'K—07',team===0?'#35515f':'#6d4f40'),transparent:true,depthWrite:false}));mark.rotation.x=-Math.PI/2;mark.rotation.z=-Math.PI/2;mark.position.set(bomber?18:7,.2,bomber?-8:-4.4);root.add(mark);
+ const mark=new THREE.Mesh(new THREE.PlaneGeometry(bomber?6:4.5,2.3),new THREE.MeshBasicMaterial({map:decalTexture(bomber?'B—04':['K—07','R—12','V—03'][team]||'K—07',palette.mark),transparent:true,depthWrite:false}));mark.rotation.x=-Math.PI/2;mark.rotation.z=-Math.PI/2;mark.position.set(bomber?18:7,.2,bomber?-8:-4.4);root.add(mark);
  const beacon=new THREE.Mesh(new THREE.SphereGeometry(.14,6,5),new THREE.MeshBasicMaterial({color:0xffdba6}));beacon.position.set(0,2.2,-4);root.add(beacon);
- root.userData={flames,gear,surfaces,wingtips,beacon,gearAmount:1,bomber,team};batchStatic(gear);batchStatic(root,new Set([gear,beacon,...flames,...surfaces.map(s=>s.node)]));
+ const vapor=new THREE.Mesh(new THREE.ConeGeometry(bomber?23:13.5,13,24,1,true),new THREE.MeshBasicMaterial({color:0xe8f5f5,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false}));vapor.rotation.x=Math.PI/2;vapor.position.z=-3;vapor.visible=false;root.add(vapor);
+ root.userData={flames,gear,surfaces,wingtips,beacon,vapor,gearAmount:1,bomber,team};batchStatic(gear);batchStatic(root,new Set([gear,beacon,vapor,...flames,...surfaces.map(s=>s.node)]));
  const detailed=new THREE.Group();for(const node of[...root.children])detailed.add(node);root.add(detailed);
  const distant=new THREE.Group();distant.add(body(bomber?[[-18,.5,.6],[-5,2.7,2.4],[11,1.8,1.7],[18,.05,.05]]:[[-13,.7,.8],[-4,1.9,1.6],[7,1.2,1.1],[16,.02,.02]],main));for(const side of[-1,1]){distant.add(panel(bomber?[[side*1.5,5],[side*31,-8],[side*30,-12],[side*2,-6]]:[[side*1.3,6],[side*13.5,-5.6],[side*12.7,-9.2],[side*2,-7]],main,.2));const fin=panel([[0,0],[0,6],[5,2],[6,0]],upper,.2);fin.rotation.set(0,Math.PI/2,0);fin.position.set(side*(bomber?.4:1.35),.8,tail+.3);distant.add(fin)}batchStatic(distant);distant.visible=false;root.add(distant);root.userData.detailed=detailed;root.userData.distant=distant;return root;
 }
 export function animateAircraft(model,p,time,dt){
- const d=model.userData;const desiredGear=p.grounded||p.pos.y<130?1:0;d.gearAmount+=(desiredGear-d.gearAmount)*Math.min(1,dt*2.5);d.gear.visible=d.gearAmount>.025;d.gear.scale.y=Math.max(.05,d.gearAmount);
+ const d=model.userData,power=aircraftPower(p);const desiredGear=p.grounded||p.pos.y<130?1:0;d.gearAmount+=(desiredGear-d.gearAmount)*Math.min(1,dt*2.5);d.gear.visible=d.gearAmount>.025;d.gear.scale.y=Math.max(.05,d.gearAmount);
  for(const surface of d.surfaces){const target=surface.kind==='aileron'?p.roll*surface.side*.21:-p.pitch*.42;surface.node.rotation.x+=(target-surface.node.rotation.x)*Math.min(1,dt*9)}
- for(let i=0;i<d.flames.length;i++){const plume=d.flames[i],burner=Math.max(0,(p.throttle-.72)/.28);plume.scale.set(1,1,.35+p.throttle*.45+burner*.7+Math.sin(time*37+i)*.06);plume.visible=p.throttle>.13;plume.children.forEach((f,j)=>{f.material.opacity=(.25-j*.03)+burner*.25;f.material.color.setHex(burner>.4?[0x607bff,0xc6bdff,0xffdeb2][j]:[0x3d9fff,0x8ce7ff,0xe2f7ff][j])})}
+ for(let i=0;i<d.flames.length;i++){const plume=d.flames[i],{burner,throttle}=power;plume.scale.set(1+burner*.17,1+burner*.17,.2+throttle*.38+burner*1.7+Math.sin(time*37+i)*.035);plume.visible=!p.dead&&throttle>.13;plume.children.forEach((f,j)=>{f.material.opacity=(.14-j*.025)+burner*.38;f.material.color.setHex(burner>.3?[0x626aff,0xb9bcff,0xffe0bb][j]:[0x3d9fff,0x8ce7ff,0xe2f7ff][j])})}
+ d.vapor.visible=power.vapor>.035;d.vapor.material.opacity=power.vapor*.14;d.vapor.scale.setScalar(.93+power.vapor*.13);
  d.beacon.visible=Math.sin(time*3.2)>.83;
 }

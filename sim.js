@@ -1,8 +1,10 @@
-import {flightForward} from './view-axes.js?v=gun5-1016';
-import {GUN,fireGunRound,advanceGunRounds} from './guns.js?v=gun5-1016';
-import {surfaceHeight} from './world.js?v=gun5-1016';
-import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=gun5-1016';
-export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=gun5-1016';
+import {flightForward} from './view-axes.js?v=speed6-1019';
+import {GUN,fireGunRound,advanceGunRounds} from './guns.js?v=speed6-1019';
+import {FLIGHT,fighterTargetSpeed} from './flight.js?v=jet-upgrade-1019';
+export {FLIGHT,fighterTargetSpeed} from './flight.js?v=jet-upgrade-1019';
+import {surfaceHeight} from './world.js?v=speed6-1019';
+import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=speed6-1019';
+export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=speed6-1019';
 // Flight and combat rules are renderer-independent so missions can be replayed deterministically.
 export const RUNWAY=AIRFIELDS.home;
 export const ROUTE=ROUTES.local.gates;
@@ -65,10 +67,9 @@ function updatePilot(g,p,input,dt){
  for(const k of ['gunCD','heatCD','radarCD','flareCD','chaffCD','bombCD'])p[k]=Math.max(0,p[k]-dt);
  p.rearm=(p.rearm||0)+dt;if(p.rearm>22){p.rearm=0;p.gunAmmo=Math.min(GUN.capacity,p.gunAmmo+150);if(g.mode!=='freeflight'){p.heat=Math.min(6,p.heat+2);p.radar=Math.min(4,p.radar+1);if(p.human)emit(g,'rearm','Weapons topped up · gun rounds, +2 heat, +1 radar',{pilotId:p.id})}}
  const i=input||{};p.braking=!!i.brake;p.throttle=clamp(p.throttle+(Number(i.throttle)||0)*dt*.38,0,1);
- const maxSpeed=p.bomber?172:210,minSpeed=p.grounded?0:55;
- const drag=p.grounded?9:10;
- const targetSpeed=p.throttle*maxSpeed;
- p.speed=clamp(p.speed+(targetSpeed-p.speed)*dt*.24-(i.brake?(p.grounded?45:33):0)*dt-p.pitch*dt*10,minSpeed,maxSpeed+22);
+ const maxSpeed=p.bomber?194:FLIGHT.maxFighterSpeed,minSpeed=p.grounded?0:55;
+ const targetSpeed=p.bomber?p.throttle*172:fighterTargetSpeed(p.throttle,{freeflight:g.mode==='freeflight'});
+ p.speed=clamp(p.speed+(targetSpeed-p.speed)*dt*.24-(i.brake?(p.grounded?45:33):0)*dt-p.pitch*dt*10,minSpeed,maxSpeed);
  if(p.grounded){p.pitch=0;p.roll=0;p.yaw+=clamp(Number(i.roll)||0,-1,1)*dt*(p.speed<60?0.32:0.15)+clamp(Number(i.yaw)||0,-1,1)*dt*.28;
  if(p.speed>72&&Number(i.pitch)>.12){p.grounded=false;p.landed=false;p.pitch=.08;p.pos.y=(AIRFIELDS[p.runwayId]?.elevation||0)+4;emit(g,'takeoff','Positive climb. Gear up — follow the route.',{pilotId:p.id});if(g.mode==='freeflight'&&p.id==='host'){g.flightStage=g.routeIndex>=routeFor(g).length?'approach':'route';if(g.flightStage==='approach')g.approachIndex=0}}
  }else{
@@ -142,7 +143,7 @@ export const APPROACH=approachFor('local');
 export function routeGuidance(g,p){
  let input={pitch:0,roll:0,yaw:0,throttle:0,brake:false},target,desiredPower=.7;
  const runway=AIRFIELDS[p.runwayId]||AIRFIELDS.home,destination=destinationFor(g),approach=approachFor(g),route=routeFor(g);
- if(p.grounded&&!p.landed){const local=fieldCoordinates(runway,p.pos),headingError=angle(runway.heading-p.yaw);input.pitch=p.speed>76?.6:0;input.roll=clamp(-local.across*.02+headingError*1.8,-.4,.4);input.throttle=p.throttle<.97?1:0;return input}
+ if(p.grounded&&!p.landed){const local=fieldCoordinates(runway,p.pos),headingError=angle(runway.heading-p.yaw);input.pitch=p.speed>76?.6:0;input.roll=clamp(-local.across*.02+headingError*1.8,-.4,.4);input.throttle=p.throttle<.7?1:p.throttle>.72?-1:0;return input}
  if(p.grounded&&p.landed)return{...input,throttle:-1,brake:true};
  if(g.flightStage==='route')target=route[g.routeIndex];
  if(g.flightStage==='approach'){

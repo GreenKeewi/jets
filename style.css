@@ -28,3 +28,8 @@ dialog{color:var(--paper);color-scheme:dark}dialog::backdrop{background:#0a2433a
 #crosshair.firing{color:#ffe296;filter:drop-shadow(0 0 4px #ffc45b)}
 
 @media(min-width:600px) and (max-width:900px){.cockpit-dashboard{left:230px;right:12px}#hud.cockpit-view .weapons{max-width:195px}}
+
+/* Readable speed envelope in chase and cockpit, without expensive post-processing. */
+#flight-envelope{position:absolute;right:30px;top:76px;display:flex;flex-direction:column;gap:5px;align-items:flex-end;font-variant-numeric:tabular-nums;color:#def5e7;text-shadow:0 2px 5px #092736}
+#flight-envelope>span{font-size:10px;letter-spacing:1.5px}#flight-envelope b{font-size:22px;letter-spacing:-.5px;margin-left:5px}#flight-envelope small{font-size:8px;letter-spacing:1px;color:#bddace}#flight-envelope.supersonic{color:#ffe0b0}#flight-envelope.supersonic #speed-regime{color:#ffd294}
+@media(max-width:850px){#flight-envelope{right:18px;top:70px}}@media(max-width:560px){#flight-envelope{top:91px;right:14px}#flight-envelope b{font-size:19px}#flight-envelope small{font-size:7px}}
