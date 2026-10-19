@@ -1,8 +1,32 @@
-// Data-only, manually signalled WebRTC. No discovery, signalling service, STUN or TURN.
+// Data-only WebRTC. Room codes use PeerJS Cloud signaling and public STUN.
+// Advanced manual LAN pairing stays available without external services.
 // Protocol: ordered reliable control/actions; unordered zero-retransmit axes/snapshots.
 export const PROTOCOL = 'JETS5';
 export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb'];
-export { mountNetworkUI } from './network-ui.js?v=valleyenergy1-1019';
+export { mountNetworkUI } from './network-ui.js?v=rooms1-1019';
+const ROOM_ICE = { iceServers: [{ urls: 'stun:stun.cloudflare.com:3478' }] };
+const ROOM_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const roomPeerId = code => `skybreak-${PROTOCOL.toLowerCase()}-${code.toLowerCase()}`;
+const roomCode = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), n => ROOM_ALPHABET[n % ROOM_ALPHABET.length]).join('');
+const ROOM_BLOCKED = 'The room was found, but a direct connection could not open. This network may block WebRTC or require a relay. Try a reachable home network or another permitted connection. A TURN relay is not configured.';
+let peerLibrary;
+async function loadPeer() {
+  if (!globalThis.RTCPeerConnection) throw new Error('This browser does not support multiplayer WebRTC. Solo play still works.');
+  if (!peerLibrary) peerLibrary = import('./vendor/peerjs/peerjs-1.5.5.min.js').then(() => globalThis.peerjs.Peer).catch(error => { peerLibrary = null; throw error; });
+  try { return await peerLibrary; } catch { throw new Error('The room client could not load. Reload the game and try again.'); }
+}
+export function normalizeRoomCode(value) {
+  let code = String(value || '').trim();
+  if (/^https?:\/\//i.test(code)) {
+    try { const url = new URL(code); code = new URLSearchParams(url.hash.slice(1)).get('room') || url.searchParams.get('room') || ''; } catch { code = ''; }
+  }
+  code = code.replace(/[\s-]/g, '').toUpperCase();
+  if (!/^[A-HJ-NP-Z2-9]{8}$/.test(code)) throw new Error('Enter the 8-character room code or paste the host’s invite link.');
+  return code;
+}
+export function roomInviteLink(code, href = globalThis.location?.href) {
+  const url = new URL(href); url.search = ''; url.hash = `room=${normalizeRoomCode(code)}`; return url.href;
+}
 const HELD = ['fireGun'];
 const GUN_INPUT_EXPIRY = 250;
 const AXES = ['pitch', 'roll', 'yaw', 'throttle'];
@@ -129,10 +153,11 @@ export function createNetwork(callbacks = {}) {
   let role = 'offline', localId = null, sessionId = null, diagnostic = 'Solo ready. Pairing is optional.', roster = [];
   let axesSeq = 0, actionsSeq = 0, snapshotSeq = 0, controlSeq = 0, lastAxes = -Infinity, lastSnapshot = -Infinity;
   let inputGeneration = 0;
+  let room = null, roomPeer = null, roomEpoch = 0, roomOpening = false;
   let snapshots = [], currentControl = null, currentPaused = false, lastControlSeq = -1, lastSnapshotValue = null;
   const lastSentAction = Object.fromEntries(ACTIONS.map(k => [k, -Infinity]));
   const stats = { received: 0, rejected: 0, droppedSnapshots: 0, droppedInputs: 0 };
-  const state = () => ({ role, localId, sessionId, inputGeneration, connected: role === 'host' || [...connections.values()].some(p => p.ready), peers: role === 'guest' ? roster.map(id => ({ id, connected: true, status: 'connected' })) : [...connections.values()].map(p => ({ id: p.id, connected: p.ready, status: p.pc.connectionState === 'new' ? 'awaiting answer' : p.pc.connectionState })), diagnostic, stats: { ...stats } });
+  const state = () => ({ role, localId, sessionId, inputGeneration, roomCode: room, roomOpening, roomOnline: !!roomPeer?.open, connecting: [...connections.values()].some(p => !p.ready), connected: role === 'host' || [...connections.values()].some(p => p.ready), peers: role === 'guest' ? roster.map(id => ({ id, connected: true, status: 'connected' })) : [...connections.values()].map(p => ({ id: p.id, connected: p.ready, status: p.pc.connectionState === 'new' ? (p.roomConnection ? 'joining' : 'awaiting answer') : p.pc.connectionState })), diagnostic, stats: { ...stats } });
   const emit = () => { const s = state(); for (const f of listeners) f(s); callbacks.onPeerChange?.(s.peers, s); callbacks.onState?.(s); };
   const setStatus = message => { diagnostic = message; emit(); };
   const playerIds = () => role === 'host' ? ['host', ...[...connections.values()].filter(p => p.ready).map(p => p.id).sort()] : role === 'guest' ? ['host', ...roster] : [];
@@ -183,21 +208,22 @@ export function createNetwork(callbacks = {}) {
     if (connections.get(p.id) !== p) return;
     connections.delete(p.id); inputs.delete(p.id); p.ready = false;
     clearTimeout(p.timer); clearTimeout(p.disconnectTimer); clearTimeout(p.flushTimer);
-    p.pc.close();
+    p.roomConnection?.close(); p.pc.close();
     if (role === 'guest') { localId = null; snapshots = []; roster = []; }
     if (message) diagnostic = message;
     broadcastRoster(); emit(); callbacks.onDisconnect?.(p.id, message || diagnostic);
   }
   function ready(p) {
-    if (p.ready || p.control?.readyState !== 'open' || p.realtime?.readyState !== 'open') return;
+    if (connections.get(p.id) !== p || p.ready || p.control?.readyState !== 'open' || p.realtime?.readyState !== 'open') return;
     p.ready = true; clearTimeout(p.timer);
     if (role === 'host') {
       send(p, 'control', { t: 'welcome', id: p.id, session: sessionId, g: inputGeneration });
+      broadcastRoster();
       if (currentControl) {
         send(p, 'control', { t: 'game', q: ++controlSeq, g: inputGeneration, message: currentControl });
         if (currentPaused) send(p, 'control', { t: 'game', q: ++controlSeq, g: inputGeneration, message: { type: 'pause' } });
       }
-      broadcastRoster(); diagnostic = `${playerIds().length} pilots connected. Host chooses the mission.`;
+      diagnostic = `${playerIds().length} pilots connected. Close this panel and launch the sortie.`;
     } else diagnostic = 'Connected to host. Waiting for the host to start a mission.';
     emit();
     // A joining guest needs a complete world even while the host is paused.
@@ -234,7 +260,11 @@ export function createNetwork(callbacks = {}) {
       callbacks.onSnapshot?.(packet.value, { initial: packet.t === 'bootstrap' });
       return;
     }
-    if (packet.t === 'welcome' && packet.id === p.assignedId && packet.session === sessionId && validSeq(packet.g) && packet.g >= inputGeneration) { localId = packet.id; resetInputs(packet.g); emit(); }
+    if (packet.t === 'reject' && p.roomConnection && !localId && ['full', 'version', 'closed'].includes(packet.reason)) {
+      drop(p, packet.reason === 'full' ? 'This room has six pilots already. Ask the host to remove an unused seat.' : packet.reason === 'version' ? 'The host has a different game version. Both players should reload, then join the new room.' : 'This room is no longer accepting guests. Ask the host for a new invite.');
+      return;
+    }
+    if (packet.t === 'welcome' && /^p[1-5]$/.test(packet.id) && /^[\w-]{16,64}$/.test(packet.session) && (p.roomConnection && !p.assignedId || packet.id === p.assignedId && packet.session === sessionId) && validSeq(packet.g) && packet.g >= inputGeneration) { p.assignedId = packet.id; sessionId = packet.session; localId = packet.id; resetInputs(packet.g); emit(); }
     else if (packet.t === 'roster' && Array.isArray(packet.ids) && packet.ids.length <= 5 && packet.ids.every(id => /^p[1-5]$/.test(id)) && new Set(packet.ids).size === packet.ids.length) { roster = packet.ids; emit(); }
     else if (packet.t === 'game' && validSeq(packet.q) && packet.q > lastControlSeq && validSeq(packet.g) && packet.g >= inputGeneration && plain(packet.message) && ((packet.message.type === 'start' && validConfig(packet.message.config)) || ['restart', 'pause', 'resume', 'return'].includes(packet.message.type))) {
       lastControlSeq = packet.q; resetInputs(packet.g); snapshots = []; callbacks.onControl?.(packet.message);
@@ -245,36 +275,170 @@ export function createNetwork(callbacks = {}) {
     if (channel.label === 'control' && (!channel.ordered || channel.maxRetransmits !== null || channel.maxPacketLifeTime !== null)) { channel.close(); return; }
     if (channel.label === 'realtime' && (channel.ordered || channel.maxRetransmits !== 0)) { channel.close(); return; }
     p[channel.label] = channel; channel.bufferedAmountLowThreshold = HIGH_WATER / 2;
-    channel.onbufferedamountlow = () => flush(p);
-    channel.onopen = () => ready(p);
-    channel.onmessage = e => handle(p, e.data, channel.label);
-    channel.onclose = () => drop(p, role === 'guest' ? 'Host disconnected. Return to solo or paste a fresh host offer to reconnect.' : `${p.id} disconnected. Create a new offer to fill the seat.`);
-    channel.onerror = () => { diagnostic = 'A data channel had a network error. If it closes, create a fresh pairing.'; emit(); };
+    const on = (event, fn) => p.roomConnection ? channel.addEventListener(event, fn) : channel[`on${event}`] = fn;
+    on('bufferedamountlow', () => flush(p));
+    on('open', () => ready(p));
+    on('message', e => handle(p, e.data, channel.label));
+    on('close', () => drop(p, p.roomConnection ? (role === 'guest' ? 'Host disconnected. Join the room again, or ask the host for a new invite.' : `${p.id} disconnected. The seat is available for another guest.`) : (role === 'guest' ? 'Host disconnected. Return to solo or paste a fresh host offer to reconnect.' : `${p.id} disconnected. Create a new offer to fill the seat.`)));
+    on('error', () => { diagnostic = 'The connection was interrupted. If it closes, join again.'; emit(); });
+    ready(p);
   }
-  function makePeer(id, pair, assignedId = id) {
+  function makePeer(id, pair, assignedId = id, roomConnection = null) {
     if (!globalThis.RTCPeerConnection) throw new Error('This browser does not support WebRTC data channels. Solo play still works.');
-    const pc = new RTCPeerConnection({ iceServers: [] });
-    const p = { id, assignedId, pair, pc, ready: false, queue: [], guard: createInputGuard(), lastSnapshot: -1, created: now() };
+    const pc = roomConnection?.peerConnection || new RTCPeerConnection({ iceServers: [] });
+    const p = { id, assignedId, pair, pc, roomConnection, ready: false, queue: [], guard: createInputGuard(), lastSnapshot: -1, created: now() };
     connections.set(id, p);
-    pc.ondatachannel = e => bind(p, e.channel);
+    const peerJsDataChannel = pc.ondatachannel;
+    pc.ondatachannel = e => {
+      if (roomConnection && e.channel.label === 'control') peerJsDataChannel?.call(pc, e);
+      bind(p, e.channel);
+    };
     pc.onconnectionstatechange = () => {
       clearTimeout(p.disconnectTimer);
-      if (pc.connectionState === 'failed') drop(p, 'LAN connection failed. Check same Wi-Fi, guest-network/client isolation, local firewall and browser mDNS support. There is no relay fallback; create a fresh offer.');
+      if (pc.connectionState === 'failed') drop(p, roomConnection ? ROOM_BLOCKED : 'LAN connection failed. Check same Wi-Fi, guest-network/client isolation, local firewall and browser mDNS support. There is no relay fallback; create a fresh offer.');
       else if (pc.connectionState === 'disconnected') {
         diagnostic = 'Connection interrupted. Waiting briefly for recovery…'; emit();
-        p.disconnectTimer = setTimeout(() => drop(p, 'Connection lost. Create a fresh offer and answer to reconnect.'), 10000);
+        p.disconnectTimer = setTimeout(() => drop(p, roomConnection ? 'Connection lost. Join the room again or ask the host for a new invite.' : 'Connection lost. Create a fresh offer and answer to reconnect.'), 10000);
       } else emit();
     };
-    p.timer = setTimeout(() => drop(p, 'Pairing expired. Check both devices share a reachable LAN; disable guest/client isolation if you control the router. Firewalls or mDNS restrictions may block direct connections. Create a fresh offer.'), 300000);
+    p.timer = setTimeout(() => drop(p, roomConnection ? ROOM_BLOCKED : 'Pairing expired. Check both devices share a reachable LAN; disable guest/client isolation if you control the router. Firewalls or mDNS restrictions may block direct connections. Create a fresh offer.'), roomConnection ? 30000 : 300000);
+    if (roomConnection) {
+      roomConnection.on('error', () => drop(p, ROOM_BLOCKED));
+      roomConnection.on('close', () => drop(p, role === 'guest' ? 'Host disconnected. Join the room again or ask for a new invite.' : `${id} disconnected. The seat is available.`));
+      if (roomConnection.dataChannel) bind(p, roomConnection.dataChannel);
+    }
     return p;
   }
+  function rejectRoomConnection(connection, reason) {
+    // Do not let PeerJS replace its control channel with the extra realtime channel.
+    const receiveControl = connection.peerConnection.ondatachannel;
+    connection.peerConnection.ondatachannel = event => {
+      if (event.channel.label === 'control') receiveControl?.call(connection.peerConnection, event);
+    };
+    connection.on('error', () => {});
+    connection.on('open', () => {
+      connection.send(JSON.stringify({ t: 'reject', reason }));
+      setTimeout(() => connection.close(), 300);
+    });
+    setTimeout(() => { if (!connection.open) connection.close(); }, 10000);
+  }
+  function acceptRoomConnection(connection) {
+    if (role !== 'host' || !room) { connection.close(); return; }
+    if (connection.label !== 'control' || connection.serialization !== 'none' || !connection.reliable || connection.metadata?.protocol !== PROTOCOL) {
+      rejectRoomConnection(connection, 'version'); return;
+    }
+    const id = [1, 2, 3, 4, 5].map(n => `p${n}`).find(seat => !connections.has(seat));
+    if (!id) { rejectRoomConnection(connection, 'full'); return; }
+    makePeer(id, uuid(), id, connection);
+    setStatus(`A guest is joining room ${room.slice(0, 4)} ${room.slice(4)}…`);
+  }
+  async function openRoomPeer(id, epoch) {
+    const Peer = await loadPeer();
+    if (epoch !== roomEpoch) throw new Error('Room setup was cancelled.');
+    return new Promise((resolve, reject) => {
+      const peer = new Peer(id, { debug: 0, config: ROOM_ICE });
+      roomPeer = peer;
+      let opened = false, settled = false;
+      const fail = error => {
+        if (settled) return;
+        settled = true; clearTimeout(timer); reject(error);
+      };
+      const timer = setTimeout(() => fail(new Error('The room service did not respond. Check your connection and try again. School or work networks may block it.')), 15000);
+      peer.on('connection', connection => {
+        if (epoch !== roomEpoch || roomPeer !== peer) { connection.close(); return; }
+        acceptRoomConnection(connection);
+      });
+      // This game never accepts audio/video calls or requests media permissions.
+      peer.on('call', call => call.close());
+      peer.on('open', () => {
+        if (epoch !== roomEpoch || roomPeer !== peer) { peer.destroy(); return; }
+        opened = true;
+        if (!settled) { settled = true; clearTimeout(timer); resolve(peer); }
+        else setStatus(role === 'host' ? 'Room is available again. Share the same invite with your friends.' : 'Room service reconnected.');
+      });
+      peer.on('error', error => {
+        if (epoch !== roomEpoch || roomPeer !== peer) return;
+        const message = error.type === 'peer-unavailable' ? 'Room not found. Check the code and ask the host to keep the room open. If they reloaded, ask for their new code.' :
+          error.type === 'unavailable-id' ? 'That room code is already in use. Create a new room.' :
+          error.type === 'browser-incompatible' ? 'This browser does not support multiplayer. Try a current WebRTC-capable browser.' :
+          ['webrtc', 'network', 'socket-error', 'socket-closed'].includes(error.type) ? 'The room service or peer connection was interrupted. Try joining again. Restricted networks may need a TURN relay, which is not configured.' : 'Could not open the room connection. Try again or return to solo.';
+        if (!opened) { const failure = new Error(message); failure.type = error.type; fail(failure); return; }
+        const guest = connections.get('host');
+        if (role === 'guest' && guest && !guest.ready) drop(guest, message);
+        else setStatus(message);
+      });
+      peer.on('disconnected', () => {
+        if (epoch !== roomEpoch || roomPeer !== peer) return;
+        if (!opened) fail(new Error('The room service disconnected. Try creating or joining the room again.'));
+        else setStatus('Room service disconnected. Connected pilots can keep flying. Use Reconnect room to let new guests join.');
+      });
+      peer.on('close', () => {
+        if (!settled) fail(new Error('Room setup was cancelled.'));
+      });
+    });
+  }
   function disconnect() {
+    roomEpoch++; roomOpening = false; room = null; const oldPeer = roomPeer; roomPeer = null;
     role = 'offline'; localId = null; sessionId = null; roster = []; snapshots = []; currentControl = null; currentPaused = false; lastControlSeq = -1; lastSnapshotValue = null; inputGeneration = 0;
     for (const p of [...connections.values()]) drop(p);
+    oldPeer?.destroy();
     inputs.clear(); diagnostic = 'Solo ready. Pairing is optional.'; emit();
   }
   const api = {
     protocol: PROTOCOL,
+    normalizeRoomCode,
+    inviteLink: code => roomInviteLink(code || room),
+    async createRoom() {
+      if (room && roomPeer && !roomPeer.destroyed) {
+        if (roomPeer.disconnected) { roomPeer.reconnect(); setStatus('Reconnecting the room service…'); }
+        return room;
+      }
+      if (role === 'guest') throw new Error('Leave the current room before creating your own.');
+      if (roomOpening) throw new Error('Room setup is already in progress.');
+      if (role === 'offline') api.host();
+      roomOpening = true; const epoch = ++roomEpoch;
+      setStatus('Creating your room…');
+      try {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const code = roomCode();
+          try {
+            await openRoomPeer(roomPeerId(code), epoch);
+            if (epoch !== roomEpoch) throw new Error('Room setup was cancelled.');
+            room = code;
+            setStatus('Room ready. Share the invite link or room code. Friends join automatically; then you launch.');
+            return room;
+          } catch (error) {
+            if (epoch !== roomEpoch) throw error;
+            const failedPeer = roomPeer; roomPeer = null; failedPeer?.destroy();
+            if (error.type !== 'unavailable-id' || attempt === 2) throw error;
+          }
+        }
+      } catch (error) { if (epoch === roomEpoch) setStatus(error.message); throw error; }
+      finally { if (epoch === roomEpoch) { roomOpening = false; emit(); } }
+    },
+    async joinRoom(value) {
+      const code = normalizeRoomCode(value);
+      if (role === 'host' && connections.size) throw new Error('Leave your room before joining another host.');
+      if (role === 'guest' && [...connections.values()].some(p => p.ready)) throw new Error('Leave the current room before joining another one.');
+      disconnect(); role = 'guest'; room = code; roomOpening = true; const epoch = roomEpoch;
+      setStatus('Finding the host…');
+      try {
+        const peer = await openRoomPeer(`skybreak-guest-${uuid()}`, epoch);
+        if (epoch !== roomEpoch) throw new Error('Joining was cancelled.');
+        const connection = peer.connect(roomPeerId(code), { label: 'control', reliable: true, serialization: 'none', metadata: { protocol: PROTOCOL } });
+        if (!connection) throw new Error('The room connection could not start. Try again.');
+        const p = makePeer('host', uuid(), null, connection);
+        // Use the same SCTP connection, but keep physics unreliable and unordered.
+        bind(p, p.pc.createDataChannel('realtime', { ordered: false, maxRetransmits: 0 }));
+        setStatus('Joining the room… The host does not need to paste or accept anything.');
+        return code;
+      } catch (error) {
+        if (epoch === roomEpoch) {
+          disconnect(); diagnostic = error.message; emit();
+        }
+        throw error;
+      } finally { if (epoch === roomEpoch) { roomOpening = false; emit(); } }
+    },
     get state() { return state(); },
     subscribe(fn) { listeners.add(fn); fn(state()); return () => listeners.delete(fn); },
     host() { if (role === 'host') return state(); disconnect(); role = 'host'; localId = 'host'; sessionId = uuid(); diagnostic = 'Host ready. Create a different offer for each guest, up to five.'; emit(); return state(); },
