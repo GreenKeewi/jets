@@ -21,8 +21,8 @@ export function nearestAirfield(point){
  }
  return nearest;
 }
-export function fullAirframeStores(p){
- return{hp:100,gunAmmo:GUN.capacity,heat:6,radar:4,flares:6,chaff:6,bombs:p.bomber&&p.objectiveRole!=='transport'?3:0};
+export function fullWeaponStores(p){
+ return{gunAmmo:GUN.capacity,heat:6,radar:4,flares:6,chaff:6,bombs:p.bomber&&p.objectiveRole!=='transport'?3:0};
 }
 export function freshAirfieldResupply(point){
  return{resupplyLatched:nearestAirfield(point).distance<=AIRFIELD_RESUPPLY.exitRadius,resupplyReadyAt:0,resuppliedAt:null};
@@ -35,12 +35,12 @@ export function resupplyAtAirfield(g,p){
  if(typeof p.resupplyLatched!=='boolean')Object.assign(p,freshAirfieldResupply(p.pos));
  if(distance>AIRFIELD_RESUPPLY.exitRadius){p.resupplyLatched=false;return null;}
  if(distance>AIRFIELD_RESUPPLY.radius||p.resupplyLatched)return null;
- // Consume the entry even during cooldown. Waiting inside never grants repairs.
+ // Consume the entry even during cooldown. Waiting inside never grants another refill.
  p.resupplyLatched=true;
  if(g.time<(p.resupplyReadyAt||0))return null;
  p.resupplyReadyAt=g.time+AIRFIELD_RESUPPLY.cooldown;
- const stores=fullAirframeStores(p),changed=Object.entries(stores).some(([key,max])=>p[key]<max);
+ const stores=fullWeaponStores(p),changed=Object.entries(stores).some(([key,max])=>p[key]<max);
  if(!changed)return null;
- Object.assign(p,stores,{lastDamage:null,resuppliedAt:g.time});
+ Object.assign(p,stores,{resuppliedAt:g.time});
  return field;
 }
