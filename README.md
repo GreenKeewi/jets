@@ -145,3 +145,10 @@ Resupply happens once on entering the zone. Exit beyond 350 m and allow 12 secon
 A small nearby-airfield line beside the weapons shows distance, readiness and successful resupply; the pilot also receives one brief confirmation per refill. The host alone evaluates service and snapshots include resource counts, cooldown and entry latch for guests and reconnects. Room compatibility remains `rooms3-1019`, while the client asset build is `resupply2-1019`. Objective combat missions remain disabled behind their existing release flag.
 
 As requested, verification is limited to source review, JavaScript syntax, and commit/Pages/deployed-file checks. No optional gameplay suite, simulated sortie, multiplayer session or rendered 3D playtest was run.
+
+
+## Environmental seeker interference
+
+Radar missiles have reduced turning authority and a chance to lose grounded or very low terrain-relative targets to ground clutter; ground contact is not immunity. Heat seekers can lose a target within eight degrees of the visible sun disk as seen from the missile, provided terrain does not hide the sun. Flying anywhere in daylight does not trigger it. Afterburner heat lowers sun-confusion susceptibility, and existing flare-burst and chaff rules are unchanged. Exposure is integrated in simulation seconds against one seeded threshold per missile and survives host snapshots.
+
+This release received syntax, source and deployment checks only; no gameplay tests or browser playtest were run.

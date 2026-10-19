@@ -2,8 +2,8 @@ import {AIRFIELD_RESUPPLY,nearestAirfield} from './airfield-resupply.js?v=resupp
 import {COMBAT_MISSIONS_ENABLED,combatMissionId,combatMissionBlocked,combatMission,missionObjective} from './combat-missions.js?v=dogfightonly1-1019';
 import {ACTION_KEYS,NEUTRAL_INPUT,keyboardInput,rosterConfig} from './controls.js?v=valleyenergy1-1019';
 import {radarPoint,turnHint,compassHeading,gunMuzzle} from './view-axes.js?v=valleyenergy1-1019';
-import {Renderer} from './render.js?v=resupply2-1019';
-import {createGame,configurePlayers,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,canBomb,respawnPilot,threatFor} from './sim.js?v=resupply2-1019';
+import {Renderer} from './render.js?v=seeker1-1019';
+import {createGame,configurePlayers,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,canBomb,respawnPilot,threatFor} from './sim.js?v=seeker1-1019';
 import {FlightAudio} from './audio.js?v=missions1-1019';
 import {drawCockpit} from './instruments.js?v=valleyenergy1-1019';
 import {combatCue,nearestThreat,waypointScreenPosition,gunLeadCue} from './guidance.js?v=combatflow1-1019';
@@ -189,3 +189,4 @@ function frame(time){requestAnimationFrame(frame);const realDt=Math.min(.5,Math.
 try{renderer=new Renderer($('world'));setMode(mode);$('loading').hidden=true;$('menu').hidden=false;requestAnimationFrame(frame)}catch(e){console.error(e);$('loading').hidden=true;$('fatal').hidden=false}
 // Read-only state plus explicit simulation tools support reproducible browser verification.
 window.__skybreak={get state(){return snapshot(game)},get network(){return network},get running(){return running},get paused(){return paused},start:c=>start(c),returnMenu,step:(n=1,i={})=>{for(let t=0;t<n;t++)step(game,i,1/60);return snapshot(game)},setState:s=>applySnapshot(game,s),setMode,respawn,controls:localInput,renderer};
+

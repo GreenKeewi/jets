@@ -1,10 +1,10 @@
 import {viewAxes,gunMuzzle} from './view-axes.js?v=valleyenergy1-1019';
 import {GUN} from './guns.js?v=combatflow1-1019';
 import * as THREE from './vendor/three.module.js';
-import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=resupply2-1019';
+import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=seeker1-1019';
 import {surfaceHeight} from './world.js?v=valleyenergy1-1019';
 import {routeFor,destinationFor,fieldPoint} from './missions.js?v=valleyenergy1-1019';
-import {Scenery} from './scenery.js?v=valleyenergy1-1019';
+import {Scenery} from './scenery.js?v=seeker1-1019';
 import {createAircraft,animateAircraft} from './aircraft.js?v=valleyenergy1-1019';
 import {batchStatic} from './geometry.js?v=valleyenergy1-1019';
 export const makeJet=createAircraft;
@@ -232,3 +232,4 @@ export class Renderer{
  }
  project(point){const v=new THREE.Vector3(point.x,point.y,point.z).project(this.camera);return{x:(v.x*.5+.5)*innerWidth,y:(-.5*v.y+.5)*innerHeight,visible:v.z<1&&v.z>-1&&Math.abs(v.x)<1.2&&Math.abs(v.y)<1.2,z:v.z}}
 }
+

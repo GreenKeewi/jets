@@ -1,3 +1,4 @@
+import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=seeker1-1019';
 import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=resupply2-1019';
 import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=dogfightonly1-1019';
 import {tryHeatFlare} from './heat-seeker.js?v=valleyenergy1-1019';
@@ -392,14 +393,15 @@ function updateMissiles(g,dt,previous){
    if(decoy){m.decoyed=true;m.decoyPos={...decoy.pos};emit(g,'evade',`${appropriate==='flare'?'Heat seeker':'Radar missile'} defeated`,{pilotId:target.id});}
    else{
     const sight=unitVector({x:target.pos.x-m.pos.x,y:target.pos.y-m.pos.y,z:target.pos.z-m.pos.z});
+    const interference=seekerInterference(m,target,sight),environmentLost=advanceSeekerInterference(m,interference,dt,()=>random(g));
     m.offBoresight=Math.acos(clamp(vectorDot(m.dir,sight),-1,1));
     const owner=g.pilots.find(p=>p.id===m.ownerId),unsupported=m.type==='radar'&&(!owner||owner.dead||owner.targetId!==target.id||owner.lock<.3);
     m.lostTime=(m.offBoresight>specs.seekerAngle||unsupported)?(m.lostTime||0)+dt:Math.max(0,(m.lostTime||0)-dt*2);
-    if(m.lostTime>specs.seekerMemory){m.seekerLost=true;emit(g,'evade','Missile lost the track',{pilotId:target.id});}
+    if(m.lostTime>specs.seekerMemory||environmentLost){m.seekerLost=true;emit(g,'evade',environmentLost?(m.type==='radar'?'Radar missile lost the track in ground clutter':'Heat seeker lost the track in sun glare'):'Missile lost the track',{pilotId:target.id});}
     else{
      const lead=Math.min(2.5,d/Math.max(180,m.speed))*.68,f=forward(target);
      const aim=unitVector({x:target.pos.x+f.x*target.speed*lead-m.pos.x,y:target.pos.y+f.y*target.speed*lead-m.pos.y,z:target.pos.z+f.z*target.speed*lead-m.pos.z});
-     m.dir=turnMissile(m.dir,aim,specs.turnRate*dt);
+     m.dir=turnMissile(m.dir,aim,specs.turnRate*interference.turnScale*dt);
     }
    }
   }
@@ -506,3 +508,4 @@ export function routeGuidance(g,p){
  if(target){const heading=angle(desiredHeading(p,target)-p.yaw),distance=horizontal(p.pos,target),desiredPitch=Math.atan2(target.y-p.pos.y,Math.max(120,distance));if(g.flightStage==='route')desiredPower=clamp(.7+Math.max(0,desiredPitch)*.22,.7,.82);input.roll=clamp(heading*1.8,-1,1);input.pitch=clamp(desiredPitch/.52+(desiredPitch-p.pitch)*2,-1,1);if(g.flightStage==='approach'&&g.approachIndex>=approach.length&&p.pos.y<destination.elevation+12)input.pitch=-.025/.52;}
  input.throttle=p.throttle<desiredPower-.01?.5:p.throttle>desiredPower+.01?-.5:0;return input;
 }
+
