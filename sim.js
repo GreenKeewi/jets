@@ -1,3 +1,4 @@
+import {fullAirframeStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=resupply1-1019';
 import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=dogfightonly1-1019';
 import {tryHeatFlare} from './heat-seeker.js?v=valleyenergy1-1019';
 import {freshPilotG,pilotGInput,updatePilotG} from './pilot-g.js?v=valleyenergy1-1019';
@@ -86,7 +87,7 @@ function spawnPilot(g,i,team,slot=0){
  const free=g.mode==='freeflight',strike=g.mode==='strike',attacker=g.role==='defend'?1:0;
  const transport=g.combatMission?.transportTeam===team&&slot===g.teamSizes[team]-1,bomber=transport||strike&&team===attacker&&slot===0,formation=g.formations[team];
  const pos=free?{x:RUNWAY.x,y:3,z:-2720}:formationPoint(formation.origin,formation.yaw,slot,formation.spacing,formation.type);
- return{...freshPilotG(),id:i===0?'host':`bot${i}`,team,slot,human:i===0,bomber,objectiveRole:transport?'transport':null,personality:transport?'transport':g.teamSizes[team]-(g.combatMission?.transportTeam===team?1:0)>=2&&slot<2?'paired':((g.rng+team+slot)%2?'aggressive':'cautious'),pos,yaw:free?0:formation.yaw,pitch:0,roll:0,speed:free?0:g.combatMission?transport?155:215:strike?(team===attacker?110:185):FLIGHT.cruiseSpeed,throttle:free?0:transport?.92:g.combatMission?.69:strike&&!bomber?(team===attacker?.55:.635):.78,hp:100,lastDamage:null,gunAmmo:GUN.capacity,gunCD:0,gunShots:0,heat:6,radar:4,flares:6,chaff:6,bombs:bomber&&!transport?3:0,heatCD:0,radarCD:0,flareCD:0,chaffCD:0,bombCD:0,lock:0,targetId:null,dead:false,grounded:free,landed:false,runwayId:'home',throttleHeld:0,throttleDirection:0,aiTargetId:null,aiTargetUntil:0,aiGunBurst:0,aiGunRest:0,aiFlarePending:false,aiExtendYaw:0,aiTimer:0,aiShot:2+i*.6,aiDefend:0,aiBreak:0,aiNextBreak:7+i*1.9,rearm:0,aiEvade:0,spawnProtectedUntil:0,collisionGraceUntil:g.time+COMBAT_LIMITS.spawnGrace,respawnAt:null,deaths:0,kills:0,trail:[]};
+ return{...freshPilotG(),id:i===0?'host':`bot${i}`,team,slot,human:i===0,bomber,objectiveRole:transport?'transport':null,personality:transport?'transport':g.teamSizes[team]-(g.combatMission?.transportTeam===team?1:0)>=2&&slot<2?'paired':((g.rng+team+slot)%2?'aggressive':'cautious'),pos,yaw:free?0:formation.yaw,pitch:0,roll:0,speed:free?0:g.combatMission?transport?155:215:strike?(team===attacker?110:185):FLIGHT.cruiseSpeed,throttle:free?0:transport?.92:g.combatMission?.69:strike&&!bomber?(team===attacker?.55:.635):.78,...fullAirframeStores({bomber,objectiveRole:transport?'transport':null}),...freshAirfieldResupply(pos),lastDamage:null,gunCD:0,gunShots:0,heatCD:0,radarCD:0,flareCD:0,chaffCD:0,bombCD:0,lock:0,targetId:null,dead:false,grounded:free,landed:false,runwayId:'home',throttleHeld:0,throttleDirection:0,aiTargetId:null,aiTargetUntil:0,aiGunBurst:0,aiGunRest:0,aiFlarePending:false,aiExtendYaw:0,aiTimer:0,aiShot:2+i*.6,aiDefend:0,aiBreak:0,aiNextBreak:7+i*1.9,rearm:0,aiEvade:0,spawnProtectedUntil:0,collisionGraceUntil:g.time+COMBAT_LIMITS.spawnGrace,respawnAt:null,deaths:0,kills:0,trail:[]};
 }
 export function createGame({mode='dogfight',teamSize=1,teamSizes,skirmish=false,role='attack',seed=64821,difficulty='normal',routeId='local',arenaId='coast',missionId='dogfight'}={}){
  if(!['dogfight','strike','freeflight'].includes(mode))mode='dogfight';
@@ -146,7 +147,7 @@ export function respawnPilot(g,id){
   if(g.pilots.every(q=>q.dead||dist(candidate,q.pos)>(q.team===p.team?220:1050))){safe=candidate;safeYaw=candidateYaw;break}
  }
  if(!safe){p.respawnBlocked=true;return false;}
- Object.assign(p,fresh,identity,{pos:safe,yaw:safeYaw,spawnProtectedUntil:g.time+COMBAT_LIMITS.spawnGrace,respawnAt:null,respawnBlocked:false});
+ Object.assign(p,fresh,identity,freshAirfieldResupply(safe),{pos:safe,yaw:safeYaw,spawnProtectedUntil:g.time+COMBAT_LIMITS.spawnGrace,respawnAt:null,respawnBlocked:false});
  // Missiles aimed at the previous airframe cannot reacquire the replacement.
  for(const m of g.missiles)if(m.targetId===id){m.seekerLost=true;m.targetId=null;}
  emit(g,'respawn',p.human?'Back in the fight. Your squad is still airborne.':'Squad reinforcement airborne',{pilotId:id});return true;
@@ -473,6 +474,8 @@ function mission(g,dt){
 export function step(g,inputs={},dt=1/60){if(g.status!=='playing')return;dt=clamp(dt,0,.05);g.time+=dt;g.tick++;for(const p of g.pilots)if(p.dead&&!p.human&&g.skirmish&&g.time>=(p.respawnAt??Infinity))respawnPilot(g,p.id);const previous=new Map(g.pilots.filter(p=>!p.dead).map(p=>[p.id,{...p.pos}]));for(const p of g.pilots)if(!p.dead)updatePilot(g,p,p.human?(inputs[p.id]||{}):ai(g,p,dt),dt);updateAircraftCollisions(g,previous);updateMissiles(g,dt,previous);advanceGunRounds(g,dt,{ground:surfaceHeight,canHit:p=>g.time>=(p.spawnProtectedUntil||0),onHit:(round,target)=>{recordDamage(g,target,'gun',round.ownerId,GUN.damage,round.pos);emit(g,'gun-hit','Machine gun hit',{pilotId:round.ownerId,targetId:target.id});},onKill:(target,owner)=>kill(g,target,owner)});
  for(const c of g.countermeasures){c.age+=dt;c.pos.x+=c.vel.x*dt;c.pos.y+=c.vel.y*dt;c.pos.z+=c.vel.z*dt;c.vel.y-=12*dt}g.countermeasures=g.countermeasures.filter(c=>c.age<c.life);
  for(const b of g.bombs){b.age+=dt;b.vel.y-=45*dt;b.pos.x+=b.vel.x*dt;b.pos.y+=b.vel.y*dt;b.pos.z+=b.vel.z*dt;if(b.pos.y<=Math.max(4,surfaceHeight(b.pos.x,b.pos.z))){if(horizontal(b.pos,TARGET)<330&&!g.bombed){g.targetHp=0;g.bombed=true;emit(g,'target','Target destroyed. Turn toward ESCAPE.');g.effects.push({id:++g.serial,type:'target',pos:{...TARGET},age:0,life:8})}else emit(g,'miss','Bomb missed. Circle back for another pass.');b.pos.y=-999}}g.bombs=g.bombs.filter(b=>b.pos.y>-100);
+ // Service surviving aircraft after this tick's damage; never revive a loss.
+ for(const p of g.pilots){const field=resupplyAtAirfield(g,p);if(field&&p.human)emit(g,'resupply',`${field.shortName} resupply · weapons, countermeasures and airframe restored`,{pilotId:p.id,fieldId:field.id});}
  for(const e of g.effects)e.age+=dt;g.effects=g.effects.filter(e=>e.age<e.life);mission(g,dt);
 }
 export function snapshot(g){return JSON.parse(JSON.stringify(g))}

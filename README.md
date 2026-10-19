@@ -134,3 +134,14 @@ Escort, Intercept and Survive an ambush are retained behind `COMBAT_MISSIONS_ENA
 To re-enable, set the source flag to `true` and publish with fresh versions for `combat-missions.js`, `sim.js`, `render.js`, `game.js` and the game entry point. The UI and mission implementation then resume together. Keep `network.js` room compatibility at `rooms3-1019` and the raw serializer unchanged; its import version only controls the client build/invite cache.
 
 This disable-only release received source/syntax and deployed-file checks. No optional tests or gameplay runs were performed.
+
+
+## Airfield flyby resupply
+
+A living aircraft flying within 250 m of any authored airfield's runway, taxiway or apron receives full gun ammunition, heat and radar missiles, flares, chaff, bomber payload where equipped, and 100% airframe health. Distance is three-dimensional from the visible pavement surfaces and their local elevation/heading, including the full 2.2 km coastal runway; flying high above a base does not count. There is no fuel resource to reset. Existing weapon cooldowns, flight physics and pilot-G recovery are unchanged.
+
+Resupply happens once on entering the zone. Exit beyond 350 m and allow 12 seconds before a new entry to receive another refill. Camping inside or crossing the inner boundary repeatedly does not heal the aircraft. New spawns already near the runway must leave before their first service pass; full aircraft do not produce a redundant resupply message. Dead aircraft and objective transports are not serviced. The three airfields have no team ownership, so the same service rules apply to every squad and bot. Existing 22-second partial ammunition top-ups remain available.
+
+A small nearby-airfield line beside the weapons shows distance, readiness and successful resupply; the pilot also receives one brief confirmation per refill. The host alone evaluates service and snapshots include resource counts, cooldown and entry latch for guests and reconnects. Room compatibility remains `rooms3-1019`, while the client asset build is `resupply1-1019`. Objective combat missions remain disabled behind their existing release flag.
+
+As requested, verification is limited to source review, JavaScript syntax, and commit/Pages/deployed-file checks. No optional gameplay suite, simulated sortie, multiplayer session or rendered 3D playtest was run.

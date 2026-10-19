@@ -1,13 +1,14 @@
+import {AIRFIELD_RESUPPLY,nearestAirfield} from './airfield-resupply.js?v=resupply1-1019';
 import {COMBAT_MISSIONS_ENABLED,combatMissionId,combatMissionBlocked,combatMission,missionObjective} from './combat-missions.js?v=dogfightonly1-1019';
 import {ACTION_KEYS,NEUTRAL_INPUT,keyboardInput,rosterConfig} from './controls.js?v=valleyenergy1-1019';
 import {radarPoint,turnHint,compassHeading,gunMuzzle} from './view-axes.js?v=valleyenergy1-1019';
-import {Renderer} from './render.js?v=dogfightonly1-1019';
-import {createGame,configurePlayers,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,canBomb,respawnPilot,threatFor} from './sim.js?v=dogfightonly1-1019';
+import {Renderer} from './render.js?v=resupply1-1019';
+import {createGame,configurePlayers,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,canBomb,respawnPilot,threatFor} from './sim.js?v=resupply1-1019';
 import {FlightAudio} from './audio.js?v=missions1-1019';
 import {drawCockpit} from './instruments.js?v=valleyenergy1-1019';
 import {combatCue,nearestThreat,waypointScreenPosition,gunLeadCue} from './guidance.js?v=combatflow1-1019';
 import {AIRFIELDS,ROUTES,routeDefinition,routeFor,destinationFor,approachFor,fieldPoint} from './missions.js?v=valleyenergy1-1019';
-import {createNetwork,mountNetworkUI} from './network.js?v=dogfightonly1-1019';
+import {createNetwork,mountNetworkUI} from './network.js?v=resupply1-1019';
 import {ARENAS} from './arenas.js?v=valleyenergy1-1019';
 import {surfaceHeight} from './world.js?v=valleyenergy1-1019';
 const elements=new Map(),$=id=>{let node=elements.get(id);if(!node){node=document.getElementById(id);if(node)elements.set(id,node);}return node;},keys=new Set(),actionQueue=new Set();
@@ -110,6 +111,13 @@ function hud(p){
  for(const [id,k]of [['gun-count','gunAmmo'],['heat-count','heat'],['radar-count','radar'],['flare-count','flares'],['chaff-count','chaff'],['bomb-count','bombs']])hudText(id,p[k]);
  $('bomb-weapon').hidden=!p.bomber||game.mode==='freeflight';
  if(refresh){
+  const service=nearestAirfield(p.pos),serviceNote=$('resupply-note');
+  serviceNote.hidden=p.dead||service.distance>1200;
+  if(!serviceNote.hidden){
+   const field=service.field.shortName.toUpperCase(),wait=Math.max(0,Math.ceil((p.resupplyReadyAt||0)-game.time)),recent=p.resuppliedAt!==null&&Number.isFinite(p.resuppliedAt)&&game.time-p.resuppliedAt<4;
+   hudText('resupply-note',recent?`${field} · RESTOCKED + REPAIRED`:p.resupplyLatched?`${field} · EXIT ${AIRFIELD_RESUPPLY.exitRadius} M FOR NEXT PASS${wait?' · '+wait+' S':''}`:`${field} · ${Math.ceil(service.distance)} M · ${wait?'RESUPPLY IN '+wait+' S':'RESUPPLY WITHIN '+AIRFIELD_RESUPPLY.radius+' M'}`);
+   serviceNote.classList.toggle('restocked',recent);
+  }
   const vertical=p.grounded?0:Math.sin(p.pitch)*p.speed-(p.stallSink||0),lowEnergy=!p.grounded&&p.speed<(p.stallSpeed||83)+12;
   hudText('vertical-speed',lowEnergy?'LOW AIRSPEED · UNLOAD / ADD POWER':Math.abs(vertical)<2?'LEVEL FLIGHT':`${vertical>0?'CLIMB':'DESCENT'} ${vertical>0?'+':''}${Math.round(vertical)} M/S`);
   $('vertical-speed').classList.toggle('low-energy',lowEnergy);$('terrain-clearance').hidden=game.arenaId!=='valley';

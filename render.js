@@ -1,7 +1,7 @@
 import {viewAxes,gunMuzzle} from './view-axes.js?v=valleyenergy1-1019';
 import {GUN} from './guns.js?v=combatflow1-1019';
 import * as THREE from './vendor/three.module.js';
-import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=dogfightonly1-1019';
+import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=resupply1-1019';
 import {surfaceHeight} from './world.js?v=valleyenergy1-1019';
 import {routeFor,destinationFor,fieldPoint} from './missions.js?v=valleyenergy1-1019';
 import {Scenery} from './scenery.js?v=valleyenergy1-1019';
