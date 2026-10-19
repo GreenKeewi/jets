@@ -1,12 +1,12 @@
-import {viewAxes,gunMuzzle} from './view-axes.js?v=speed6-1019';
-import {GUN} from './guns.js?v=speed6-1019';
+import {viewAxes,gunMuzzle} from './view-axes.js?v=squads7-1019';
+import {GUN} from './guns.js?v=squads7-1019';
 import * as THREE from './vendor/three.module.js';
-import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=speed6-1019';
-import {surfaceHeight} from './world.js?v=speed6-1019';
-import {routeFor,destinationFor,fieldPoint} from './missions.js?v=speed6-1019';
-import {Scenery} from './scenery.js?v=speed6-1019';
-import {createAircraft,animateAircraft} from './aircraft.js?v=speed6-1019';
-import {batchStatic} from './geometry.js?v=speed6-1019';
+import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=squads7-1019';
+import {surfaceHeight} from './world.js?v=squads7-1019';
+import {routeFor,destinationFor,fieldPoint} from './missions.js?v=squads7-1019';
+import {Scenery} from './scenery.js?v=squads7-1019';
+import {createAircraft,animateAircraft} from './aircraft.js?v=squads7-1019';
+import {batchStatic} from './geometry.js?v=squads7-1019';
 export const makeJet=createAircraft;
 const COLORS={mint:0x9cead6,orange:0xffac7a};
 function canvasTexture(width,height,draw){const c=document.createElement('canvas');c.width=width;c.height=height;draw(c.getContext('2d'),width,height);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return tex}

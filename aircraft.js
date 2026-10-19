@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js';
-import {batchStatic} from './geometry.js?v=speed6-1019';
+import {batchStatic} from './geometry.js?v=squads7-1019';
 export const AIRCRAFT_PALETTES=Object.freeze([
  {main:0xaabcc5,upper:0x708b9b,accent:0x8bdfd1,mark:'#35515f'},
  {main:0xc8aa8c,upper:0x9d7c66,accent:0xec9568,mark:'#6d4f40'},

@@ -6,6 +6,14 @@ export function flightSound(p,inside=false){
   wind:(clamp(Math.pow(mach,1.4)*.15,0,.5)+(p.braking?.045:0))*(inside?.55:1),windFrequency:(inside?1000:1800)+mach*1450,
   engineFrequency:35+thrust*52+burner*18,engine:.008+thrust*.024+burner*.014};
 }
+export function threatAudioProfile(threat){
+ if(!threat)return null;
+ const type=typeof threat==='object'?threat.type:'heat';
+ // An enemy trying to lock is a slower, lower advisory. A launched weapon is urgent.
+ if(type==='lock')return{type,period:1.35,frequency:380,duration:.11,gain:.025,urgent:false};
+ const range=typeof threat==='object'?threat.range:700,time=typeof threat==='object'?threat.timeToImpact:Infinity,urgent=(Number.isFinite(time)&&time<4)||(Number.isFinite(range)&&range<650);
+ return{type:type==='radar'?'radar':'heat',period:urgent?.26:.65,frequency:type==='radar'?720:560,duration:.07,gain:urgent?.055:.042,urgent};
+}
 export class FlightAudio{
  constructor(){this.enabled=true;this.ctx=null;this.active=false;this.lastThreat=0;this.lastGunShots=0;this.voices=new Set()}
  init(){
@@ -21,8 +29,9 @@ export class FlightAudio{
   if(!this.ctx)return;active=!!active&&!document.hidden;const a=this.ctx,t=a.currentTime;this.active=active;const shots=p.gunShots||0;if(active&&shots>this.lastGunShots)this.burst(1500,220,.065,view==='cockpit'?.08:.13);this.lastGunShots=shots;const sound=flightSound(p,view==='cockpit');
   this.master.gain.setTargetAtTime(this.enabled&&active?.42:0,t,.035);this.jetGain.gain.setTargetAtTime(active?sound.jet:0,t,.22);this.jetFilter.frequency.setTargetAtTime(sound.jetFrequency,t,.25);
   this.windGain.gain.setTargetAtTime(active?sound.wind:0,t,.18);this.windFilter.frequency.setTargetAtTime(sound.windFrequency,t,.25);this.engine.frequency.setTargetAtTime(sound.engineFrequency,t,.3);this.engineGain.gain.setTargetAtTime(active?sound.engine:0,t,.25);
-  const range=typeof threat==='object'?threat?.range:700,period=range<650?.3:.75;
-  if(active&&threat&&t-this.lastThreat>period){this.lastThreat=t;this.beep(typeof threat==='object'&&threat.type==='radar'?620:490,.07,.045);if(range<650)setTimeout(()=>this.active&&this.beep(760,.055,.035),95)}
+  const cue=threatAudioProfile(threat);
+  if(active&&cue&&(cue.type!==this.lastThreatType||t-this.lastThreat>cue.period)){this.lastThreat=t;this.beep(cue.frequency,cue.duration,cue.gain);if(cue.urgent)setTimeout(()=>this.active&&this.beep(cue.frequency+180,.055,.038),95)}
+  this.lastThreatType=active?cue?.type:null;
  }
  beep(frequency=780,duration=.1,gain=.05){
   if(!this.ctx||!this.enabled||!this.active)return;const a=this.ctx,t=a.currentTime,o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=frequency;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(g).connect(this.master);o.start();o.stop(t+duration);o.onended=()=>{o.disconnect();g.disconnect()};

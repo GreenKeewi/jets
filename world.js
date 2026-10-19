@@ -1,4 +1,4 @@
-import {AIRFIELDS,fieldCoordinates} from './missions.js?v=speed6-1019';
+import {AIRFIELDS,fieldCoordinates} from './missions.js?v=squads7-1019';
 export const SEA_LEVEL=-5;
 export function worldNoise(x,z){return Math.sin(x*.0017)*Math.cos(z*.0013)*.5+Math.sin(x*.0043+z*.0014)*.22+Math.sin(z*.0061-x*.0012)*.13}
 const smooth=(a,b,v)=>{const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t)};
