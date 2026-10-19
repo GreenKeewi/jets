@@ -1,9 +1,9 @@
 // Original procedural jet, wind and radio cues; no downloaded audio or media permissions.
 const clamp=(value,low,high)=>Math.max(low,Math.min(high,Number.isFinite(value)?value:0));
 export function flightSound(p,inside=false){
- const thrust=clamp(p.throttle,0,1),mach=clamp(Number.isFinite(p.mach)?p.mach:(p.speed||0)/343,0,3),burner=p.bomber?0:clamp((thrust-.82)/.18,0,1),buffet=p.grounded?0:Math.max(0,1-Math.abs(mach-1)/.12);
+ const thrust=clamp(p.throttle,0,1),mach=clamp(Number.isFinite(p.mach)?p.mach:(p.speed||0)/343,0,3),burner=p.bomber?0:clamp((thrust-.82)/.18,0,1),buffet=p.grounded?0:Math.max(0,1-Math.abs(mach-1)/.12),fastAir=clamp((mach-.55)/.45,0,1);
  return{jet:.035+thrust*.2+burner*.085+buffet*.014,jetFrequency:(inside?340:450)+thrust*(inside?1050:1700)+burner*420,
-  wind:(clamp(Math.pow(mach,1.4)*.15,0,.5)+(p.braking?.045:0))*(inside?.55:1),windFrequency:(inside?1000:1800)+mach*1450,
+  wind:(clamp(Math.pow(mach,1.4)*.15+fastAir*fastAir*(3-2*fastAir)*.08,0,.5)+(p.braking?.045:0))*(inside?.55:1),windFrequency:(inside?1000:1800)+mach*1700,
   engineFrequency:35+thrust*52+burner*18,engine:.008+thrust*.024+burner*.014};
 }
 export function threatAudioProfile(threat){

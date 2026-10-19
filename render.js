@@ -1,12 +1,12 @@
-import {viewAxes,gunMuzzle} from './view-axes.js?v=highg1-1019';
-import {GUN} from './guns.js?v=highg1-1019';
+import {viewAxes,gunMuzzle} from './view-axes.js?v=valleyenergy1-1019';
+import {GUN} from './guns.js?v=valleyenergy1-1019';
 import * as THREE from './vendor/three.module.js';
-import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=highg1-1019';
-import {surfaceHeight} from './world.js?v=highg1-1019';
-import {routeFor,destinationFor,fieldPoint} from './missions.js?v=highg1-1019';
-import {Scenery} from './scenery.js?v=highg1-1019';
-import {createAircraft,animateAircraft} from './aircraft.js?v=highg1-1019';
-import {batchStatic} from './geometry.js?v=highg1-1019';
+import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=valleyenergy1-1019';
+import {surfaceHeight} from './world.js?v=valleyenergy1-1019';
+import {routeFor,destinationFor,fieldPoint} from './missions.js?v=valleyenergy1-1019';
+import {Scenery} from './scenery.js?v=valleyenergy1-1019';
+import {createAircraft,animateAircraft} from './aircraft.js?v=valleyenergy1-1019';
+import {batchStatic} from './geometry.js?v=valleyenergy1-1019';
 export const makeJet=createAircraft;
 const COLORS={mint:0x9cead6,orange:0xffac7a};
 function canvasTexture(width,height,draw){const c=document.createElement('canvas');c.width=width;c.height=height;draw(c.getContext('2d'),width,height);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return tex}
@@ -15,8 +15,9 @@ function label(text,color='#c0f8e6',size=75){const map=canvasTexture(512,96,(c,w
 // Each wisp stays at its actual world position until it leaves the local air volume.
 export const AIR_MOTION_BUDGET=48;
 export function flightFov(speed,view='chase',reducedMotion=false){
- const base=view==='cockpit'?76:67,t=clamp(((Number.isFinite(speed)?speed:0)-90)/596,0,1);
- return base+(reducedMotion?0:5*t*(2-t));
+ const base=view==='cockpit'?76:67,v=Number.isFinite(speed)?speed:0,t=clamp((v-100)/243,0,1),supersonic=clamp((v-343)/343,0,1);
+ // Most of the peripheral opening happens on the way to Mach 1, not Mach 2.
+ return base+(reducedMotion?0:8*t*(2-t)+1.5*supersonic);
 }
 const airHash=n=>{const h=Math.sin(n*127.1+311.7)*43758.5453;return h-Math.floor(h)};
 export class FlightAirMotion{
@@ -31,17 +32,19 @@ export class FlightAirMotion{
   if(!this.lines.visible){this.ready=false;return}
   const origin=camera.position,count=quality<.8?24:AIR_MOTION_BUDGET,reset=!this.ready||this.pilotId!==p.id||time<this.lastTime||origin.distanceToSquared(this.lastPosition)>360000;
   camera.updateMatrixWorld();this.right.setFromMatrixColumn(camera.matrixWorld,0);this.up.setFromMatrixColumn(camera.matrixWorld,1);this.forward.setFromMatrixColumn(camera.matrixWorld,2).negate();
-  const axes=forward(p);this.direction.set(axes.x,axes.y,axes.z);const aspect=camera.aspect,spread=Math.tan(camera.fov*Math.PI/360),positions=this.geometry.attributes.position,length=clamp(speed/95,.7,7.3);
+  const axes=forward(p);this.direction.set(axes.x,axes.y,axes.z);const aspect=camera.aspect,spread=Math.tan(camera.fov*Math.PI/360),positions=this.geometry.attributes.position,length=clamp(speed/80,.7,8.6);
   for(let i=0;i<count;i++){
    const k=i*3,dx=this.points[k]-origin.x,dy=this.points[k+1]-origin.y,dz=this.points[k+2]-origin.z,depth=dx*this.forward.x+dy*this.forward.y+dz*this.forward.z;
    if(reset||depth<12||depth>390||dx*dx+dy*dy+dz*dz>360000){
-    const seed=i+this.cycles[i]++*AIR_MOTION_BUDGET,z=reset?35+airHash(seed+19)*290:285+airHash(seed+19)*70,angle=airHash(seed+83)*Math.PI*2,radius=.36+airHash(seed+179)*.67,x=Math.cos(angle)*z*spread*aspect*radius,y=Math.sin(angle)*z*spread*radius;
+    // A sparse near-air layer gives readable parallax; these points still stay
+    // fixed in world space and are passed at the aircraft's actual m/s.
+    const seed=i+this.cycles[i]++*AIR_MOTION_BUDGET,near=i%3===0,z=near?55+airHash(seed+19)*55:reset?100+airHash(seed+19)*225:220+airHash(seed+19)*105,angle=airHash(seed+83)*Math.PI*2,radius=(near?.5:.36)+airHash(seed+179)*(near?.42:.67),x=Math.cos(angle)*z*spread*aspect*radius,y=Math.sin(angle)*z*spread*radius;
     this.points[k]=origin.x+this.forward.x*z+this.right.x*x+this.up.x*y;this.points[k+1]=origin.y+this.forward.y*z+this.right.y*x+this.up.y*y;this.points[k+2]=origin.z+this.forward.z*z+this.right.z*x+this.up.z*y;
    }
    // A short exposure streak describes real travelled distance, not a speed multiplier.
    positions.setXYZ(i*2,this.points[k],this.points[k+1],this.points[k+2]);positions.setXYZ(i*2+1,this.points[k]-this.direction.x*length,this.points[k+1]-this.direction.y*length,this.points[k+2]-this.direction.z*length);
   }
-  positions.needsUpdate=true;this.geometry.setDrawRange(0,count*2);this.material.opacity=.035+clamp((speed-75)/611,0,1)*.13;
+  positions.needsUpdate=true;this.geometry.setDrawRange(0,count*2);this.material.opacity=.035+clamp((speed-75)/268,0,1)*.12;
   this.ready=true;this.pilotId=p.id;this.lastTime=time;this.lastPosition.copy(origin);
  }
 }

@@ -1,4 +1,5 @@
-import {AIRFIELDS,fieldCoordinates} from './missions.js?v=highg1-1019';
+import {AIRFIELDS,fieldCoordinates} from './missions.js?v=valleyenergy1-1019';
+import {valleyTerrain} from './arenas.js?v=valleyenergy1-1019';
 export const SEA_LEVEL=-5;
 export function worldNoise(x,z){return Math.sin(x*.0017)*Math.cos(z*.0013)*.5+Math.sin(x*.0043+z*.0014)*.22+Math.sin(z*.0061-x*.0012)*.13}
 const smooth=(a,b,v)=>{const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t)};
@@ -7,7 +8,7 @@ export function northernRidgeHeight(x,z){const localZ=z-7200,envelope=Math.max(0
 function northIsland(x,z){const radial=Math.sqrt(((x-1800)/6400)**2+((z-8900)/4100)**2),coast=(1-radial)*4100+worldNoise(x*.9,z*.9)*170;if(coast<-140)return-24;const h=30+Math.max(0,northernRidgeHeight(x,z))+330*Math.exp(-((x-800)**2+(z-10500)**2)/3800000);return coast<90?-24+smooth(-140,90,coast)*Math.min(65,h+24):h}
 function westIsland(x,z){const radial=Math.sqrt(((x+9600)/3300)**2+((z-4500)/3600)**2),coast=(1-radial)*3300+worldNoise(x*.9,z*.9)*150;if(coast<-130)return-24;const h=15+420*Math.exp(-((x+8900)**2+(z-5600)**2)/2900000)*(.68+worldNoise(x,z));return coast<110?-24+smooth(-130,110,coast)*Math.min(60,h+24):h}
 export function terrainHeight(x,z){
- let h=Math.max(homeIsland(x,z),northIsland(x,z),westIsland(x,z));
+ let h=valleyTerrain(Math.max(homeIsland(x,z),northIsland(x,z),westIsland(x,z)),x,z);
  for(const field of Object.values(AIRFIELDS)){const p=fieldCoordinates(field,{x,z}),airportEdge=Math.max(Math.abs(p.across-230)-770,Math.abs(p.along+20)-(field.halfLength+390));if(airportEdge<170)h=field.elevation+2+(h-field.elevation-2)*smooth(0,170,airportEdge);
   // A naturally low approach valley leaves the northern ridges beside the final, not across it.
   if(field.id!=='home'&&p.along<-950&&p.along>-3600){const acrossBlend=1-smooth(340,1000,Math.abs(p.across)),alongBlend=smooth(-3600,-3200,p.along)*(1-smooth(-1100,-950,p.along)),cap=field.elevation+26+Math.max(0,-p.along-1800)*.025;h=h+(Math.min(h,cap)-h)*acrossBlend*alongBlend;}

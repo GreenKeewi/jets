@@ -38,14 +38,14 @@ Strike success requires both destruction of the depot and arrival in the escape 
 
 ## Current controls and multiplayer verification
 
-This control/gun release uses pairing protocol `JETS4`. Reload both players before exchanging fresh codes; older `JETS2`/`JETS3` codes are rejected with a clear version message. Gun damage, ammunition, cooldown, bullets and mission outcomes remain host-authoritative; guests send bounded realtime held-gun state and discrete weapon actions, and receive snapshots.
+The current terrain/energy release uses pairing protocol `JETS5`. Reload both players before exchanging fresh codes; older `JETS2`/`JETS3`/`JETS4` codes are rejected with a clear version message so both players see the same valley terrain. Gun damage, ammunition, cooldown, bullets and mission outcomes remain host-authoritative; guests send bounded realtime held-gun state and discrete weapon actions, and receive snapshots.
 
 Normal-animation browser fixtures exercise actual keys at all four cardinal headings in chase/cockpit, including projected forward/wingtip movement, cockpit bank, power/pitch, press-only Q/E, gun tracers, and results Escape. A separate three-document application integration fixture covers guest controls and both replay paths after late joins. This executor's managed Chromium policy `WebRtcIPHandling: disable_non_proxied_udp` returns no native LAN candidates. The integration transport fixture is explicitly **not native WebRTC or a physical Wi-Fi test**. No browser policy or proxy bypass is used. Control/camera reports from the preceding release remain under `evidence/controls/`; current network reports are under `evidence/gun-jitter/`.
 
 
 ## Guest gun cadence under jitter
 
-The gun uses realtime held input with a 250 ms freshness timeout. The host simulation alone sets its 10-round/second cadence and ammunition. A release stops firing on arrival; a lost release/update expires the gun state, and reliable missile/countermeasure traffic cannot renew it. Q/E remain discrete, press-only missiles. JETS4 rejects older pairing versions so both players must reload and exchange fresh codes.
+The gun uses realtime held input with a 250 ms freshness timeout. The host simulation alone sets its 10-round/second cadence and ammunition. A release stops firing on arrival; a lost release/update expires the gun state, and reliable missile/countermeasure traffic cannot renew it. Q/E remain discrete, press-only missiles. JETS5 rejects older pairing versions so both players must reload and exchange fresh codes.
 
 The deterministic transport-plus-host-simulation regression reproduces four local shots versus two guest shots with the previous dual 100 ms cooldowns and 20/19/20/19 ms delays; the repair produces four versus four. Separate regressions cover release, dropped updates, expiry, reordering and the existing pause/replay generation boundaries. See `evidence/gun-jitter/README.md`. Native LAN connectivity remains unverified under this cloud browser's managed policy.
 
@@ -68,10 +68,21 @@ The deterministic suite covers speed, legacy routes/controls/network behavior, a
 
 ## High-G pilot limits and heat defense
 
-Sustained positive G is estimated from actual speed and flight-path acceleration along the pilot's up axis. Exposure builds above 5.5 G: tunnel vision comes first, then a brief blackout. Turn and weapon inputs are neutralized during blackout so the airframe unloads, and vision returns gradually. Release turn keys before taking control again. Bots share the same limits and ease off when strained. Respawn creates a fresh pilot; pause, help, and result screens remain readable. This is an arcade approximation rather than a medical or aircraft model.
+Sustained positive G is estimated from actual speed and flight-path acceleration along the pilot's up axis. Exposure builds slowly above 7.5 G. Brief turns leave vision clear; prolonged high G adds a mild peripheral vignette, with blackout reserved for sustained severe strain. Turn and weapon inputs are neutralized briefly during blackout so the airframe unloads. Recovery is faster, and controls return automatically as vision clears. Bots share the same limits and ease off when strained. Respawn creates a fresh pilot; pause, help, and result screens remain readable. This is an arcade approximation rather than a medical or aircraft model.
 
 Each incoming heat missile gets one seeded flare-defeat roll per release burst, not per particle or frame. Flares can fail at any power setting. Fighter afterburner above 82% power sharply reduces flare effectiveness; cutting power before release improves the odds. Evasive flight still works through the existing seeker angle, turn and tracking limits. Radar missiles retain their separate chaff behavior.
 
 In cockpit view, the dashes around the fixed central plus now follow the projected world horizon. They move with pitch, rotate with the visible horizon, and mark the sky side with UP.
 
 Verification for this follow-on release was limited to source/syntax and deployment-version checks, as requested. No additional gameplay tests or rendered playtest were run.
+
+
+## Valley battles and flight energy
+
+Dogfight now offers a Battle area selector: Coastal sky or Northern valley. The northern island has a broad winding valley with a low floor and tall ridgelines, shared by collision checks and the existing heightfield renderer. Squads start together below the ridges in tight V/echelon formations. The whole squad is raised together only as needed to clear its terrain and initial flight path. Human and bot skirmish respawns search for clear low-altitude valley entry paths with the existing separation and weapons-safety grace. If no clear entry fits, rejoining waits instead of placing a plane on a ridge or in another aircraft.
+
+Valley bots lead their turns back along the corridor, keep engagements near the valley floor, sample terrain ahead, and use gentle steering while recovering from high G. Pilots can still climb out by choice. Existing coast, strike, runway routes, weapons, squad sizes and local-network play remain available. The valley reuses the existing tiled terrain meshes and tree batches; it adds no scenery draw calls or assets.
+
+Aircraft speed now integrates engine thrust, speed-squared drag, load-dependent induced drag, airbrakes and gravity along the flight path. A climb spends speed on altitude; a descent gains speed; a sustained hard turn costs energy. The same flight-path load used by pilot-G physiology drives induced drag. Throttle remains important rather than forcing an immediate target speed. Low airspeed produces sink and softer pitch response, while the HUD shows climb/descent and a low-energy warning. Turn authority decreases above 240 m/s and pitch rate is load-limited, with further supersonic softening: Mach-1/Mach-2 turns need much more space, while load-squared drag spends energy. Route assist adds power for climbs. Peripheral FOV opening, sparse nearby world-fixed air streaks and wind sound build earlier approaching Mach 1 without changing the actual metres-per-second speed. Reduced-motion suppression and the 48/24-wisp performance cap are retained. Approximate level cruise remains near 78% power and fighters retain the Mach-2 speed limit. This is a forgiving game energy model, not a validated aircraft simulator.
+
+As requested, this release received only source/syntax and deployment-version verification. No gameplay suite, simulated sortie or rendered playtest was run for these changes.

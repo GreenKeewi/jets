@@ -51,3 +51,5 @@ dialog{color:var(--paper);color-scheme:dark}dialog::backdrop{background:#0a2433a
 #attitude-dashes{position:absolute;inset:0;transform-origin:center;pointer-events:none}
 #hud.cockpit-view #attitude-dashes i{width:24px;border-top-width:2px}#hud.cockpit-view #attitude-dashes i:first-child{left:-13px}#hud.cockpit-view #attitude-dashes i:nth-child(2){right:-13px}
 #hud.cockpit-view #attitude-dashes::after{content:'UP';position:absolute;top:8px;left:-13px;font-size:7px;line-height:1;letter-spacing:1px;color:#d0f4d9}
+
+#flight-envelope #vertical-speed.low-energy{color:#ffb48b;font-weight:700}#flight-envelope #terrain-clearance{color:#b2f3cf}#arena-label select{min-width:185px}

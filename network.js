@@ -1,8 +1,8 @@
 // Data-only, manually signalled WebRTC. No discovery, signalling service, STUN or TURN.
 // Protocol: ordered reliable control/actions; unordered zero-retransmit axes/snapshots.
-export const PROTOCOL = 'JETS4';
+export const PROTOCOL = 'JETS5';
 export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb'];
-export { mountNetworkUI } from './network-ui.js?v=highg1-1019';
+export { mountNetworkUI } from './network-ui.js?v=valleyenergy1-1019';
 const HELD = ['fireGun'];
 const GUN_INPUT_EXPIRY = 250;
 const AXES = ['pitch', 'roll', 'yaw', 'throttle'];
@@ -121,7 +121,7 @@ export function createInputGuard(clock = now) {
 }
 
 function validConfig(config) {
-  return plain(config) && ['dogfight', 'strike', 'freeflight'].includes(config.mode) && [1, 2, 3].includes(config.teamSize) && ['attack', 'defend'].includes(config.role) && (config.seed === undefined || typeof config.seed === 'number' && Number.isFinite(config.seed)) && (config.difficulty === undefined || ['normal','ace'].includes(config.difficulty)) && (config.routeId === undefined || ['local','northpoint','westhaven'].includes(config.routeId));
+  return plain(config) && ['dogfight', 'strike', 'freeflight'].includes(config.mode) && [1, 2, 3].includes(config.teamSize) && ['attack', 'defend'].includes(config.role) && (config.seed === undefined || typeof config.seed === 'number' && Number.isFinite(config.seed)) && (config.difficulty === undefined || ['normal','ace'].includes(config.difficulty)) && (config.routeId === undefined || ['local','northpoint','westhaven'].includes(config.routeId)) && (config.arenaId === undefined || ['coast','valley'].includes(config.arenaId));
 }
 
 export function createNetwork(callbacks = {}) {
