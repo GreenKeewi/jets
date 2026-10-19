@@ -112,3 +112,17 @@ Numeric instruments, cockpit canvas and expanded radar refresh at approximately 
 Per the requested deployment-only scope, verification covers syntax, module sources and deployed-version checks. No gameplay tests, simulated sorties, performance benchmark or rendered 3D playtest were run for this release.
 
 Room compatibility remains rooms3-1019, preserving existing compatible room clients. A separate client asset build now versions invite URLs and the visible game-build label, so visual/control-only releases do not require a protocol mismatch. The raw WebRTC transport serializer and matching compatibility checks are unchanged.
+
+## Combat missions, damage, pilot styles and sound
+
+Air combat now has four working mission choices: the existing dogfight/skirmish, Escort, Intercept and Survive an ambush. Escort protects an unarmed AI transport along a short coastal or valley route. Intercept gives the other squad that transport and asks you to stop it before the exit. Both have a 150-second mission limit, route checkpoints and explicit results. Ambush starts the attackers behind your formation; the ambushed squad wins by surviving 90 seconds or eliminating the attackers. Mission results and the pause menu offer a direct retry. These objective missions do not respawn aircraft. The existing eight-minute solo skirmish and R rejoin remain available under Dogfight.
+
+The host owns routes, deadlines, damage and results. All six human seats remain fighter seats; an objective transport uses one additional AI seat, never exceeds the 12-aircraft cap, and cannot be claimed by late joins. Existing room setup and JETS5 transport are retained.
+
+Cautious bots extend out of danger sooner, aggressive bots press their pursuit and weapon windows, and the first two bots in a squad coordinate a target with an offset wingman approach. These are modifiers to the same flight controls, weapon rules, energy/G limits, collision prediction and terrain avoidance. Personality is identified in the existing selected-target label.
+
+Confirmed hits show short spark streaks, and damaged living aircraft below 75% airframe leave smoke. These use two fixed buffer draws: at most 96 spark segments and 144 smoke points, halved at lower adaptive quality and suppressed for reduced motion. No growing particle lists, external assets or camera shake are added. A brief message beside airframe health identifies cannon, heat missile, radar missile, terrain or aircraft-collision damage and an incoming bearing where known. It is immediate hit feedback rather than an added results panel.
+
+Four reusable nearby-aircraft audio voices provide stereo bearing, bounded Doppler pitch and a close-pass rush. Engine layers follow throttle, afterburner, speed and cockpit view. Enemy lock is a slow advisory; heat missiles use paired falling whistles and radar missiles use a three-note rise, with directional bearing and faster urgent repetition. Audio starts through existing player gestures, respects mute/pause/hidden tabs, and cancels pending tones. No audio downloads or media permissions are needed.
+
+Verification for this release is source inspection, JavaScript syntax and deployed-version checks only, as requested. No optional gameplay suite, simulated sortie, listening test, performance benchmark or rendered WebGL playtest was run.

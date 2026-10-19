@@ -1,7 +1,7 @@
 import {viewAxes,gunMuzzle} from './view-axes.js?v=valleyenergy1-1019';
 import {GUN} from './guns.js?v=combatflow1-1019';
 import * as THREE from './vendor/three.module.js';
-import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=combatflow1-1019';
+import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=missions1-1019';
 import {surfaceHeight} from './world.js?v=valleyenergy1-1019';
 import {routeFor,destinationFor,fieldPoint} from './missions.js?v=valleyenergy1-1019';
 import {Scenery} from './scenery.js?v=valleyenergy1-1019';
@@ -48,6 +48,116 @@ export class FlightAirMotion{
   this.ready=true;this.pilotId=p.id;this.lastTime=time;this.lastPosition.copy(origin);
  }
 }
+// Two fixed-buffer draws for confirmed impact sparks and damaged-airframe smoke.
+// Smoke is world-anchored, with twelve reusable puffs per supported aircraft.
+export const DAMAGE_SPARK_BUDGET=96;
+export const DAMAGE_SMOKE_BUDGET=144;
+const DAMAGE_AIRCRAFT_BUDGET=12,SMOKE_PER_AIRCRAFT=DAMAGE_SMOKE_BUDGET/DAMAGE_AIRCRAFT_BUDGET;
+class DamageVisuals{
+ constructor(scene){
+  this.sparkGeometry=new THREE.BufferGeometry();
+  this.sparkGeometry.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(DAMAGE_SPARK_BUDGET*6),3).setUsage(THREE.DynamicDrawUsage));
+  this.sparkGeometry.setAttribute('color',new THREE.Float32BufferAttribute(new Float32Array(DAMAGE_SPARK_BUDGET*6),3).setUsage(THREE.DynamicDrawUsage));
+  this.sparkGeometry.setDrawRange(0,0);
+  this.sparks=new THREE.LineSegments(this.sparkGeometry,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,toneMapped:false,depthWrite:false}));
+  this.sparks.frustumCulled=false;scene.add(this.sparks);
+  this.smokeGeometry=new THREE.BufferGeometry();
+  this.smokeGeometry.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(DAMAGE_SMOKE_BUDGET*3),3).setUsage(THREE.DynamicDrawUsage));
+  this.smokeGeometry.setAttribute('puffSize',new THREE.Float32BufferAttribute(new Float32Array(DAMAGE_SMOKE_BUDGET),1).setUsage(THREE.DynamicDrawUsage));
+  this.smokeGeometry.setAttribute('puffOpacity',new THREE.Float32BufferAttribute(new Float32Array(DAMAGE_SMOKE_BUDGET),1).setUsage(THREE.DynamicDrawUsage));
+  this.smokeGeometry.setDrawRange(0,0);
+  this.smokeMaterial=new THREE.ShaderMaterial({
+   uniforms:THREE.UniformsUtils.merge([THREE.UniformsLib.fog,{pointScale:{value:1}}]),
+   transparent:true,depthWrite:false,fog:true,
+   vertexShader:`
+    attribute float puffSize;
+    attribute float puffOpacity;
+    uniform float pointScale;
+    varying float vOpacity;
+    #include <fog_pars_vertex>
+    void main(){
+     vec4 mvPosition=modelViewMatrix*vec4(position,1.0);
+     gl_Position=projectionMatrix*mvPosition;
+     gl_PointSize=clamp(puffSize*pointScale*projectionMatrix[1][1]/max(1.0,-mvPosition.z),1.0,80.0);
+     vOpacity=puffOpacity;
+     #include <fog_vertex>
+    }`,
+   fragmentShader:`
+    varying float vOpacity;
+    #include <fog_pars_fragment>
+    void main(){
+     float radius=length(gl_PointCoord-vec2(0.5))*2.0;
+     float opacity=(1.0-smoothstep(0.12,1.0,radius))*vOpacity;
+     if(opacity<0.008)discard;
+     gl_FragColor=vec4(0.052,0.062,0.069,opacity);
+     #include <tonemapping_fragment>
+     #include <colorspace_fragment>
+     #include <fog_fragment>
+    }`
+  });
+  this.smoke=new THREE.Points(this.smokeGeometry,this.smokeMaterial);this.smoke.frustumCulled=false;scene.add(this.smoke);
+  this.origins=new Float32Array(DAMAGE_SMOKE_BUDGET*3);this.born=new Float64Array(DAMAGE_SMOKE_BUDGET);this.life=new Float32Array(DAMAGE_SMOKE_BUDGET);this.severity=new Float32Array(DAMAGE_SMOKE_BUDGET);
+  this.ids=new Array(DAMAGE_AIRCRAFT_BUDGET).fill(null);this.next=new Uint16Array(DAMAGE_AIRCRAFT_BUDGET);this.lastEmission=new Float64Array(DAMAGE_AIRCRAFT_BUDGET);this.lastPositions=new Float32Array(DAMAGE_AIRCRAFT_BUDGET*3);
+  this.born.fill(-1);this.lastEmission.fill(-Infinity);this.lastTime=-1;this.game=null;
+ }
+ clearSlot(slot,id=null){
+  this.born.fill(-1,slot*SMOKE_PER_AIRCRAFT,(slot+1)*SMOKE_PER_AIRCRAFT);this.next[slot]=0;this.lastEmission[slot]=-Infinity;this.ids[slot]=id;
+ }
+ updateSparks(g,camera,low){
+  const positions=this.sparkGeometry.attributes.position,colors=this.sparkGeometry.attributes.color,budget=low?DAMAGE_SPARK_BUDGET/2:DAMAGE_SPARK_BUDGET,rangeSquared=(low?2200:3600)**2;
+  let count=0;
+  // Derive every streak from its confirmed host effect: no local hit prediction,
+  // particle objects, or re-triggering when a network snapshot repeats an effect.
+  for(let i=g.effects.length-1;i>=0&&count<budget;i--){
+   const e=g.effects[i],gun=e.type==='gun-hit';if(!gun&&e.type!=='hit'&&e.type!=='collision')continue;
+   const life=Math.min(e.life,gun?.16:.34),age=Math.max(0,e.age);if(age>=life)continue;
+   const dx=e.pos.x-camera.position.x,dy=e.pos.y-camera.position.y,dz=e.pos.z-camera.position.z;if(dx*dx+dy*dy+dz*dz>rangeSquared)continue;
+   const number=low?(gun?3:6):(gun?6:12),fade=(1-age/life)**2;
+   for(let j=0;j<number&&count<budget;j++,count++){
+    const seed=e.id*19+j*7,y=airHash(seed+3)*2-1,angle=airHash(seed+11)*Math.PI*2,radius=Math.sqrt(1-y*y),speed=(gun?24:48)+airHash(seed+29)*(gun?28:58),vx=Math.cos(angle)*radius*speed,vy=y*speed,vz=Math.sin(angle)*radius*speed,tail=Math.max(0,age-.032);
+    positions.setXYZ(count*2,e.pos.x+vx*age,e.pos.y+vy*age-14*age*age,e.pos.z+vz*age);
+    positions.setXYZ(count*2+1,e.pos.x+vx*tail,e.pos.y+vy*tail-14*tail*tail,e.pos.z+vz*tail);
+    colors.setXYZ(count*2,fade,fade*.72,fade*.25);colors.setXYZ(count*2+1,fade*.7,fade*.24,fade*.045);
+   }
+  }
+  positions.needsUpdate=true;colors.needsUpdate=true;this.sparkGeometry.setDrawRange(0,count*2);this.sparks.visible=count>0;
+ }
+ updateSmoke(g,camera,low,height){
+  const positions=this.smokeGeometry.attributes.position,sizes=this.smokeGeometry.attributes.puffSize,opacities=this.smokeGeometry.attributes.puffOpacity,perAircraft=low?SMOKE_PER_AIRCRAFT/2:SMOKE_PER_AIRCRAFT,range=low?2200:3600;
+  let count=0;
+  for(let slot=0;slot<DAMAGE_AIRCRAFT_BUDGET;slot++){
+   const p=g.pilots[slot],start=slot*SMOKE_PER_AIRCRAFT,k=slot*3;
+   if(!p||p.dead||p.hp>=75||p.hp<=0){this.clearSlot(slot,p?.id??null);continue;}
+   const dx=p.pos.x-camera.position.x,dy=p.pos.y-camera.position.y,dz=p.pos.z-camera.position.z,distance=Math.hypot(dx,dy,dz);
+   if(distance>range){this.clearSlot(slot,p.id);continue;}
+   // Changing seats, respawning, replaying or teleporting cannot join old trails.
+   if(this.ids[slot]!==p.id||Math.hypot(p.pos.x-this.lastPositions[k],p.pos.y-this.lastPositions[k+1],p.pos.z-this.lastPositions[k+2])>700)this.clearSlot(slot,p.id);
+   this.lastPositions[k]=p.pos.x;this.lastPositions[k+1]=p.pos.y;this.lastPositions[k+2]=p.pos.z;
+   if(low)this.born.fill(-1,start+perAircraft,start+SMOKE_PER_AIRCRAFT);
+   const damage=clamp((75-p.hp)/65,0,1),interval=low?.22:.13;
+   if(g.time-this.lastEmission[slot]>=interval){
+    const index=start+this.next[slot]%perAircraft,o=index*3,pitch=Math.cos(p.pitch),back=p.bomber?16:11;
+    this.origins[o]=p.pos.x-Math.sin(p.yaw)*pitch*back;this.origins[o+1]=p.pos.y-Math.sin(p.pitch)*back+1;this.origins[o+2]=p.pos.z-Math.cos(p.yaw)*pitch*back;
+    this.born[index]=g.time;this.life[index]=low?1.25:1.65;this.severity[index]=damage;this.next[slot]=(this.next[slot]+1)%perAircraft;this.lastEmission[slot]=g.time;
+   }
+   const distanceFade=1-clamp((distance-range*.7)/(range*.3),0,1);
+   for(let j=0;j<perAircraft;j++){
+    const index=start+j,age=g.time-this.born[index];if(this.born[index]<0||age<0||age>=this.life[index])continue;
+    const o=index*3,t=age/this.life[index],strength=this.severity[index],drift=airHash(index+9)-.5;
+    positions.setXYZ(count,this.origins[o]+drift*age*5,this.origins[o+1]+age*(3+strength*4),this.origins[o+2]+age*2);
+    sizes.setX(count,(3+strength*3)+age*(6+strength*4));opacities.setX(count,(.2+strength*.25)*(1-t)*(1-t)*distanceFade);count++;
+   }
+  }
+  positions.needsUpdate=true;sizes.needsUpdate=true;opacities.needsUpdate=true;this.smokeGeometry.setDrawRange(0,count);this.smoke.visible=count>0;this.smokeMaterial.uniforms.pointScale.value=height*.5;
+ }
+ update(g,camera,reducedMotion,quality,height){
+  if(this.game!==g||g.time<this.lastTime||g.time-this.lastTime>2.5){for(let slot=0;slot<DAMAGE_AIRCRAFT_BUDGET;slot++)this.clearSlot(slot);}
+  this.game=g;this.lastTime=g.time;
+  // Keep the existing hit flash/HUD for reduced motion, without extra particles.
+  if(reducedMotion){this.sparks.visible=false;this.smoke.visible=false;for(let slot=0;slot<DAMAGE_AIRCRAFT_BUDGET;slot++)this.clearSlot(slot);return;}
+  const low=quality<.8;this.updateSparks(g,camera,low);this.updateSmoke(g,camera,low,height);
+ }
+}
 export class Renderer{
  constructor(canvas){
   this.canvas=canvas;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});this.maxPixelRatio=Math.min(devicePixelRatio,1.5);this.pixelRatio=this.maxPixelRatio;this.renderer.setPixelRatio(this.pixelRatio);this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.04;
@@ -55,7 +165,7 @@ export class Renderer{
   batchStatic(this.scene,new Set([this.scenery.sky,this.scenery.water,this.scenery.depot,...this.scenery.animated.map(o=>o.node)]),2800);
   this.jets=new Map();this.effects=new Map();this.vortices=new Map();this.view='chase';this.followReady=false;this.frameAverage=1/60;this.slowSeconds=0;this.fastSeconds=0;this.qualityCooldown=4;this.adaptiveQuality=1;this.reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   this.gunGeometry=new THREE.BufferGeometry();this.gunGeometry.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(GUN.maxRounds*6),3).setUsage(THREE.DynamicDrawUsage));this.gunGeometry.setDrawRange(0,0);this.gunTracers=new THREE.LineSegments(this.gunGeometry,new THREE.LineBasicMaterial({color:0xffed9c,transparent:true,opacity:1,toneMapped:false,depthWrite:false}));this.gunTracers.frustumCulled=false;this.scene.add(this.gunTracers);
-  this.airMotion=new FlightAirMotion(this.scene);this.muzzleFlashes=new Map();this.effectsGroup=new THREE.Group();this.scene.add(this.effectsGroup);this.dotGeometry=new THREE.SphereGeometry(1,10,7);this.missileGeometry=new THREE.CylinderGeometry(.45,.45,5.2,8);this.missileGeometry.rotateX(Math.PI/2);
+  this.airMotion=new FlightAirMotion(this.scene);this.damageVisuals=new DamageVisuals(this.scene);this.muzzleFlashes=new Map();this.effectsGroup=new THREE.Group();this.scene.add(this.effectsGroup);this.dotGeometry=new THREE.SphereGeometry(1,10,7);this.missileGeometry=new THREE.CylinderGeometry(.45,.45,5.2,8);this.missileGeometry.rotateX(Math.PI/2);
   this.effectTexture=canvasTexture(128,128,(c,w,h)=>{const g=c.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,'rgba(255,248,217,1)');g.addColorStop(.27,'rgba(255,180,72,.95)');g.addColorStop(.65,'rgba(229,91,35,.65)');g.addColorStop(1,'rgba(118,67,42,0)');c.fillStyle=g;c.fillRect(0,0,w,h)});
   const shadowMap=canvasTexture(128,128,(c,w,h)=>{const g=c.createRadialGradient(w/2,h/2,5,w/2,h/2,w/2);g.addColorStop(0,'rgba(12,36,41,.55)');g.addColorStop(.5,'rgba(12,36,41,.18)');g.addColorStop(1,'rgba(12,36,41,0)');c.fillStyle=g;c.fillRect(0,0,w,h)});this.shadow=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:shadowMap,transparent:true,depthWrite:false}));this.shadow.rotation.x=-Math.PI/2;this.scene.add(this.shadow);
   this.rings=[];this.activeRouteId=null;
@@ -94,7 +204,7 @@ export class Renderer{
   const live=new Set();for(const missile of g.missiles){const key='missile'+missile.id;live.add(key);const node=this.effectObject(key,'missile');node.position.set(missile.pos.x,missile.pos.y,missile.pos.z);node.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(missile.dir.x,missile.dir.y,missile.dir.z));node.material.color.setHex(missile.type==='radar'?0xc9e5e5:0xf3dbc1);const lineKey='trail'+missile.id;live.add(lineKey);const line=this.effectObject(lineKey,'line'),a=line.geometry.attributes.position;a.setXYZ(0,missile.pos.x,missile.pos.y,missile.pos.z);a.setXYZ(1,missile.pos.x-missile.dir.x*125,missile.pos.y-missile.dir.y*125,missile.pos.z-missile.dir.z*125);a.needsUpdate=true;line.geometry.computeBoundingSphere();}
   for(const c of g.countermeasures){const key='counter'+c.id;live.add(key);const node=this.effectObject(key,'dot');node.position.set(c.pos.x,c.pos.y,c.pos.z);node.scale.setScalar(c.type==='flare'?2.3:1.1);node.material.color.setHex(c.type==='flare'?0xfff1b4:0xcfe1e4);node.material.opacity=1-c.age/c.life}
   for(const b of g.bombs){const key='bomb'+b.id;live.add(key);const node=this.effectObject(key,'dot');node.position.set(b.pos.x,b.pos.y,b.pos.z);node.scale.set(1.2,1.2,3);node.material.color.setHex(0x3b4b4c)}
-  for(const e of g.effects){const key='effect'+e.id;live.add(key);const node=this.effectObject(key,'explosion'),size=(e.type==='target'?210:e.type==='gun-hit'?10:65)*Math.min(1,e.age*3);node.position.set(e.pos.x,e.pos.y,e.pos.z);node.scale.set(size,size,1);node.material.opacity=Math.max(0,1-e.age/e.life);node.material.color.setHex(e.age>e.life*.5?0x7d8b83:0xffffff)}
+  for(const e of g.effects){if(e.type==='gun-hit'&&!this.reducedMotion)continue;const key='effect'+e.id;live.add(key);const node=this.effectObject(key,'explosion'),size=(e.type==='target'?210:e.type==='gun-hit'?10:65)*Math.min(1,e.age*3);node.position.set(e.pos.x,e.pos.y,e.pos.z);node.scale.set(size,size,1);node.material.opacity=Math.max(0,1-e.age/e.life);node.material.color.setHex(e.age>e.life*.5?0x7d8b83:0xffffff)}
   for(const[key,node]of this.effects)if(!live.has(key)){node.removeFromParent();node.material.dispose();if(node.isLine)node.geometry.dispose();this.effects.delete(key)}
  }
  updateQuality(seconds){
@@ -114,7 +224,7 @@ export class Renderer{
  }
  render(g,localId='host',dt=1/60,frameSeconds=dt){
   this.updateQuality(frameSeconds);
-  if(this.lastGameTime!==undefined&&g.time<this.lastGameTime-.2)for(const pair of this.vortices.values())for(const item of pair){item.points=[];item.last=-1}this.lastGameTime=g.time;for(const[id,pair]of this.vortices)if(!g.pilots.some(p=>p.id===id)){pair.forEach(item=>{item.line.removeFromParent();item.line.geometry.dispose();item.line.material.dispose()});this.vortices.delete(id)}this.updateRoute(g);const p=g.pilots.find(q=>q.id===localId)||g.pilots[0];this.updateAircraft(g,p,dt);this.updateCamera(p,dt);this.scenery.update(g.time,this.camera,this.adaptiveQuality);this.airMotion.update(p,this.camera,g.time,this.reducedMotion,this.adaptiveQuality);this.updateEffects(g);
+  if(this.lastGameTime!==undefined&&g.time<this.lastGameTime-.2)for(const pair of this.vortices.values())for(const item of pair){item.points=[];item.last=-1}this.lastGameTime=g.time;for(const[id,pair]of this.vortices)if(!g.pilots.some(p=>p.id===id)){pair.forEach(item=>{item.line.removeFromParent();item.line.geometry.dispose();item.line.material.dispose()});this.vortices.delete(id)}this.updateRoute(g);const p=g.pilots.find(q=>q.id===localId)||g.pilots[0];this.updateAircraft(g,p,dt);this.updateCamera(p,dt);this.scenery.update(g.time,this.camera,this.adaptiveQuality);this.airMotion.update(p,this.camera,g.time,this.reducedMotion,this.adaptiveQuality);this.updateEffects(g);this.damageVisuals.update(g,this.camera,this.reducedMotion,this.adaptiveQuality,this.canvas.height);
   this.rings.forEach((ring,index)=>{ring.visible=g.mode==='freeflight'&&g.flightStage==='route'&&index>=g.routeIndex&&index<=g.routeIndex+1;ring.children[0].material.opacity=index===g.routeIndex?.85:.13;ring.lookAt(this.camera.position.x,ring.position.y,this.camera.position.z)});
   this.targetMarker.visible=g.mode==='strike'&&!g.bombed;this.escapeMarker.visible=g.mode==='strike'&&g.bombed;this.landingMarker.visible=g.mode==='freeflight'&&['approach','landed'].includes(g.flightStage);this.scenery.depot.scale.y=g.bombed?.25:1;
   this.aim.visible=g.mode==='strike'&&p.bomber&&!g.bombed;if(this.aim.visible){const impact=bombSolution(p);this.aim.position.set(impact.x,Math.max(4,surfaceHeight(impact.x,impact.z))+.65,impact.z);this.aim.material.color.setHex(canBomb(g,p)?COLORS.mint:COLORS.orange)}

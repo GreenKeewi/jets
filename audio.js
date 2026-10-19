@@ -1,43 +1,97 @@
 // Original procedural jet, wind and radio cues; no downloaded audio or media permissions.
 const clamp=(value,low,high)=>Math.max(low,Math.min(high,Number.isFinite(value)?value:0));
+const NEARBY_VOICES=4,NEARBY_RANGE=2800,TRANSIENT_LIMIT=16;
 export function flightSound(p,inside=false){
  const thrust=clamp(p.throttle,0,1),mach=clamp(Number.isFinite(p.mach)?p.mach:(p.speed||0)/343,0,3),burner=p.bomber?0:clamp((thrust-.82)/.18,0,1),buffet=p.grounded?0:Math.max(0,1-Math.abs(mach-1)/.12),fastAir=clamp((mach-.55)/.45,0,1);
- return{jet:.035+thrust*.2+burner*.085+buffet*.014,jetFrequency:(inside?340:450)+thrust*(inside?1050:1700)+burner*420,
+ return{jet:(.035+thrust*.2+burner*.085+buffet*.014)*(inside?.72:1),jetFrequency:(inside?340:450)+thrust*(inside?1050:1700)+burner*420,jetQ:.8-burner*.3,
   wind:(clamp(Math.pow(mach,1.4)*.15+fastAir*fastAir*(3-2*fastAir)*.08,0,.5)+(p.braking?.045:0))*(inside?.55:1),windFrequency:(inside?1000:1800)+mach*1700,
-  engineFrequency:35+thrust*52+burner*18,engine:.008+thrust*.024+burner*.014};
+  engineFrequency:35+thrust*52+burner*18+mach*5,engine:(.008+thrust*.024+burner*.014)*(inside?1.3:1),engineCutoff:(inside?120:150)+thrust*65,
+  turbineFrequency:145+thrust*390+burner*90+mach*24,turbine:(.002+thrust*.008+burner*.003)*(inside?.65:1)};
 }
 export function threatAudioProfile(threat){
  if(!threat)return null;
- const type=typeof threat==='object'?threat.type:'heat';
- // An enemy trying to lock is a slower, lower advisory. A launched weapon is urgent.
- if(type==='lock')return{type,period:1.35,frequency:380,duration:.11,gain:.025,urgent:false};
- const range=typeof threat==='object'?threat.range:700,time=typeof threat==='object'?threat.timeToImpact:Infinity,urgent=(Number.isFinite(time)&&time<4)||(Number.isFinite(range)&&range<650);
- return{type:type==='radar'?'radar':'heat',period:urgent?.26:.65,frequency:type==='radar'?720:560,duration:.07,gain:urgent?.055:.042,urgent};
+ const info=typeof threat==='object'?threat:{type:'heat'},type=info.type,pan=Number.isFinite(info.bearing)?clamp(-Math.sin(info.bearing)*.88,-.88,.88):0;
+ // Simulation bearings are positive-left; StereoPanner is positive-right.
+ // Acquisition stays a slow advisory, never a launched-weapon alarm.
+ if(type==='lock')return{type,period:info.locked?1.12:1.5,frequency:info.locked?430:360,duration:.14,gain:.03,urgent:false,pan,locked:!!info.locked};
+ const range=info.range??700,time=info.timeToImpact??Infinity,urgent=(Number.isFinite(time)&&time<4)||(Number.isFinite(range)&&range<650);
+ return{type:type==='radar'?'radar':'heat',period:urgent?.27:.7,frequency:type==='radar'?820:550,duration:.075,gain:urgent?.06:.045,urgent,pan};
+}
+function velocity(p){const speed=clamp(p.speed,0,1000),yaw=p.yaw||0,pitch=p.pitch||0;return{x:Math.sin(yaw)*Math.cos(pitch)*speed,y:Math.sin(pitch)*speed-(p.stallSink||0),z:Math.cos(yaw)*Math.cos(pitch)*speed}}
+export function nearbyJetSound(p,q,inside=false){
+ const dx=q.pos.x-p.pos.x,dy=q.pos.y-p.pos.y,dz=q.pos.z-p.pos.z,distance=Math.hypot(dx,dy,dz),length=Math.max(1,distance),yaw=p.yaw||0,ours=velocity(p),theirs=velocity(q);
+ const radial=((theirs.x-ours.x)*dx+(theirs.y-ours.y)*dy+(theirs.z-ours.z)*dz)/length,forward=(dx*Math.sin(yaw)+dz*Math.cos(yaw))/length;
+ const pan=clamp((-dx*Math.cos(yaw)+dz*Math.sin(yaw))/length,-1,1),thrust=clamp(q.throttle,0,1),burner=q.bomber?0:clamp((thrust-.82)/.18,0,1);
+ const fade=clamp((NEARBY_RANGE-distance)/800,0,1),attenuation=fade/(1+Math.pow(distance/230,1.7)),doppler=clamp(343/(343+clamp(radial,-145,220)),.65,1.65);
+ return{distance,radial,pan,doppler,gain:attenuation*(inside?.52:1),noise:.23+thrust*.16+burner*.065,tone:.009+thrust*.016,
+  frequency:(460+thrust*1250+burner*350)*doppler*(inside?.65:1)*(forward<0?.78:1),engineFrequency:(q.bomber?54:76)+thrust*82,burner};
 }
 export class FlightAudio{
- constructor(){this.enabled=true;this.ctx=null;this.active=false;this.lastThreat=0;this.lastGunShots=0;this.voices=new Set()}
+ constructor(){this.enabled=true;this.ctx=null;this.active=false;this.lastThreat=-Infinity;this.lastGunShots=0;this.voices=new Set();this.nearby=[];this.wasAudible=false}
  init(){
-  if(this.ctx){this.ctx.resume();return}const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
+  if(this.ctx){this.ctx.resume().catch(()=>{});return}const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
   this.ctx=new Audio();const a=this.ctx;this.master=a.createGain();this.master.gain.value=0;const compressor=a.createDynamicsCompressor();compressor.threshold.value=-18;compressor.knee.value=14;compressor.ratio.value=4;compressor.attack.value=.004;compressor.release.value=.17;this.master.connect(compressor).connect(a.destination);
   this.noiseBuffer=a.createBuffer(1,a.sampleRate*3,a.sampleRate);const data=this.noiseBuffer.getChannelData(0);let brown=0;for(let i=0;i<data.length;i++){const white=Math.random()*2-1;brown=(brown+white*.025)/1.015;data[i]=white*.22+brown*.7}
   const jet=a.createBufferSource();jet.buffer=this.noiseBuffer;jet.loop=true;this.jetFilter=a.createBiquadFilter();this.jetFilter.type='bandpass';this.jetFilter.frequency.value=500;this.jetFilter.Q.value=.7;this.jetGain=a.createGain();this.jetGain.gain.value=0;jet.connect(this.jetFilter).connect(this.jetGain).connect(this.master);jet.start();
   const wind=a.createBufferSource();wind.buffer=this.noiseBuffer;wind.loop=true;const high=a.createBiquadFilter();high.type='highpass';high.frequency.value=450;this.windFilter=a.createBiquadFilter();this.windFilter.type='lowpass';this.windFilter.frequency.value=1600;this.windGain=a.createGain();this.windGain.gain.value=0;wind.connect(high).connect(this.windFilter).connect(this.windGain).connect(this.master);wind.start(0,.37);
-  this.engine=a.createOscillator();this.engine.type='sawtooth';this.engine.frequency.value=42;const low=a.createBiquadFilter();low.type='lowpass';low.frequency.value=135;this.engineGain=a.createGain();this.engineGain.gain.value=0;this.engine.connect(low).connect(this.engineGain).connect(this.master);this.engine.start();
+  this.engine=a.createOscillator();this.engine.type='sawtooth';this.engine.frequency.value=42;this.engineFilter=a.createBiquadFilter();this.engineFilter.type='lowpass';this.engineFilter.frequency.value=135;this.engineGain=a.createGain();this.engineGain.gain.value=0;this.engine.connect(this.engineFilter).connect(this.engineGain).connect(this.master);this.engine.start();
+  this.turbine=a.createOscillator();this.turbine.type='sine';this.turbine.frequency.value=145;this.turbineGain=a.createGain();this.turbineGain.gain.value=0;this.turbine.connect(this.turbineGain).connect(this.master);this.turbine.start();
+  // Fixed continuous voices: proximity updates never allocate an audio graph.
+  for(let i=0;i<NEARBY_VOICES;i++){
+   const source=a.createBufferSource(),filter=a.createBiquadFilter(),gain=a.createGain(),tone=a.createOscillator(),toneGain=a.createGain(),pan=this.createPan();
+   source.buffer=this.noiseBuffer;source.loop=true;filter.type='bandpass';filter.Q.value=.65;filter.frequency.value=900;gain.gain.value=0;tone.type='triangle';tone.frequency.value=100;toneGain.gain.value=0;
+   source.connect(filter).connect(gain).connect(pan).connect(this.master);tone.connect(toneGain).connect(pan);source.start(0,(i*.63+.21)%3);tone.start();
+   this.nearby.push({id:null,source,filter,gain,tone,toneGain,pan,radial:0,distance:Infinity,flybyUntil:0,flybyStrength:0});
+  }
  }
- toggle(){this.enabled=!this.enabled;if(this.ctx)this.master.gain.setTargetAtTime(this.enabled&&this.active?.42:0,this.ctx.currentTime,.035);return this.enabled}
- update(p,active,threat,view='chase'){
-  if(!this.ctx)return;active=!!active&&!document.hidden;const a=this.ctx,t=a.currentTime;this.active=active;const shots=p.gunShots||0;if(active&&shots>this.lastGunShots)this.burst(1500,220,.065,view==='cockpit'?.08:.13);this.lastGunShots=shots;const sound=flightSound(p,view==='cockpit');
-  this.master.gain.setTargetAtTime(this.enabled&&active?.42:0,t,.035);this.jetGain.gain.setTargetAtTime(active?sound.jet:0,t,.22);this.jetFilter.frequency.setTargetAtTime(sound.jetFrequency,t,.25);
-  this.windGain.gain.setTargetAtTime(active?sound.wind:0,t,.18);this.windFilter.frequency.setTargetAtTime(sound.windFrequency,t,.25);this.engine.frequency.setTargetAtTime(sound.engineFrequency,t,.3);this.engineGain.gain.setTargetAtTime(active?sound.engine:0,t,.25);
+ createPan(){const a=this.ctx;if(a.createStereoPanner)return a.createStereoPanner();const node=a.createPanner();node.panningModel='equalpower';node.distanceModel='inverse';node.rolloffFactor=0;return node}
+ setPan(node,value,t){const pan=clamp(value,-1,1);if(node.pan)node.pan.setTargetAtTime(pan,t,.045);else if(node.positionX){node.positionX.setTargetAtTime(pan,t,.045);node.positionY.setTargetAtTime(0,t,.045);node.positionZ.setTargetAtTime(-Math.sqrt(Math.max(0,1-pan*pan)),t,.045)}else node.setPosition(pan,0,-Math.sqrt(Math.max(0,1-pan*pan)))}
+ stopTransients(){if(!this.ctx)return;for(const source of this.voices){try{source.stop(this.ctx.currentTime+.01)}catch{}}this.voices.clear()}
+ toggle(){this.enabled=!this.enabled;if(this.ctx){this.master.gain.setTargetAtTime(this.enabled&&this.active&&!document.hidden?.42:0,this.ctx.currentTime,.025);if(!this.enabled){this.stopTransients();this.lastThreatType=null;this.lastThreat=-Infinity}}return this.enabled}
+ update(p,active,threat,view='chase',pilots=[]){
+  if(!this.ctx||!p)return;active=!!active&&!document.hidden&&!p.dead;const a=this.ctx,t=a.currentTime,audible=active&&this.enabled;this.active=active;
+  if(!audible&&this.wasAudible)this.stopTransients();this.wasAudible=audible;
+  const shots=p.gunShots||0;if(audible&&shots>this.lastGunShots)this.burst(1500,220,.065,view==='cockpit'?.08:.13);this.lastGunShots=shots;const sound=flightSound(p,view==='cockpit');
+  this.master.gain.setTargetAtTime(audible?.42:0,t,.025);this.jetGain.gain.setTargetAtTime(active?sound.jet:0,t,.2);this.jetFilter.frequency.setTargetAtTime(sound.jetFrequency,t,.22);this.jetFilter.Q.setTargetAtTime(sound.jetQ,t,.22);
+  this.windGain.gain.setTargetAtTime(active?sound.wind:0,t,.18);this.windFilter.frequency.setTargetAtTime(sound.windFrequency,t,.25);this.engine.frequency.setTargetAtTime(sound.engineFrequency,t,.3);this.engineGain.gain.setTargetAtTime(active?sound.engine:0,t,.25);this.engineFilter.frequency.setTargetAtTime(sound.engineCutoff,t,.25);
+  this.turbine.frequency.setTargetAtTime(sound.turbineFrequency,t,.4);this.turbineGain.gain.setTargetAtTime(active?sound.turbine:0,t,.3);
+  this.updateNearby(p,audible?pilots:[],view==='cockpit',t);
   const cue=threatAudioProfile(threat);
-  if(active&&cue&&(cue.type!==this.lastThreatType||t-this.lastThreat>cue.period)){this.lastThreat=t;this.beep(cue.frequency,cue.duration,cue.gain);if(cue.urgent)setTimeout(()=>this.active&&this.beep(cue.frequency+180,.055,.038),95)}
-  this.lastThreatType=active?cue?.type:null;
+  if(audible&&cue&&(cue.type!==this.lastThreatType||cue.urgent&&!this.lastThreatUrgent||t-this.lastThreat>cue.period)){this.lastThreat=t;this.warning(cue)}
+  this.lastThreatType=audible?cue?.type:null;this.lastThreatUrgent=audible&&!!cue?.urgent;
  }
- beep(frequency=780,duration=.1,gain=.05){
-  if(!this.ctx||!this.enabled||!this.active)return;const a=this.ctx,t=a.currentTime,o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=frequency;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(g).connect(this.master);o.start();o.stop(t+duration);o.onended=()=>{o.disconnect();g.disconnect()};
+ updateNearby(p,pilots,inside,t){
+  const occupied=new Set(this.nearby.map(v=>v.id)),candidates=[];
+  for(const q of pilots){if(q===p||q.id===p.id||q.dead||!q.pos||!p.pos)continue;const sound=nearbyJetSound(p,q,inside);if(sound.distance<NEARBY_RANGE)candidates.push({id:q.id,sound,priority:sound.distance*(occupied.has(q.id)?.8:1)})}
+  candidates.sort((a,b)=>a.priority-b.priority);const selected=candidates.slice(0,NEARBY_VOICES),ids=new Set(selected.map(q=>q.id));
+  for(const v of this.nearby)if(!ids.has(v.id)){v.id=null;v.radial=0;v.distance=Infinity;v.flybyUntil=0;v.flybyStrength=0;v.gain.gain.setTargetAtTime(0,t,.09);v.toneGain.gain.setTargetAtTime(0,t,.09)}
+  for(const q of selected){
+   const v=this.nearby.find(v=>v.id===q.id)||this.nearby.find(v=>v.id===null);if(!v)continue;const s=q.sound,fresh=v.id!==q.id;v.id=q.id;
+   // A close approach turning into recession adds a short broad rush, using the same voice.
+   if(!fresh&&v.radial<0&&s.radial>=0&&Math.min(s.distance,v.distance)<650){v.flybyUntil=t+.55;v.flybyStrength=clamp(Math.abs(v.radial-s.radial)/100,.15,1)*(1-s.distance/750)}
+   const rush=Math.max(0,(v.flybyUntil-t)/.55)*v.flybyStrength;
+   v.source.playbackRate.setTargetAtTime(s.doppler,t,.065);v.filter.frequency.setTargetAtTime(s.frequency+900*rush,t,.08);v.filter.Q.setTargetAtTime(.65-s.burner*.2-rush*.1,t,.1);
+   v.gain.gain.setTargetAtTime(s.gain*s.noise*(1+rush*.8),t,.07);v.tone.frequency.setTargetAtTime(s.engineFrequency*s.doppler,t,.07);v.toneGain.gain.setTargetAtTime(s.gain*s.tone,t,.09);this.setPan(v.pan,s.pan,t);
+   v.radial=s.radial;v.distance=s.distance;
+  }
+ }
+ warning(cue){
+  const options={pan:cue.pan};
+  if(cue.type==='lock'){this.beep(cue.frequency,cue.duration,cue.gain,{...options,wave:'triangle',endFrequency:cue.frequency+(cue.locked?55:20)});return}
+  if(cue.type==='heat'){
+   // Heat is a paired downward whistle; radar is a clipped three-note climb.
+   this.beep(cue.frequency,.095,cue.gain,{...options,endFrequency:cue.frequency-140});this.beep(cue.frequency-60,.07,cue.gain*.82,{...options,delay:.125,endFrequency:cue.frequency-180});
+  }else{
+   for(let i=0;i<3;i++)this.beep(cue.frequency+i*190,.055,cue.gain*.6,{...options,wave:'square',delay:i*.075});
+  }
+ }
+ beep(frequency=780,duration=.1,gain=.05,options={}){
+  if(!this.ctx||!this.enabled||!this.active||document.hidden||this.voices.size>=TRANSIENT_LIMIT)return;
+  const a=this.ctx,t=a.currentTime+(options.delay||0),o=a.createOscillator(),g=a.createGain(),pan=this.createPan();o.type=options.wave||'sine';o.frequency.setValueAtTime(frequency,t);if(options.endFrequency)o.frequency.exponentialRampToValueAtTime(Math.max(30,options.endFrequency),t+duration);
+  g.gain.setValueAtTime(0,a.currentTime);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+duration);this.setPan(pan,options.pan||0,a.currentTime);o.connect(g).connect(pan).connect(this.master);this.voices.add(o);o.start(t);o.stop(t+duration+.01);o.onended=()=>{this.voices.delete(o);o.disconnect();g.disconnect();pan.disconnect()};
  }
  burst(from,to,duration,gain){
-  if(!this.ctx||!this.enabled||!this.active||this.voices.size>10)return;const a=this.ctx,t=a.currentTime,source=a.createBufferSource(),filter=a.createBiquadFilter(),g=a.createGain();source.buffer=this.noiseBuffer;filter.type='lowpass';filter.frequency.setValueAtTime(from,t);filter.frequency.exponentialRampToValueAtTime(Math.max(30,to),t+duration);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+duration);source.connect(filter).connect(g).connect(this.master);this.voices.add(source);source.start(0,Math.random());source.stop(t+duration);source.onended=()=>{this.voices.delete(source);source.disconnect();filter.disconnect();g.disconnect()};
+  if(!this.ctx||!this.enabled||!this.active||document.hidden||this.voices.size>=TRANSIENT_LIMIT)return;const a=this.ctx,t=a.currentTime,source=a.createBufferSource(),filter=a.createBiquadFilter(),g=a.createGain();source.buffer=this.noiseBuffer;filter.type='lowpass';filter.frequency.setValueAtTime(from,t);filter.frequency.exponentialRampToValueAtTime(Math.max(30,to),t+duration);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+duration);source.connect(filter).connect(g).connect(this.master);this.voices.add(source);source.start(0,Math.random());source.stop(t+duration+.01);source.onended=()=>{this.voices.delete(source);source.disconnect();filter.disconnect();g.disconnect()};
  }
  event(type){
   if(type==='launch'){this.burst(1900,170,.48,.29);this.beep(320,.1,.025)}
@@ -45,6 +99,6 @@ export class FlightAudio{
   else if(type==='counter')this.burst(3300,1200,.15,.15);
   else if(type==='damage'){this.burst(450,65,.4,.42);this.beep(78,.2,.06)}
   else if(['hit','kill','target'].includes(type)){this.burst(type==='target'?600:850,55,type==='target'?.8:.5,type==='target'?.5:.36);this.beep(68,.27,.06)}
-  else if(['gate','landed','takeoff'].includes(type)){this.beep(660,.13,.035);setTimeout(()=>this.active&&this.beep(880,.18,.03),130)}
+  else if(['gate','landed','takeoff'].includes(type)){this.beep(660,.13,.035);this.beep(880,.18,.03,{delay:.13})}
  }
 }

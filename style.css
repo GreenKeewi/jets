@@ -58,3 +58,7 @@ dialog{color:var(--paper);color-scheme:dark}dialog::backdrop{background:#0a2433a
 #gun-lead{position:absolute;width:16px;height:16px;transform:translate(-50%,-50%);border:1px dashed #ffdaa0;border-radius:50%;filter:drop-shadow(0 1px 2px #102c38);pointer-events:none}#gun-lead::after{content:"";position:absolute;width:2px;height:2px;border-radius:50%;background:#ffdaa0;left:6px;top:6px}
 #crosshair.hit-confirm::after{content:"";position:absolute;width:25px;height:25px;background:linear-gradient(45deg,transparent 40%,#fff0bd 40%,#fff0bd 60%,transparent 60%) left top/7px 7px no-repeat,linear-gradient(-45deg,transparent 40%,#fff0bd 40%,#fff0bd 60%,transparent 60%) right top/7px 7px no-repeat,linear-gradient(-45deg,transparent 40%,#fff0bd 40%,#fff0bd 60%,transparent 60%) left bottom/7px 7px no-repeat,linear-gradient(45deg,transparent 40%,#fff0bd 40%,#fff0bd 60%,transparent 60%) right bottom/7px 7px no-repeat}
 #flight-envelope #thrust-note{font-size:10px;font-weight:700;color:#e6f3de}
+
+/* Incoming damage uses the existing airframe corner, with no camera shake. */
+#damage-note{margin:7px 0 9px;color:#ffd0b0;font-size:11px;font-weight:700;letter-spacing:.07em;text-shadow:0 1px 5px #061a21;max-width:300px;}
+@media(max-width:700px){#damage-note{font-size:9px;max-width:220px;}}
