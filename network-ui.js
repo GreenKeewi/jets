@@ -4,6 +4,7 @@ export function mountNetworkUI(container, network, { onLaunch } = {}) {
   const protocol = network.protocol || 'JETS5';
   container.innerHTML = `<section class="net-panel" aria-label="Play with friends">
     <h3>Your friends. One room.</h3>
+    <small data-net="build"></small>
     <p>Create a room and share one link. Your friends join; you launch the sortie.</p>
     <div class="net-actions"><button type="button" data-net="create-room">Create room</button><button type="button" data-net="leave">Leave / play solo</button></div>
     <div class="net-room" data-net="room-card" hidden>
@@ -38,6 +39,7 @@ export function mountNetworkUI(container, network, { onLaunch } = {}) {
     document.head.append(style);
   }
   const el = name => container.querySelector(`[data-net="${name}"]`);
+  el('build').textContent = `Room build: ${network.build || 'unknown'} · both players should show the same version`;
   let busy = false, activeOperation = 0;
   function message(text) { el('status').textContent = text; }
   function refresh() {
