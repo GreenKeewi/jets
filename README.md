@@ -44,7 +44,7 @@ Strike success requires both destruction of the depot and arrival in the escape 
 
 ## Current controls and multiplayer verification
 
-The current game uses pairing protocol `JETS5`. Reload both players before exchanging fresh codes; older `JETS2`/`JETS3`/`JETS4` codes are rejected with a clear version message so both players see the same valley terrain. Gun damage, ammunition, cooldown, bullets and mission outcomes remain host-authoritative; guests send bounded realtime held-gun state and discrete weapon actions, and receive snapshots.
+The current game uses pairing protocol `JETS6`. Reload both players before exchanging fresh codes; older `JETS2`/`JETS3`/`JETS4` codes are rejected with a clear version message so both players see the same valley terrain. Gun damage, ammunition, cooldown, bullets and mission outcomes remain host-authoritative; guests send bounded realtime held-gun state and discrete weapon actions, and receive snapshots.
 
 Normal-animation browser fixtures exercise actual keys at all four cardinal headings in chase/cockpit, including projected forward/wingtip movement, cockpit bank, power/pitch, press-only Q/E, gun tracers, and results Escape. A separate three-document application integration fixture covers guest controls and both replay paths after late joins. This executor's managed Chromium policy `WebRtcIPHandling: disable_non_proxied_udp` returns no native LAN candidates. The integration transport fixture is explicitly **not native WebRTC or a physical Wi-Fi test**. No browser policy or proxy bypass is used. Control/camera reports from the preceding release remain under `evidence/controls/`; current network reports are under `evidence/gun-jitter/`.
 
@@ -59,11 +59,11 @@ The deterministic transport-plus-host-simulation regression reproduces four loca
 
 Fighter cruise at 78% power is 285 metres/second (about 554 knots); full power reaches 686 metres/second, Mach 2 at the game's fixed 343 m/s reference. The speed readout measures actual world travel. Local air wisps remain world-anchored, low-altitude water has instanced whitecaps, and FOV grows by at most five degrees. Exhaust, transonic vapor and wind audio support that sense of acceleration. Low-power freeflight route approaches and bomber speeds remain tuned for the existing missions.
 
-Squads begin in tight V or echelon formations with geometry-relative spacing. Whole rival squads arrive from seeded front, side or rear approaches, with rear squads close enough to create an ambush. Formation flying transitions into combat after a short lead-in. Aircraft use swept-volume collisions, including high-speed head-on and wingmate collisions; bots predict close passes and separate rather than deliberately ram.
+Squads begin at airport runways and take off in sequence before engaging. Airport departures replace the previous airborne formation and seeded approach spawns. Aircraft use swept-volume collisions, including high-speed head-on and wingmate collisions; bots predict close passes and separate rather than deliberately ram.
 
 Amber advisory warnings identify an enemy acquiring or holding a lock. Red warnings distinguish incoming heat/radar missiles, relative clock bearing and an approximate impact window. Flares defeat heat seekers; chaff defeats radar guidance. Seeker angle, bounded turning and radar illumination mean hard maneuvers can also break missile tracking. Missile launch cooldowns remain unchanged (heat 1.65 s, radar 2.5 s).
 
-Human skirmish respawns are available after three seconds, and bots rejoin after eight. Time and team scores persist. Rejoining aircraft are placed clear of other planes with 2.5 seconds of protection and weapons safety; missiles aimed at the previous airframe cannot reacquire its replacement. A clear-path failure leaves the aircraft dead and asks the player to retry rather than spawning into an occupied position.
+Human skirmish respawns are available after three seconds, and bots rejoin after eight. Time and team scores persist. Rejoining aircraft return to an available airport departure position; missiles aimed at the previous airframe cannot reacquire its replacement. Runway queues keep waiting aircraft clear of departing traffic.
 
 Rendering work is bounded: 48 near-air wisps (24 in adaptive low quality), instanced water detail, pooled effects and a 12-aircraft cap. Reduced-motion users do not get extra speed FOV or air wisps. These are designed performance bounds, not a measured Chromebook frame-rate claim.
 
@@ -85,7 +85,7 @@ Verification for this follow-on release was limited to source/syntax and deploym
 
 ## Valley battles and flight energy
 
-Dogfight now offers a Battle area selector: Coastal sky or Northern valley. The northern island has a broad winding valley with a low floor and tall ridgelines, shared by collision checks and the existing heightfield renderer. Squads start together below the ridges in tight V/echelon formations. The whole squad is raised together only as needed to clear its terrain and initial flight path. Human and bot skirmish respawns search for clear low-altitude valley entry paths with the existing separation and weapons-safety grace. If no clear entry fits, rejoining waits instead of placing a plane on a ridge or in another aircraft.
+Dogfight now offers a Battle area selector: Coastal sky or Northern valley. The northern island has a broad winding valley with a low floor and tall ridgelines, shared by collision checks and the existing heightfield renderer. Squads now depart from airports rather than appearing in midair. Human and bot skirmish respawns also return to an airport; queued departures wait for runway clearance. Once airborne, pilots must still clear the valley terrain and ridgelines.
 
 Valley bots lead their turns back along the corridor, keep engagements near the valley floor, sample terrain ahead, and use gentle steering while recovering from high G. Pilots can still climb out by choice. Existing coast, strike, runway routes, weapons, squad sizes and local-network play remain available. The valley reuses the existing tiled terrain meshes and tree batches; it adds no scenery draw calls or assets.
 
@@ -136,9 +136,17 @@ To re-enable, set the source flag to `true` and publish with fresh versions for 
 This disable-only release received source/syntax and deployed-file checks. No optional tests or gameplay runs were performed.
 
 
+## Airport departures, landing and repair
+
+Players and enemy aircraft begin at airports, including skirmish respawns. Add power with Up; above 80 m/s (about 155 knots), gently hold W to take off. Aircraft waiting behind a departure hold until the runway ahead clears. X is the wheel brake.
+
+Land on an airport runway in either direction: line up, keep the wings level, descend gently and touch down at no more than 115 m/s (about 224 knots). After a successful touchdown, slow below 8 m/s (about 15 knots), reduce power to 20% or less and remain on the runway. Repairs restore 8 health points per second after 3 seconds without another hit. Starting at an airport is not itself a qualifying landing.
+
+Grounded aircraft are immune to missiles and cannot launch missiles, but remain vulnerable to gunfire. Add power and take off again whenever ready. The HUD shows departure clearance, takeoff controls, repair status and nearby-airport service information. Flyby ammunition resupply remains separate from landing repairs.
+
 ## Airfield flyby resupply
 
-A living aircraft flying within 250 m of any authored airfield's runway, taxiway or apron receives full gun ammunition, heat and radar missiles, flares, chaff, and bomber payload where equipped. Resupply does not repair damage or restore health. Distance is three-dimensional from the visible pavement surfaces and their local elevation/heading, including the full 2.2 km coastal runway; flying high above a base does not count. There is no fuel resource to reset. Existing weapon cooldowns, flight physics and pilot-G recovery are unchanged.
+A living aircraft flying within 250 m of any authored airfield's runway, taxiway or apron receives full gun ammunition, heat and radar missiles, flares, chaff, and bomber payload where equipped. Flyby resupply does not repair damage or restore health; use the runway landing-and-repair procedure above. Distance is three-dimensional from the visible pavement surfaces and their local elevation/heading, including the full 2.2 km coastal runway; flying high above a base does not count. There is no fuel resource to reset. Existing weapon cooldowns, flight physics and pilot-G recovery are unchanged.
 
 Resupply happens once on entering the zone. Exit beyond 350 m and allow 12 seconds before a new entry to receive another refill. Camping inside or crossing the inner boundary repeatedly does not grant another refill. New spawns already near the runway must leave before their first service pass; full aircraft do not produce a redundant resupply message. Dead aircraft and objective transports are not serviced. The three airfields have no team ownership, so the same service rules apply to every squad and bot. Existing 22-second partial ammunition top-ups remain available.
 
@@ -149,6 +157,13 @@ As requested, verification is limited to source review, JavaScript syntax, and c
 
 ## Environmental seeker interference
 
-Radar missiles have reduced turning authority and a chance to lose grounded or very low terrain-relative targets to ground clutter; ground contact is not immunity. Heat seekers can lose a target within eight degrees of the visible sun disk as seen from the missile, provided terrain does not hide the sun. Flying anywhere in daylight does not trigger it. Afterburner heat lowers sun-confusion susceptibility, and existing flare-burst and chaff rules are unchanged. Exposure is integrated in simulation seconds against one seeded threshold per missile and survives host snapshots.
+Radar missiles have reduced turning authority and a chance to lose grounded or very low terrain-relative targets to ground clutter; low flight is not immunity. The airport update below separately makes aircraft immune to missiles while on the runway. Heat seekers can lose a target within eight degrees of the visible sun disk as seen from the missile, provided terrain does not hide the sun. Flying anywhere in daylight does not trigger it. Afterburner heat lowers sun-confusion susceptibility, and existing flare-burst and chaff rules are unchanged. Exposure is integrated in simulation seconds against one seeded threshold per missile and survives host snapshots.
 
 This release received syntax, source and deployment checks only; no gameplay tests or browser playtest were run.
+
+
+## Airport release notes (2026-10-21)
+
+The airport update supersedes earlier aerial-start and aerial-respawn descriptions. Each squad departs a separate authored airport; Northern valley remains the combat destination rather than a midair spawn location. Runway ground state, repairs, damage and missile eligibility are host-authoritative and included in snapshots. Interpolation does not blend across ground/air, death or respawn state transitions. Missile immunity includes missiles launched before touchdown; those tracks are permanently dropped. Missiles have no area/splash damage in this simulation. Guns retain ordinary damage and pause ongoing repairs for three seconds.
+
+Reload both players and create a new room: this release uses JETS6 / airports1-1021 so old clients cannot start with incompatible airport rules. Objective missions remain disabled. As explicitly requested, no gameplay tests, simulation suite, or browser playtest were run for this release. Only source/syntax review and publication status were checked.

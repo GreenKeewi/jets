@@ -1,6 +1,6 @@
 import {gunIntercept} from './guns.js?v=combatflow1-1019';
 import {turnHint} from './view-axes.js?v=valleyenergy1-1019';
-import {angle,dist,horizontal,clamp} from './sim.js?v=combatflow1-1019';
+import {angle,dist,horizontal,clamp} from './sim.js?v=airports1-1021';
 export function waypointScreenPosition(projected,forwardDot,width,height,cockpit=false){
  let x=forwardDot>0?clamp(projected.x,80,width-80):width/2,y=forwardDot>0?clamp(projected.y,140,height-190):height*.7;
  // Keep edge-clamped guidance clear of the task card and essential flight instruments.

@@ -1,0 +1,54 @@
+import {AIRFIELDS,fieldPoint,fieldCoordinates,fieldUnder} from './missions.js?v=valleyenergy1-1019';
+
+// Arcade runway operations: no gear, flaps or additional flight keys required.
+export const AIRPORT=Object.freeze({takeoffSpeed:80,landingSpeed:115,repairSpeed:8,repairPower:.2,repairRate:8,repairDelay:3,queueDistance:240});
+const angle=v=>Math.atan2(Math.sin(v),Math.cos(v));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+export function airportForTeam(g,team){
+ const ids=g.arenaId==='valley'?['northpoint','home','westhaven']:['home','northpoint','westhaven'];
+ return AIRFIELDS[ids[team%ids.length]];
+}
+export function groundSpawn(g,p,slot=p.slot||0){
+ const field=g.mode==='freeflight'?AIRFIELDS.home:airportForTeam(g,p.team);
+ // Each squad uses its own airport. The front aircraft departs first; the
+ // following aircraft physically waits until its forward runway is clear.
+ return{pos:fieldPoint(field,0,-field.halfLength+110+slot*165,3),yaw:field.heading,pitch:0,roll:0,speed:0,throttle:0,grounded:true,landed:false,flightState:'parked',runwayId:field.id,departureHold:false,departureActive:g.mode!=='freeflight',departureReadyAt:g.time,repairing:false};
+}
+export function departureBlocked(g,p){
+ if(!p.grounded||p.landed)return false;
+ const f={x:Math.sin(p.yaw),z:Math.cos(p.yaw)};
+ return g.pilots.some(q=>{
+  if(q===p||q.dead||Math.abs(q.pos.y-p.pos.y)>45)return false;
+  const x=q.pos.x-p.pos.x,z=q.pos.z-p.pos.z,along=x*f.x+z*f.z,across=x*f.z-z*f.x;
+  return along>0&&along<AIRPORT.queueDistance&&Math.abs(across)<65;
+ });
+}
+export function departureInput(g,p){
+ const field=AIRFIELDS[p.runwayId];
+ if(!field)return null;
+ if(p.grounded){
+  const local=fieldCoordinates(field,p.pos),heading=angle(field.heading-p.yaw);
+  return{roll:clamp(-local.across*.018+heading*2,-.35,.35),yaw:0,pitch:p.speed>=AIRPORT.takeoffSpeed?.7:0,throttle:p.throttle<.82?1:0,brake:p.departureHold};
+ }
+ if(!p.departureActive)return null;
+ // Climb straight out of the airport before engaging, rather than steering
+ // into terrain or a wingmate as soon as the wheels leave the runway.
+ const heading=angle(field.heading-p.yaw);
+ return{roll:clamp(heading*2,-.3,.3),yaw:0,pitch:.7,throttle:p.throttle<.82?1:0};
+}
+export function validTouchdown(p,field,verticalSpeed){
+ if(!field||p.speed<40||p.speed>AIRPORT.landingSpeed||Math.abs(p.roll)>.35||verticalSpeed< -12||verticalSpeed>4)return false;
+ const heading=Math.abs(angle(p.yaw-field.heading));
+ return Math.min(heading,Math.abs(Math.PI-heading))<.35;
+}
+// Recheck the actual runway, not just a stored flag. A low flyby never qualifies.
+export function onRunway(p){
+ const field=fieldUnder(p.pos);
+ return!!(p.grounded&&field&&Math.abs(p.pos.y-field.elevation-3)<2);
+}
+export const missileImmune=p=>onRunway(p);
+export function repairAtAirport(g,p,dt){
+ p.repairing=false;
+ if(p.dead||p.hp<=0||!p.landed||!onRunway(p)||p.speed>AIRPORT.repairSpeed||p.throttle>AIRPORT.repairPower||g.time-(p.lastDamage?.t??-Infinity)<AIRPORT.repairDelay)return;
+ if(p.hp<100){p.hp=Math.min(100,p.hp+AIRPORT.repairRate*dt);p.repairing=true;}
+}

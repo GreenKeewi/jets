@@ -1,9 +1,9 @@
 // Data-only WebRTC. Room codes use PeerJS Cloud signaling and public STUN.
 // Advanced manual LAN pairing stays available without external services.
 // Protocol: ordered reliable control/actions; unordered zero-retransmit axes/snapshots.
-export const PROTOCOL = 'JETS5';
+export const PROTOCOL = 'JETS6';
 // Room handshake compatibility changes only when the transport/game protocol changes.
-export const ROOM_BUILD = 'rooms3-1019';
+export const ROOM_BUILD = 'airports1-1021';
 // Asset versions stay separate so fresh invites load the current page without
 // rejecting an already connected player using compatible gameplay packets.
 export const CLIENT_BUILD = new URL(import.meta.url).searchParams.get('v') || 'rooms3-1019';
@@ -565,7 +565,7 @@ export function interpolateSnapshots(frames, target) {
   const t = Math.max(0, Math.min(1, (target - a.at) / Math.max(1, b.at - a.at)));
   const out = structuredClone(b.value), before = new Map((a.value.pilots || []).map(p => [p.id, p]));
   for (const p of out.pilots || []) {
-    const q = before.get(p.id); if (!q) continue;
+    const q = before.get(p.id); if (!q || p.dead !== q.dead || p.grounded !== q.grounded || p.deaths !== q.deaths || p.flightState !== q.flightState) continue;
     if (p.pos && q.pos) for (const k of ['x', 'y', 'z']) if (Number.isFinite(p.pos[k]) && Number.isFinite(q.pos[k])) p.pos[k] = q.pos[k] + (p.pos[k] - q.pos[k]) * t;
     for (const k of ['yaw', 'pitch', 'roll']) if (Number.isFinite(p[k]) && Number.isFinite(q[k])) { const d = Math.atan2(Math.sin(p[k] - q[k]), Math.cos(p[k] - q[k])); p[k] = q[k] + d * t; }
     if (Number.isFinite(p.speed) && Number.isFinite(q.speed)) p.speed = q.speed + (p.speed - q.speed) * t;
