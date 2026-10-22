@@ -17,7 +17,7 @@ function panel(points,material,thickness=.12){const shape=new THREE.Shape(points
 function body(sections,material){
  const vertices=[],indices=[],sides=18;
  for(const [z,w,h,offset=0]of sections)for(let n=0;n<sides;n++){const a=n/sides*Math.PI*2;vertices.push(Math.cos(a)*w,Math.sin(a)*h+offset,z)}
- for(let row=0;row<sections.length-1;row++)for(let n=0;n<sides;n++){const a=row*sides+n,b=row*sides+(n+1)%sides;indices.push(a,a+sides,b,b,a+sides,b+sides)}
+ for(let row=0;row<sections.length-1;row++)for(let n=0;n<sides;n++){const a=row*sides+n,b=row*sides+(n+1)%sides;indices.push(a,b,a+sides,b,b+sides,a+sides)}
  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geometry.setIndex(indices);geometry.computeVertexNormals();return new THREE.Mesh(geometry,material);
 }
 function axisCylinder(radius,length,mat,x,y,z){const m=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,length,20),mat);m.rotation.x=Math.PI/2;m.position.set(x,y,z);return m}
@@ -62,7 +62,7 @@ export function createAircraft(team=0,bomber=false){
   for(const vertical of[-1,1]){const hinge=new THREE.Group();hinge.position.set(side*(bomber?27:1.55),bomber?0:.05,bomber?-8.4:-10.4);const brake=block(bomber?5.2:1.6,.10,bomber?2:2.6,upper,side*(bomber?0:.55),0,bomber?-.9:-1.15);hinge.add(brake);root.add(hinge);airbrakes.push({node:hinge,vertical})}
   const light=new THREE.Mesh(new THREE.SphereGeometry(.14,7,5),new THREE.MeshBasicMaterial({color:side===1?0x72e7a4:0xff6f58}));light.position.set(side*(bomber?31.7:10.4),.1,bomber?-7.8:-5.3);root.add(light);wingtips.push(light.position.clone());
  }
- const gear=new THREE.Group();for(const[x,z]of[[0,bomber?6:4.8],[-(bomber?4.4:1.9),-3.8],[(bomber?4.4:1.9),-3.8]]){gear.add(block(.19,1.8,.19,metal,x,-2,z));gear.add(block(.65,.09,1.5,upper,x,-1.25,z));for(const offset of(bomber&&x!==0?[-.4,.4]:[0])){const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.59,.59,.42,14),black);wheel.rotation.z=Math.PI/2;wheel.position.set(x+offset,-3,z);gear.add(wheel)}}root.add(gear);
+ const gear=new THREE.Group();for(const[x,z]of[[0,bomber?6:4.8],[-(bomber?4.4:1.9),-3.8],[(bomber?4.4:1.9),-3.8]]){gear.add(block(.19,2.9,.19,metal,x,-1.45,z));gear.add(block(.65,.09,1.5,upper,x,-1.25,z));for(const offset of(bomber&&x!==0?[-.4,.4]:[0])){const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.59,.59,.42,14),black);wheel.rotation.z=Math.PI/2;wheel.position.set(x+offset,-3,z);gear.add(wheel)}}root.add(gear);
  const beacon=new THREE.Mesh(new THREE.SphereGeometry(.13,6,5),new THREE.MeshBasicMaterial({color:0xffdba6}));beacon.position.set(0,bomber?1.8:1.95,-4);root.add(beacon);
  const vapor=new THREE.Mesh(new THREE.ConeGeometry(bomber?24:10,11,24,1,true),new THREE.MeshBasicMaterial({color:0xe8f5f5,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false}));vapor.rotation.x=Math.PI/2;vapor.position.z=-3;vapor.visible=false;root.add(vapor);
  root.userData={flames,gear,surfaces,wingtips,airbrakes,beacon,vapor,gearAmount:1,brakeAmount:0,bomber,team};batchStatic(gear);batchStatic(root,new Set([gear,beacon,vapor,...flames,...surfaces.map(s=>s.node),...airbrakes.map(s=>s.node)]));

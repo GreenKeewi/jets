@@ -5,7 +5,7 @@ import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './s
 import {surfaceHeight} from './world.js?v=skybreak3-1022';
 import {routeFor,destinationFor,fieldPoint} from './missions.js?v=skybreak3-1022';
 import {Scenery} from './scenery.js?v=skybreak3-1022';
-import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak3-1022';
+import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak3-meshfix-1022';
 import {batchStatic} from './geometry.js?v=skybreak3-1022';
 export const makeJet=createAircraft;
 const COLORS={mint:0x9cead6,orange:0xffac7a};
@@ -193,7 +193,7 @@ export class Renderer{
   this.lastFollowId=p.id;this.lastFollowPosition={...p.pos};const tilt=this.view==='cockpit'?p.roll:0;const up=viewAxes(p,tilt).up;this.camera.up.set(up.x,up.y,up.z);this.camera.lookAt(look);const desiredFov=flightFov(p.speed,this.view,this.reducedMotion);this.camera.fov+=(desiredFov-this.camera.fov)*Math.min(1,dt*4);this.camera.updateProjectionMatrix();
  }
  updateAircraft(g,p,dt){
-  for(const pilot of g.pilots){let model=this.jets.get(pilot.id);if(model&&(model.userData.bomber!==pilot.bomber||model.userData.team!==pilot.team)){this.disposeAircraft(model);this.jets.delete(pilot.id);model=null}if(!model){model=createAircraft(pilot.team,pilot.bomber);this.scene.add(model);this.jets.set(pilot.id,model)}model.visible=!pilot.dead&&!(pilot.id===p.id&&this.view==='cockpit'&&!this.menuPreview);model.position.set(pilot.pos.x,pilot.pos.y+(pilot.grounded?4:0),pilot.pos.z);model.rotation.set(-pilot.pitch,pilot.yaw,-pilot.roll,'YXZ');animateAircraft(model,pilot,g.time,dt);const detailed=pilot.id===p.id||Math.hypot(pilot.pos.x-p.pos.x,pilot.pos.y-p.pos.y,pilot.pos.z-p.pos.z)<1600;model.userData.detailed.visible=detailed;model.userData.distant.visible=!detailed;this.updateVortex(pilot,model,g.time)}
+  for(const pilot of g.pilots){let model=this.jets.get(pilot.id);if(model&&(model.userData.bomber!==pilot.bomber||model.userData.team!==pilot.team)){this.disposeAircraft(model);this.jets.delete(pilot.id);model=null}if(!model){model=createAircraft(pilot.team,pilot.bomber);this.scene.add(model);this.jets.set(pilot.id,model)}model.visible=!pilot.dead&&!(pilot.id===p.id&&this.view==='cockpit'&&!this.menuPreview);model.position.set(pilot.pos.x,pilot.pos.y+(pilot.grounded?.59:0),pilot.pos.z);model.rotation.set(-pilot.pitch,pilot.yaw,-pilot.roll,'YXZ');animateAircraft(model,pilot,g.time,dt);const detailed=pilot.id===p.id||Math.hypot(pilot.pos.x-p.pos.x,pilot.pos.y-p.pos.y,pilot.pos.z-p.pos.z)<1600;model.userData.detailed.visible=detailed;model.userData.distant.visible=!detailed;this.updateVortex(pilot,model,g.time)}
   for(const[id,model]of this.jets)if(!g.pilots.some(p=>p.id===id)){this.disposeAircraft(model);this.jets.delete(id)}
   const ground=surfaceHeight(p.pos.x,p.pos.z),height=p.pos.y-ground;this.shadow.visible=!p.dead&&height<230;this.shadow.position.set(p.pos.x+height*.45,ground+.6,p.pos.z+height*.35);this.shadow.scale.set(p.bomber?70:42,p.bomber?65:45,1);this.shadow.material.opacity=Math.max(0,.6-height/350);
  }
