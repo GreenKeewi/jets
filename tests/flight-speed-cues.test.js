@@ -12,7 +12,7 @@ const makeCamera=()=>{const c=new THREE.PerspectiveCamera(70,16/9,.8,45000);c.po
 test('fighter FOV increases modestly through the full speed envelope and respects reduced motion',()=>{
  for(const view of ['chase','cockpit']){
   const base=flightFov(0,view),cruise=flightFov(285,view),maximum=flightFov(686,view);
-  assert(cruise>base&&maximum>cruise);assert.equal(maximum-base,5);
+  assert(cruise>base&&maximum>cruise);assert.equal(maximum-base,9.5);
   assert.equal(flightFov(10000,view),maximum);assert.equal(flightFov(686,view,true),base);
  }
 });
@@ -40,7 +40,7 @@ test('motion reseeds safely when aircraft changes or sortie time rewinds',()=>{
 });
 
 test('dry cruise, afterburner and narrow transonic vapor match the new speed scale',()=>{
- assert.equal(aircraftPower(pilot()).burner,0);assert.equal(aircraftPower(pilot({throttle:1})).burner,1);
+ assert.equal(aircraftPower(pilot()).burner,0);assert.equal(aircraftPower(pilot({throttle:1,afterburnerActive:true})).burner,1);
  assert.equal(aircraftPower(pilot({throttle:1,bomber:true})).burner,0);
  assert(aircraftPower(pilot({speed:343,roll:.6})).vapor>.5);
  assert.equal(aircraftPower(pilot({speed:686})).vapor,0);
@@ -50,7 +50,7 @@ test('dry cruise, afterburner and narrow transonic vapor match the new speed sca
 });
 
 test('procedural audio keeps gaining wind intensity through Mach 2 without clipping-scale gain',()=>{
- const slow=flightSound(pilot({speed:110})),cruise=flightSound(pilot()),fast=flightSound(pilot({speed:686,throttle:1}));
+ const slow=flightSound(pilot({speed:110})),cruise=flightSound(pilot()),fast=flightSound(pilot({speed:686,throttle:1,afterburnerActive:true}));
  assert(slow.wind<cruise.wind&&cruise.wind<fast.wind);assert(fast.wind<.5);
  assert(fast.jet>cruise.jet);assert(fast.engine>cruise.engine);
  assert(flightSound(pilot({speed:686}),true).wind<flightSound(pilot({speed:686})).wind);
@@ -61,7 +61,7 @@ test('team 2 aircraft animates its reusable vapor and exhaust without geometry a
  const previous=globalThis.document;globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>({fillText(){}})})};
  try{
   const model=createAircraft(2,false),d=model.userData,geometry=d.vapor.geometry;
-  animateAircraft(model,pilot({speed:343,throttle:1,roll:.6}),1,1/60);
+  animateAircraft(model,pilot({speed:343,throttle:1,roll:.6,afterburnerActive:true}),1,1/60);
   assert.equal(d.team,2);assert(d.vapor.visible);assert(d.flames[0].scale.z>2);
   animateAircraft(model,pilot({speed:686,throttle:.78}),2,1/60);
   assert(!d.vapor.visible);assert(d.flames[0].scale.z<.6);assert.equal(d.vapor.geometry,geometry);

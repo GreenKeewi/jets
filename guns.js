@@ -1,4 +1,4 @@
-import {flightForward,gunMuzzle} from './view-axes.js?v=valleyenergy1-1019';
+import {flightForward,gunMuzzle} from './view-axes.js?v=skybreak2-1022';
 export const GUN={capacity:300,interval:.1,speed:850,life:1.35,damage:10,maxRounds:96,tracerLength:42};
 // Same straight, constant-speed rounds as the simulation; no aim correction.
 // A bounded solution avoids advertising a lead point beyond the gun's lifetime.

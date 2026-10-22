@@ -1,14 +1,14 @@
 // Data-only WebRTC. Room codes use PeerJS Cloud signaling and public STUN.
 // Advanced manual LAN pairing stays available without external services.
 // Protocol: ordered reliable control/actions; unordered zero-retransmit axes/snapshots.
-export const PROTOCOL = 'JETS6';
+export const PROTOCOL = 'JETS7';
 // Room handshake compatibility changes only when the transport/game protocol changes.
-export const ROOM_BUILD = 'airports1-1021';
+export const ROOM_BUILD = 'skybreak2-1022';
 // Asset versions stay separate so fresh invites load the current page without
 // rejecting an already connected player using compatible gameplay packets.
 export const CLIENT_BUILD = new URL(import.meta.url).searchParams.get('v') || 'rooms3-1019';
-export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb'];
-export { mountNetworkUI } from './network-ui.js?v=roomcache1-1019';
+export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb', 'toggleAirbrake', 'toggleGear', 'toggleManeuver'];
+export { mountNetworkUI } from './network-ui.js?v=skybreak2-1022';
 // PeerJS 1.5.5 registers its pass-through serializer as 'raw' (not 'none').
 const ROOM_SERIALIZATION = 'raw';
 const ROOM_ICE = { iceServers: [{ urls: 'stun:stun.cloudflare.com:3478' }] };
@@ -37,10 +37,10 @@ export function roomInviteLink(code, href = globalThis.location?.href) {
 const HELD = ['fireGun'];
 const GUN_INPUT_EXPIRY = 250;
 const AXES = ['pitch', 'roll', 'yaw', 'throttle'];
-const COOLDOWN = { fireHeat: 250, fireRadar: 400, flare: 200, chaff: 200, bomb: 300 };
+const COOLDOWN = { fireHeat: 250, fireRadar: 400, flare: 200, chaff: 200, bomb: 300, toggleAirbrake: 150, toggleGear: 150, toggleManeuver: 150 };
 const MAX_PACKET = 60000;
 const HIGH_WATER = 131072;
-const neutral = () => Object.fromEntries([...AXES.map(k => [k, 0]), ...[...ACTIONS, ...HELD].map(k => [k, false]), ['brake', false]]);
+const neutral = () => Object.fromEntries([...AXES.map(k => [k, 0]), ...[...ACTIONS, ...HELD].map(k => [k, false]), ['brake', false], ['autopilot',false]]);
 const now = () => performance.now();
 const uuid = () => crypto.randomUUID();
 const plain = o => !!o && typeof o === 'object' && !Array.isArray(o);
@@ -72,13 +72,13 @@ export function serializePacket(packet, maxBytes = MAX_PACKET) {
 }
 
 export function validateInput(input) {
-  if (!plain(input) || Object.keys(input).some(k => ![...AXES, ...ACTIONS, ...HELD, 'brake'].includes(k))) return null;
+  if (!plain(input) || Object.keys(input).some(k => ![...AXES, ...ACTIONS, ...HELD, 'brake','autopilot'].includes(k))) return null;
   const out = neutral();
   for (const k of AXES) {
     if (input[k] !== undefined && (typeof input[k] !== 'number' || !Number.isFinite(input[k]) || Math.abs(input[k]) > 1)) return null;
     out[k] = input[k] ?? 0;
   }
-  for (const k of [...ACTIONS, ...HELD, 'brake']) {
+  for (const k of [...ACTIONS, ...HELD, 'brake','autopilot']) {
     if (input[k] !== undefined && typeof input[k] !== 'boolean') return null;
     out[k] = input[k] ?? false;
   }
@@ -152,7 +152,7 @@ export function createInputGuard(clock = now) {
 }
 
 function validConfig(config) {
-  return plain(config) && ['dogfight', 'strike', 'freeflight'].includes(config.mode) && [1, 2, 3].includes(config.teamSize) && ['attack', 'defend'].includes(config.role) && (config.seed === undefined || typeof config.seed === 'number' && Number.isFinite(config.seed)) && (config.difficulty === undefined || ['normal','ace'].includes(config.difficulty)) && (config.routeId === undefined || ['local','northpoint','westhaven'].includes(config.routeId)) && (config.arenaId === undefined || ['coast','valley'].includes(config.arenaId));
+  return plain(config) && ['dogfight', 'strike', 'freeflight'].includes(config.mode) && [1, 2, 3].includes(config.teamSize) && ['attack', 'defend'].includes(config.role) && (config.seed === undefined || typeof config.seed === 'number' && Number.isFinite(config.seed)) && (config.startingFuel === undefined || Number.isFinite(config.startingFuel) && config.startingFuel >= .25 && config.startingFuel <= 1) && (config.difficulty === undefined || ['normal','ace'].includes(config.difficulty)) && (config.routeId === undefined || ['local','northpoint','westhaven'].includes(config.routeId)) && (config.arenaId === undefined || ['coast','valley'].includes(config.arenaId));
 }
 
 export function createNetwork(callbacks = {}) {

@@ -1,11 +1,13 @@
 import test from 'node:test';
+import {airportForTeam,departureBlocked,missileImmune} from '../airport-operations.js';
+import {fieldCoordinates} from '../missions.js';
 import assert from 'node:assert/strict';
-import {createGame,step,snapshot,applySnapshot,configurePlayers,respawnPilot,threatFor,dist,forward,angle,COMBAT_LIMITS,AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit,MISSILE} from '../sim.js';
+import {createGame,step,snapshot,applySnapshot,configurePlayers,respawnPilot,threatFor,dist,COMBAT_LIMITS,AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit,MISSILE} from '../sim.js';
 
 function run(g,seconds,input={}){for(let n=0;n<seconds*60&&g.status==='playing';n++)step(g,typeof input==='function'?input(g):input);return g;}
-function humanFixture(options={}){const g=createGame(options);g.pilots.forEach((p,i)=>Object.assign(p,{human:true,pos:{x:i*5000,y:3000,z:0},speed:285,throttle:.78,yaw:0,pitch:0,roll:0,collisionGraceUntil:0,spawnProtectedUntil:0}));return g;}
-function missileFixture({type='heat',distance=600,speed=450}={}){
- const g=humanFixture({skirmish:true}),p=g.pilots[0],q=g.pilots[1];p.speed=speed;p.throttle=speed===285?.78:1;q.pos.z=-5000;
+function humanFixture(options={}){const g=createGame(options);g.pilots.forEach((p,i)=>Object.assign(p,{human:true,grounded:false,departureActive:false,gearDown:false,pos:{x:i*5000,y:3000,z:0},speed:285,throttle:.78,yaw:0,pitch:0,roll:0,collisionGraceUntil:0,spawnProtectedUntil:0}));return g;}
+function missileFixture({type='heat',distance=600,speed=450,seed=1337}={}){
+ const g=humanFixture({skirmish:true,seed}),p=g.pilots[0],q=g.pilots[1];p.speed=speed;p.throttle=speed===285?.78:1;q.pos.z=-5000;
  const m={id:1000,type,ownerId:q.id,team:q.team,targetId:p.id,pos:{x:0,y:3000,z:-distance},dir:{x:0,y:0,z:1},speed:650,age:1,life:13,decoyed:false,seekerLost:false};
  g.missiles.push(m);q.targetId=p.id;q.lock=2;return{g,p,q,m};
 }
@@ -22,45 +24,57 @@ test('asymmetric squads are bounded at three teams, four pilots each, twelve tot
  assert.equal(COMBAT_LIMITS.maxPilots,12);
 });
 
-test('every squad starts in a compact safe V or echelon with common heading',()=>{
- for(const mode of ['dogfight','strike'])for(const seed of [0,42,100,1337]){
-  const g=createGame({mode,teamSize:3,teamSizes:[4,4,4],seed});
+test('every squad starts in a separated runway queue at its own airport',()=>{
+ for(const mode of ['dogfight','strike'])for(const arenaId of ['coast','valley'])for(const seed of [0,42,100,1337]){
+  const g=createGame({mode,arenaId,teamSize:3,teamSizes:[4,4,4],seed}),bases=new Set();
   for(const team of g.teamSizes.keys()){
-   const squad=g.pilots.filter(p=>p.team===team),lead=squad[0];
-   for(const p of squad){assert.equal(p.yaw,lead.yaw);assert.equal(p.pos.y,lead.pos.y);assert(dist(p.pos,lead.pos)<350);}
+   const squad=g.pilots.filter(p=>p.team===team),field=airportForTeam(g,team);bases.add(field.id);
+   for(const p of squad){
+    const local=fieldCoordinates(field,p.pos);
+    assert.equal(p.homeBaseId,field.id);assert.equal(p.runwayId,field.id);assert.equal(p.yaw,field.heading);
+    assert.equal(p.pos.y,field.elevation+3);assert.equal(p.grounded,true);assert.equal(p.gearDown,true);assert.equal(p.departureActive,true);
+    assert.equal(p.speed,0);assert.equal(p.throttle,0);assert(Math.abs(local.across)<1e-8);assert(Math.abs(local.along)<field.halfLength);
+   }
    for(let i=0;i<squad.length;i++)for(let j=i+1;j<squad.length;j++)assert(dist(squad[i].pos,squad[j].pos)>collisionRadius(squad[i])+collisionRadius(squad[j])+15);
   }
+  assert.equal(bases.size,g.teamSizes.length);
  }
  assert.equal(AIRCRAFT_RADIUS.fighter,16);assert.equal(AIRCRAFT_RADIUS.bomber,32);
 });
 
-test('formations stay together for the opening seconds before engagement',()=>{
+test('runway queues hold trailing aircraft while the front aircraft starts its departure',()=>{
  for(const mode of ['dogfight','strike']){
   const g=createGame({mode,teamSize:3,teamSizes:[4,4,4],seed:42});g.pilots.forEach(p=>p.human=false);
-  const original=g.pilots.map(p=>({...p.pos}));run(g,3.5);
+  const original=new Map(g.pilots.map(p=>[p.id,{...p.pos}]));
   for(const team of g.teamSizes.keys()){
-   const squad=g.pilots.filter(p=>p.team===team),lead=squad[0],leadIndex=g.pilots.indexOf(lead);
-   for(const p of squad){const index=g.pilots.indexOf(p);assert.equal(p.dead,false);assert(Math.abs((p.pos.x-lead.pos.x)-(original[index].x-original[leadIndex].x))<5);assert(Math.abs((p.pos.z-lead.pos.z)-(original[index].z-original[leadIndex].z))<8);}
+   const squad=g.pilots.filter(p=>p.team===team);
+   assert.equal(departureBlocked(g,squad.at(-1)),false);
+   for(const p of squad.slice(0,-1))assert.equal(departureBlocked(g,p),true);
   }
-  assert.equal(g.missiles.length,0);
+  run(g,1);
+  for(const team of g.teamSizes.keys()){
+   const squad=g.pilots.filter(p=>p.team===team);
+   assert(squad.at(-1).speed>0);
+   for(const p of squad.slice(0,-1)){assert.equal(p.departureHold,true);assert.equal(p.speed,0);assert.deepEqual(p.pos,original.get(p.id));}
+   assert(squad.every(p=>!p.dead&&p.grounded));
+  }
+  assert.equal(g.missiles.length,0);assert(!g.events.some(e=>e.type==='collision'));
  }
 });
 
-test('seeded enemy packages approach from ahead, behind and both sides without scattering',()=>{
- const sectors=new Set();
- for(let seed=0;seed<64;seed++){
-  const g=createGame({teamSizes:[3,4,4],seed}),a=g.pilots[0];
-  for(const team of [1,2]){
-   const squad=g.pilots.filter(p=>p.team===team),lead=squad[0],bearing=Math.atan2(lead.pos.x-a.pos.x,lead.pos.z-a.pos.z);
-   sectors.add((Math.round(bearing/(Math.PI/2))+4)%4);
-   const f=forward(lead),dx=a.pos.x-lead.pos.x,dz=a.pos.z-lead.pos.z;assert((f.x*dx+f.z*dz)/Math.hypot(dx,dz)>.98);
-   assert(squad.every(p=>dist(p.pos,lead.pos)<220));
+test('airport assignment is stable across seeds rather than scattering enemy packages',()=>{
+ for(const arenaId of ['coast','valley'])for(let seed=0;seed<64;seed++){
+  const g=createGame({teamSizes:[3,4,4],arenaId,seed});
+  for(const team of g.teamSizes.keys()){
+   const field=airportForTeam(g,team),squad=g.pilots.filter(p=>p.team===team);
+   for(const p of squad){assert.equal(p.homeBaseId,field.id);assert.equal(p.yaw,field.heading);assert.equal(missileImmune(p),true);}
+   const ordered=squad.map(p=>fieldCoordinates(field,p.pos).along);
+   for(let i=1;i<ordered.length;i++)assert(Math.abs(ordered[i]-ordered[i-1]-165)<1e-8);
   }
  }
- assert.deepEqual([...sectors].sort(),[0,1,2,3]);
 });
 
-test('expanded formations replay deterministically and snapshots roundtrip all twelve aircraft',()=>{
+test('airport departures replay deterministically and snapshots roundtrip all twelve aircraft',()=>{
  const a=createGame({teamSizes:[4,4,4],skirmish:true,seed:821}),b=createGame({teamSizes:[4,4,4],skirmish:true,seed:821});
  for(const g of [a,b]){g.pilots.forEach(p=>p.human=false);run(g,45);}
  assert.deepEqual(snapshot(a),snapshot(b));
@@ -95,7 +109,7 @@ test('opening collision grace and safe high-speed near-misses preserve aircraft'
 
 test('player loss keeps the skirmish live and delayed respawn preserves identity, time and score',()=>{
  const g=humanFixture({teamSizes:[1,2],skirmish:true}),p=g.pilots[0];p.pos.y=1;step(g);assert.equal(p.dead,true);assert.equal(g.status,'playing');assert.equal(g.result,null);assert(p.respawnAt>=g.time+2.99);assert.equal(respawnPilot(g,p.id),false);
- const clock=g.time,scores=[...g.scores];run(g,3.05);assert.equal(p.dead,true);assert(g.time>clock);assert.equal(respawnPilot(g,'host'),true);assert.equal(p.dead,false);assert.equal(p.id,'host');assert.equal(p.human,true);assert.equal(p.team,0);assert.equal(p.hp,100);assert.equal(p.deaths,1);assert.deepEqual(g.scores,scores);assert(p.spawnProtectedUntil>g.time+2.4);assert(g.pilots.filter(q=>q!==p&&!q.dead).every(q=>dist(q.pos,p.pos)>1000));assert.equal(respawnPilot(g,p.id),false);
+ const clock=g.time,scores=[...g.scores];run(g,3.05);assert.equal(p.dead,true);assert(g.time>clock);assert.equal(respawnPilot(g,'host'),true);assert.equal(p.dead,false);assert.equal(p.id,'host');assert.equal(p.human,true);assert.equal(p.team,0);assert.equal(p.hp,100);assert.equal(p.deaths,1);assert.deepEqual(g.scores,scores);assert.equal(p.spawnProtectedUntil,0);assert.equal(p.grounded,true);assert.equal(p.gearDown,true);assert.equal(p.speed,0);assert.equal(p.homeBaseId,airportForTeam(g,p.team).id);assert.equal(p.runwayId,p.homeBaseId);assert.equal(missileImmune(p),true);assert(g.pilots.filter(q=>q!==p&&!q.dead).every(q=>dist(q.pos,p.pos)>collisionRadius(q)+collisionRadius(p)));assert.equal(respawnPilot(g,p.id),false);
 });
 
 test('dead bots reinforce automatically; player death cannot silently reset the eight-minute match',()=>{
@@ -103,11 +117,15 @@ test('dead bots reinforce automatically; player death cannot silently reset the 
  g.time=COMBAT_LIMITS.matchSeconds-.01;g.scores=[3,1];step(g);assert.equal(g.status,'complete');assert.equal(g.result.winner,0);assert.equal(respawnPilot(g,'host'),false);
 });
 
-test('respawn protection blocks guns, missiles, incoming hits and collisions during rejoin',()=>{
- const g=humanFixture({skirmish:true}),[p,q]=g.pilots;p.dead=true;p.hp=0;p.respawnAt=0;assert(respawnPilot(g,p.id));q.pos={...p.pos,z:p.pos.z+500};q.yaw=Math.PI;p.yaw=0;p.targetId=q.id;p.lock=3;
- const ammo=p.gunAmmo,heat=p.heat;step(g,{host:{fireGun:true,fireHeat:true}});assert.equal(p.gunAmmo,ammo);assert.equal(p.heat,heat);
- g.bullets=[{id:500,ownerId:q.id,team:q.team,pos:{...p.pos,z:p.pos.z-100},dir:{x:0,y:0,z:1},speed:10000,age:0,life:1}];
- g.missiles=[{id:501,ownerId:q.id,team:q.team,targetId:p.id,type:'heat',pos:{...p.pos,z:p.pos.z-20},dir:{x:0,y:0,z:1},speed:800,age:1,life:13}];q.pos={...p.pos};step(g,{},.05);assert.equal(p.hp,100);assert.equal(p.dead,false);assert.equal(q.dead,false);
+test('respawned runway aircraft cannot launch or receive missiles but remain vulnerable to guns',()=>{
+ const g=humanFixture({skirmish:true}),[p,q]=g.pilots;p.dead=true;p.hp=0;p.respawnAt=0;assert(respawnPilot(g,p.id));
+ q.pos={...p.pos,y:p.pos.y+100,z:p.pos.z+500};q.yaw=Math.PI;p.targetId=q.id;p.lock=3;
+ const ammo=p.gunAmmo,heat=p.heat;step(g,{host:{fireGun:true,fireHeat:true}});assert(p.gunAmmo<ammo);assert.equal(p.heat,heat);
+ g.bullets=[];
+ const m={id:501,ownerId:q.id,team:q.team,targetId:p.id,type:'heat',pos:{...p.pos,z:p.pos.z-20},dir:{x:0,y:0,z:1},speed:800,age:1,life:13};g.missiles=[m];
+ step(g,{},.05);assert.equal(m.seekerLost,true);assert.equal(m.targetId,null);assert.equal(p.hp,100);assert.equal(p.dead,false);
+ g.bullets=[{id:502,ownerId:q.id,team:q.team,pos:{...p.pos,z:p.pos.z-100},dir:{x:0,y:0,z:1},speed:10000,age:0,life:1}];
+ step(g,{},.05);assert(p.hp<100);assert(g.events.some(e=>e.type==='gun-hit'&&e.targetId===p.id));
 });
 
 test('legacy elimination and strike objectives still finish rather than offering respawn',()=>{
@@ -133,24 +151,33 @@ test('missile turns are bounded per frame and cannot instantaneously snap onto a
  const {g,p,m}=missileFixture();p.pos.x=400;const before={...m.dir};step(g,{},.05);const turned=Math.acos(Math.max(-1,Math.min(1,before.x*m.dir.x+before.y*m.dir.y+before.z*m.dir.z)));assert(turned<=MISSILE.heat.turnRate*.05+1e-8);assert(turned>0);
 });
 
-test('an energetic break evades a missile that hits the identical straight-flying aircraft',()=>{
- const straight=missileFixture(),evade=missileFixture();run(straight.g,8);run(evade.g,8,{host:{roll:1,pitch:1}});
+test('an assisted high-energy break evades a missile that hits the identical straight-flying aircraft',()=>{
+ const straight=missileFixture(),evade=missileFixture();straight.p.maneuverAssist=true;evade.p.maneuverAssist=true;run(straight.g,8);run(evade.g,8,{host:{pitch:1}});
  assert.equal(straight.p.hp,52);assert.equal(evade.p.hp,100);assert(evade.g.events.some(e=>e.type==='evade'&&e.text.includes('lost')));assert.equal(evade.p.flares,6);
 });
 
-test('a warning leaves time for a matching flare; wrong counters do not fool a heat seeker',()=>{
- const {g,p,m}=missileFixture({distance:1200,speed:285});assert(threatFor(g,p).timeToImpact>1);run(g,.7);step(g,{host:{chaff:true}});assert.equal(m.decoyed,false);step(g,{host:{flare:true}});assert.equal(m.decoyed,true);run(g,5);assert.equal(p.hp,100);assert.equal(threatFor(g,p),null);
+test('a warning allows a matching flare attempt; heat seekers ignore chaff and do not guarantee decoys',()=>{
+ let defeated=0;
+ for(let seed=0;seed<24;seed++){
+  const {g,p,m}=missileFixture({distance:1200,speed:285,seed});assert(threatFor(g,p).timeToImpact>1);run(g,.7);
+  step(g,{host:{chaff:true}});assert.equal(m.decoyed,false);assert.equal(p.chaff,5);
+  step(g,{host:{flare:true}});assert.equal(p.flares,5);assert.equal(m.flareBurstsTried.length,1);
+  const decoyed=m.decoyed;run(g,5);assert.equal(m.decoyed,decoyed,'one flare burst must not reroll every frame');
+  if(decoyed){defeated++;assert.equal(p.hp,100);assert.equal(threatFor(g,p),null);}else assert.equal(p.hp,52);
+ }
+ assert(defeated>0,'some seeded matching flares must defeat the seeker');assert(defeated<24,'matching flares must not provide guaranteed immunity');
 });
 
 test('radar guidance loses the track when its supporting shooter stops locking',()=>{
  const {g,p,q,m}=missileFixture({type:'radar',distance:1800});q.targetId=null;q.lock=0;run(g,.6);assert.equal(m.seekerLost,true);run(g,4);assert.equal(p.hp,100);
 });
 
-test('a rear squad threatens straight cruise as a coordinated package with a real reaction window',()=>{
- const g=createGame({teamSizes:[1,3],skirmish:true,seed:3}),p=g.pilots[0],lead=g.pilots[1];assert(lead.pos.z<p.pos.z-1400);assert(dist(p.pos,lead.pos)<1950);
+test('an airborne rear squad threatens straight cruise with a real reaction window',()=>{
+ const g=humanFixture({teamSizes:[1,3],skirmish:true,seed:3}),p=g.pilots[0];
+ g.pilots.slice(1).forEach((q,i)=>Object.assign(q,{human:false,pos:{x:(i-1)*80,y:3000,z:-1800-i*60},yaw:0,speed:285,throttle:.78}));
  let locking=false,incoming=null;
  for(let n=0;n<20*60;n++){step(g);const t=threatFor(g,p);if(t?.kind==='lock')locking=true;if(t&&t.kind!=='lock'){incoming=t;break;}}
- assert(locking);assert(incoming);assert(g.time>COMBAT_LIMITS.formationSeconds&&g.time<15);assert(incoming.timeToImpact>2);assert.equal(p.hp,100);
+ assert(locking);assert(incoming);assert(g.time<20);assert(incoming.timeToImpact>2);assert.equal(p.hp,100);
 });
 
 test('gun effects and events share unique authoritative serial IDs even around protected pilots',()=>{

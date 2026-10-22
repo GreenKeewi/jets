@@ -22,14 +22,16 @@ export function updatePilotG(p,before,after,dt,wasGrounded){
   const sy=Math.sin(p.yaw),cy=Math.cos(p.yaw),sp=Math.sin(p.pitch),cp=Math.cos(p.pitch),sr=Math.sin(p.roll),cr=Math.cos(p.roll);
   // Project turn acceleration plus gravity onto the pilot's rolled-up axis.
   const up={x:-sy*sp*cr+cy*sr,y:cp*cr,z:-cy*sp*cr-sy*sr};
-  normalLoad=clamp((acceleration.x*up.x+acceleration.y*up.y+acceleration.z*up.z)/9.81,-15,45);load=Math.max(0,normalLoad);
+  normalLoad=clamp((acceleration.x*up.x+acceleration.y*up.y+acceleration.z*up.z)/9.81,-15,45);load=normalLoad;
  }
  // Flight energy uses this same instantaneous normal load for induced drag;
- // the HUD and physiology retain their smoothed value.
- p.normalLoad=normalLoad;p.gLoad+=(load-p.gLoad)*(1-Math.exp(-dt*4.5));
+ // the HUD and physiology retain their signed, smoothed value. Push-over
+ // loads stay negative (redout strain), rather than being incorrectly zeroed.
+ p.normalLoad=normalLoad;if(!Number.isFinite(p.gLoad))p.gLoad=1;p.gLoad+=(load-p.gLoad)*(1-Math.exp(-dt*4.5));
  // Short evasive turns stay clear. Even extreme, continuous loading takes
  // over fifteen seconds from a rested pilot to reach a blackout.
- const strain=p.gLoad>7.5?Math.min(.065,(p.gLoad-7.5)*.012):-Math.min(.5,.18+(7.5-p.gLoad)*.05);
+ const stress=p.gLoad<0?-p.gLoad*2:p.gLoad;
+ const strain=stress>7.5?Math.min(.065,(stress-7.5)*.012):-Math.min(.5,.18+(7.5-stress)*.05);
  p.gExposure=clamp(p.gExposure+strain*dt,0,1);
  if(!p.blackedOut&&p.gExposure>=1){p.blackedOut=true;p.gBlackoutTime=0;p.gNeedsRelease=true;}
  if(p.blackedOut){

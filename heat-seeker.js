@@ -9,8 +9,8 @@ export const HEAT_SEEKER=Object.freeze({
 export function heatFlareChance(target){
  const power=Math.max(0,Math.min(1,Number.isFinite(target.throttle)?target.throttle:HEAT_SEEKER.afterburnerThreshold));
  const threshold=HEAT_SEEKER.afterburnerThreshold;
- // Bombers have no afterburner in the aircraft renderer.
- if(!target.bomber&&power>threshold){
+ // Use actual combustion state, not commanded throttle during fuel exhaustion/cooldown.
+ if(!target.bomber&&target.afterburnerActive===true&&power>threshold){
   const burner=(power-threshold)/(1-threshold);
   return HEAT_SEEKER.afterburnerFlareChance+(HEAT_SEEKER.fullAfterburnerFlareChance-HEAT_SEEKER.afterburnerFlareChance)*burner;
  }

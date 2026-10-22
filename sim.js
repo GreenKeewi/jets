@@ -1,19 +1,20 @@
-import {AIRPORT,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=airports1-1021';
-import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=seeker1-1019';
-import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=resupply2-1019';
-import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=dogfightonly1-1019';
-import {tryHeatFlare} from './heat-seeker.js?v=valleyenergy1-1019';
-import {freshPilotG,pilotGInput,updatePilotG} from './pilot-g.js?v=valleyenergy1-1019';
-import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=valleyenergy1-1019';
-import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=combatflow1-1019';
-import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=valleyenergy1-1019';
-export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=valleyenergy1-1019';
-import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit} from './flight.js?v=valleyenergy1-1019';
-export {FLIGHT,fighterTargetSpeed} from './flight.js?v=valleyenergy1-1019';
-import {surfaceHeight} from './world.js?v=valleyenergy1-1019';
-import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=valleyenergy1-1019';
-import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=valleyenergy1-1019';
-export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=valleyenergy1-1019';
+import {advanceAttitude} from './attitude.js';
+import {AIRPORT,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak2-1022';
+import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak2-1022';
+import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak2-1022';
+import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak2-1022';
+import {tryHeatFlare} from './heat-seeker.js?v=skybreak2-1022';
+import {freshPilotG,pilotGInput,updatePilotG} from './pilot-g.js?v=skybreak2-1022';
+import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak2-1022';
+import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak2-1022';
+import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak2-1022';
+export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak2-1022';
+import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak2-1022';
+export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak2-1022';
+import {surfaceHeight} from './world.js?v=skybreak2-1022';
+import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak2-1022';
+import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak2-1022';
+export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak2-1022';
 // Flight and combat rules are renderer-independent so missions can be replayed deterministically.
 export const RUNWAY=AIRFIELDS.home;
 export const ROUTE=ROUTES.local.gates;
@@ -89,9 +90,9 @@ function spawnPilot(g,i,team,slot=0){
  const free=g.mode==='freeflight',strike=g.mode==='strike',attacker=g.role==='defend'?1:0;
  const transport=g.combatMission?.transportTeam===team&&slot===g.teamSizes[team]-1,bomber=transport||strike&&team===attacker&&slot===0,formation=g.formations[team];
  const departure=groundSpawn(g,{team,slot},slot),pos=departure.pos;
- return{...freshPilotG(),id:i===0?'host':`bot${i}`,team,slot,human:i===0,bomber,objectiveRole:transport?'transport':null,personality:transport?'transport':g.teamSizes[team]-(g.combatMission?.transportTeam===team?1:0)>=2&&slot<2?'paired':((g.rng+team+slot)%2?'aggressive':'cautious'),pos,yaw:free?0:formation.yaw,pitch:0,roll:0,speed:free?0:g.combatMission?transport?155:215:strike?(team===attacker?110:185):FLIGHT.cruiseSpeed,throttle:free?0:transport?.92:g.combatMission?.69:strike&&!bomber?(team===attacker?.55:.635):.78,hp:100,...fullWeaponStores({bomber,objectiveRole:transport?'transport':null}),...freshAirfieldResupply(pos),lastDamage:null,gunCD:0,gunShots:0,heatCD:0,radarCD:0,flareCD:0,chaffCD:0,bombCD:0,lock:0,targetId:null,dead:false,grounded:free,landed:false,runwayId:'home',throttleHeld:0,throttleDirection:0,aiTargetId:null,aiTargetUntil:0,aiGunBurst:0,aiGunRest:0,aiFlarePending:false,aiExtendYaw:0,aiTimer:0,aiShot:2+i*.6,aiDefend:0,aiBreak:0,aiNextBreak:7+i*1.9,rearm:0,aiEvade:0,spawnProtectedUntil:0,collisionGraceUntil:g.time+COMBAT_LIMITS.spawnGrace,respawnAt:null,deaths:0,kills:0,trail:[],...departure};
+ return initializeFuel({...freshPilotG(),engineHealth:1,controlHealth:1,id:i===0?'host':`bot${i}`,team,slot,human:i===0,bomber,objectiveRole:transport?'transport':null,personality:transport?'transport':g.teamSizes[team]-(g.combatMission?.transportTeam===team?1:0)>=2&&slot<2?'paired':((g.rng+team+slot)%2?'aggressive':'cautious'),pos,yaw:free?0:formation.yaw,pitch:0,roll:0,speed:free?0:g.combatMission?transport?155:215:strike?(team===attacker?110:185):FLIGHT.cruiseSpeed,throttle:free?0:transport?.92:g.combatMission?.69:strike&&!bomber?(team===attacker?.55:.635):.78,hp:100,...fullWeaponStores({bomber,objectiveRole:transport?'transport':null}),...freshAirfieldResupply(pos),lastDamage:null,gunCD:0,gunShots:0,heatCD:0,radarCD:0,flareCD:0,chaffCD:0,bombCD:0,lock:0,targetId:null,dead:false,grounded:free,landed:false,runwayId:'home',throttleHeld:0,throttleDirection:0,aiTargetId:null,aiTargetUntil:0,aiGunBurst:0,aiGunRest:0,aiFlarePending:false,aiExtendYaw:0,aiTimer:0,aiShot:2+i*.6,aiDefend:0,aiBreak:0,aiNextBreak:7+i*1.9,rearm:0,aiEvade:0,spawnProtectedUntil:0,collisionGraceUntil:g.time+COMBAT_LIMITS.spawnGrace,respawnAt:null,deaths:0,kills:0,trail:[],...departure},g.startingFuel);
 }
-export function createGame({mode='dogfight',teamSize=1,teamSizes,skirmish=false,role='attack',seed=64821,difficulty='normal',routeId='local',arenaId='coast',missionId='dogfight'}={}){
+export function createGame({mode='dogfight',teamSize=1,teamSizes,skirmish=false,role='attack',seed=64821,difficulty='normal',routeId='local',arenaId='coast',missionId='dogfight',startingFuel=.75}={}){
  if(!['dogfight','strike','freeflight'].includes(mode))mode='dogfight';
  if(!Object.hasOwn(ROUTES,routeId))routeId='local';
  if(mode!=='dogfight'||!Object.hasOwn(ARENAS,arenaId))arenaId='coast';
@@ -100,10 +101,10 @@ export function createGame({mode='dogfight',teamSize=1,teamSizes,skirmish=false,
  const sizes=normalizedTeams(mode,teamSize,tactical?undefined:teamSizes);
  if(transportTeam!==null)sizes[transportTeam]++;
  if(missionId==='ambush')sizes[1]=Math.max(2,sizes[1]);
- const g={version:1,mode,missionId,combatMission:tactical?{transportTeam,route:transportTeam===null?[]:missionRoute(arenaId),routeIndex:1,deadline:missionId==='ambush'?90:150}:null,arenaId,routeId,destinationId:ROUTES[routeId].destination,teamSize:sizes[0],teamSizes:sizes,skirmish:mode==='dogfight'&&!tactical&&skirmish===true,scores:sizes.map(()=>0),role:role==='defend'?'defend':'attack',difficulty:difficulty==='ace'?'ace':'normal',rng:seed>>>0,time:0,tick:0,status:'playing',result:null,pilots:[],missiles:[],bullets:[],countermeasures:[],bombs:[],effects:[],events:[],serial:0,targetHp:100,bombed:false,routeIndex:0,flightStage:'takeoff',approachIndex:0,missionMessage:'',escaped:false};
+ const g={version:2,startingFuel:clamp(Number(startingFuel)||.75,.25,1),mode,missionId,combatMission:tactical?{transportTeam,route:transportTeam===null?[]:missionRoute(arenaId),routeIndex:1,deadline:missionId==='ambush'?90:150}:null,arenaId,routeId,destinationId:ROUTES[routeId].destination,teamSize:sizes[0],teamSizes:sizes,skirmish:mode==='dogfight'&&!tactical&&skirmish===true,scores:sizes.map(()=>0),role:role==='defend'?'defend':'attack',difficulty:difficulty==='ace'?'ace':'normal',rng:seed>>>0,time:0,tick:0,status:'playing',result:null,pilots:[],missiles:[],bullets:[],countermeasures:[],bombs:[],effects:[],events:[],serial:0,targetHp:100,bombed:false,routeIndex:0,flightStage:'takeoff',approachIndex:0,missionMessage:'',escaped:false};
  g.formations=createFormations(g);
  for(let team=0;team<sizes.length;team++)for(let slot=0;slot<sizes[team];slot++)g.pilots.push(spawnPilot(g,g.pilots.length,team,slot));
- emit(g,'start',tactical?COMBAT_MISSIONS[missionId].description:mode==='freeflight'?'Clear for takeoff. Add power, then gently climb.':mode==='strike'?(g.role==='attack'?'Strike package ready at the airport. Take off, reach the target, then escape.':'Intercept the bomber before it escapes.'):'Airport departure. Add power; above 155 knots hold W to lift off. Return and stop on a runway to repair.');
+ emit(g,'start',tactical?COMBAT_MISSIONS[missionId].description:mode==='freeflight'?'Clear for takeoff. Add power, then gently climb.':mode==='strike'?(g.role==='attack'?'Strike package ready at the airport. Take off, reach the target, then escape.':'Intercept the bomber before it escapes.'):'Airport departure. Add power; above 155 knots hold W to lift off. G lowers gear. Land and stop at your HOME runway to repair; fly within 250 m of HOME to rearm.');
  return g;
 }
 export function configurePlayers(g,ids=['host']){
@@ -119,6 +120,7 @@ export function configurePlayers(g,ids=['host']){
 }
 function emit(g,type,text,extra={}){g.events.push({id:++g.serial,type,text,t:g.time,...extra});if(g.events.length>24)g.events.shift()}
 function recordDamage(g,p,weapon,sourceId,amount,origin){
+ if(weapon!=='terrain'&&weapon!=='collision'){p.engineHealth=clamp((p.engineHealth??1)-amount*.004,0,1);p.controlHealth=clamp((p.controlHealth??1)-amount*.006,0,1);}
  p.lastDamage={id:++g.serial,weapon,sourceId,amount,t:g.time,bearing:origin?angle(desiredHeading(p,origin)-p.yaw):null};
 }
 function kill(g,p,source){if(p.dead)return;if(source==='terrain'||source==='collision')recordDamage(g,p,source,null,p.hp,null);p.hp=0;p.dead=true;p.deaths=(p.deaths||0)+1;p.lock=0;p.targetId=null;
@@ -220,7 +222,7 @@ function pursuitTarget(g,p){
 function ai(g,p,dt){
  if(g.mode==='freeflight')return{};
  const departure=departureInput(g,p);if(departure)return departure;
- const ace=g.difficulty==='ace',cautious=p.personality==='cautious',aggressive=p.personality==='aggressive';let target,enemy=null;
+ const ace=g.mode==='dogfight'||g.difficulty==='ace',cautious=p.personality==='cautious',aggressive=p.personality==='aggressive';let target,enemy=null;
  if(p.objectiveRole==='transport'){
   const m=g.combatMission,waypoint=m?.route[Math.min(m.routeIndex,m.route.length-1)];if(!waypoint)return terrainAvoidance(g,p,{throttle:0});
   const input=steer(p,waypoint);input.roll=clamp(input.roll,-.5,.5);input.throttle=p.speed<150?.5:p.speed>164?-.35:0;
@@ -229,7 +231,13 @@ function ai(g,p,dt){
  }
  if(g.arenaId==='valley'&&!inValley(p.pos,-100)){const rendezvous=valleyPoint(500,0,550),route=steer(p,rendezvous);route.throttle=p.throttle<.82?.5:0;return terrainAvoidance({...g,arenaId:'coast'},p,route);}
  const form=g.mode!=='freeflight'?formationInput(g,p):null;if(form)return terrainAvoidance(g,p,form);
- if(g.mode==='strike'&&p.bomber){target=g.bombed?ESCAPE:{x:TARGET.x,y:430,z:TARGET.z-350};}
+ if(g.mode==='strike'&&p.bomber){
+  target={...(g.bombed?ESCAPE:{...TARGET,y:430})};
+  // The heavy airframe needs a longer terrain horizon than a dogfighting jet.
+  // Climb before the coastal ridge, then settle onto the actual target line.
+  const range=horizontal(p.pos,target),dx=(target.x-p.pos.x)/Math.max(1,range),dz=(target.z-p.pos.z)/Math.max(1,range);
+  for(let ahead=0;ahead<=Math.min(range,5000);ahead+=250)target.y=Math.max(target.y,surfaceHeight(p.pos.x+dx*ahead,p.pos.z+dz*ahead)+350);
+ }
  else{
   enemy=pursuitTarget(g,p);if(!enemy)return terrainAvoidance(g,p,{roll:0,pitch:0,yaw:0,throttle:0});
   const range=dist(p.pos,enemy.pos),ef=forward(enemy),gun=gunIntercept(p,enemy,1000),lead=clamp(range/Math.max(180,p.speed+enemy.speed),.2,aggressive?1.15:ace?1.1:cautious?.65:.8);
@@ -248,10 +256,16 @@ function ai(g,p,dt){
   i.roll=clamp(angle((p.aiExtendYaw??p.yaw)-p.yaw)*1.4,-.18,.18);i.yaw=0;
   const clearance=p.pos.y-surfaceHeight(p.pos.x,p.pos.z);i.pitch=lowEnergy&&clearance>260?-.1:0;
  }
- const desiredSpeed=p.bomber?115:g.mode==='strike'?185:g.arenaId==='valley'?(ace?265:245):(ace?290+(p.slot%3)*8:260+(p.slot%3)*12)+(aggressive?18:cautious?-15:0);
+ const desiredSpeed=p.bomber?245:g.mode==='strike'?185:g.arenaId==='valley'?(ace?265:245):(ace?290+(p.slot%3)*8:260+(p.slot%3)*12)+(aggressive?18:cautious?-15:0);
  i.throttle=p.speed<desiredSpeed-5?.5:p.speed>desiredSpeed+5?-.25:0;
  if(lowEnergy||p.aiBreak>0&&p.speed<desiredSpeed)i.throttle=1;
- if(p.bomber&&!g.bombed&&horizontal(p.pos,target)<420&&p.bombCD<=0)i.bomb=true;
+ if(g.mode==='strike'&&p.bomber&&canBomb(g,p)&&p.bombCD<=0&&!g.bombs.some(b=>b.ownerId===p.id)){
+  // Account for the aircraft's vertical velocity, not just horizontal distance
+  // to a fixed release point. Hold the remaining stores until impact is known.
+  const f=forward(p),vy=f.y*p.speed,t=(vy+Math.sqrt(vy*vy+90*Math.max(0,p.pos.y-4)))/45;
+  const impact={x:p.pos.x+f.x*p.speed*t,z:p.pos.z+f.z*p.speed*t};
+  if(horizontal(impact,TARGET)<180)i.bomb=true;
+ }
  let incoming=null,incomingRange=Infinity;
  for(const m of g.missiles){if(m.targetId!==p.id||m.decoyed||m.seekerLost||m.age>=m.life)continue;const range=dist(m.pos,p.pos);if(range<(ace?1500:1250)&&range<incomingRange){incoming=m;incomingRange=range;}}
  p.aiShot=Math.max(0,(p.aiShot||0)-dt);p.aiDefend=Math.max(0,(p.aiDefend||0)-dt);p.aiEvade=Math.max(0,(p.aiEvade||0)-dt);
@@ -263,9 +277,9 @@ function ai(g,p,dt){
   if(p.aiFlarePending&&(p.bomber||p.throttle<=.8)){i.flare=true;p.aiFlarePending=false;}
  }else p.aiFlarePending=false;
  if(p.aiEvade>1.5){i.roll+=(p.team===0?.45:-.45);i.pitch=clamp(i.pitch+.15,-1,1);}
- if(g.mode!=='freeflight'&&p.targetId&&p.lock>.8&&p.aiShot<=0){const locked=g.pilots.find(q=>q.id===p.targetId&&!q.dead);if(locked&&dist(p.pos,locked.pos)<(ace?2900:2300)){i.fireHeat=p.heat>0&&(random(g)<.65||p.radar<=0);i.fireRadar=!i.fireHeat&&p.lock>1.45;p.aiShot=(ace?3.5:4.5)+(cautious?1.4:aggressive?-.5:p.personality==='paired'?p.slot%2*.7:0)+random(g)*(ace?1.8:2.5);}}
+ if(!p.bomber&&g.mode!=='freeflight'&&p.targetId&&p.lock>.8&&p.aiShot<=0){const locked=g.pilots.find(q=>q.id===p.targetId&&!q.dead);if(locked&&dist(p.pos,locked.pos)<(ace?2900:2300)){i.fireHeat=p.heat>0&&(random(g)<.65||p.radar<=0);i.fireRadar=!i.fireHeat&&p.lock>1.45;p.aiShot=(ace?3.5:4.5)+(cautious?1.4:aggressive?-.5:p.personality==='paired'?p.slot%2*.7:0)+random(g)*(ace?1.8:2.5);}}
  p.aiGunBurst=Math.max(0,(p.aiGunBurst||0)-dt);p.aiGunRest=Math.max(0,(p.aiGunRest||0)-dt);
- const gun=!p.bomber&&enemy&&p.aiBreak<=0&&p.aiEvade<=0?gunIntercept(p,enemy,ace?850:700):null;
+ const gun=enemy&&p.aiBreak<=0&&p.aiEvade<=0?gunIntercept(p,enemy,ace?850:700):null;
  if(gun){const f=forward(p),muzzle=gunMuzzleForAI(p),dx=gun.point.x-muzzle.x,dy=gun.point.y-muzzle.y,dz=gun.point.z-muzzle.z,length=Math.hypot(dx,dy,dz),tolerance=clamp((enemy.bomber?18:11)/gun.range,.012,.045)*(ace?1:.85);
   const aligned=(dx*f.x+dy*f.y+dz*f.z)/Math.max(1,length)>Math.cos(tolerance);
   if(aligned&&p.aiGunRest<=0&&p.aiGunBurst<=0){p.aiGunBurst=ace?.36:.24;p.aiGunRest=(ace?.9:1.4)+random(g)*.6;}
@@ -300,7 +314,7 @@ function selectTarget(g,p){
  // better candidate, so a close formation does not reset lock every tick.
  return current&&score>=currentScore*.65?current:best;
 }
-function launch(g,p,type){if(p.grounded||g.time<(p.spawnProtectedUntil||0))return;const cd=type==='heat'?'heatCD':'radarCD';if(p[cd]>0||p[type]<=0)return;const target=g.pilots.find(q=>q.id===p.targetId&&!q.dead);if(!target||missileImmune(target)||p.lock<(type==='heat'?0.45:1.45))return;
+function launch(g,p,type){if(p.bomber||p.grounded||g.time<(p.spawnProtectedUntil||0))return;const cd=type==='heat'?'heatCD':'radarCD';if(p[cd]>0||p[type]<=0)return;const target=g.pilots.find(q=>q.id===p.targetId&&!q.dead);if(!target||missileImmune(target)||p.lock<(type==='heat'?0.45:1.45))return;
  p[type]--;p[cd]=type==='heat'?1.65:2.5;const f=forward(p);g.missiles.push({id:++g.serial,type,ownerId:p.id,team:p.team,targetId:target.id,pos:{x:p.pos.x+f.x*18,y:p.pos.y+f.y*18-2,z:p.pos.z+f.z*18},dir:f,speed:p.speed+90,age:0,life:type==='heat'?13:17,decoyed:false,seekerLost:false,lostTime:0});emit(g,'launch',type==='heat'?'Fox two · heat seeker away':'Fox one · radar missile away',{pilotId:p.id});}
 export function bombSolution(p){const t=Math.sqrt(Math.max(0,p.pos.y-4)*2/45),f=forward(p);return{x:p.pos.x+f.x*p.speed*t,y:4,z:p.pos.z+f.z*p.speed*t}}
 export function canBomb(g,p){return p.bomber&&p.bombs>0&&!g.bombed&&p.pos.y>100&&p.pos.y<1000&&horizontal(bombSolution(p),TARGET)<330}
@@ -308,9 +322,11 @@ function counter(g,p,type){const key=type==='flare'?'flares':'chaff',cd=type+'CD
 function updatePilot(g,p,input,dt){
  if(p.dead)return;
  for(const k of ['gunCD','heatCD','radarCD','flareCD','chaffCD','bombCD'])p[k]=Math.max(0,p[k]-dt);
- p.rearm=(p.rearm||0)+dt;if(p.rearm>22){p.rearm=0;p.gunAmmo=Math.min(GUN.capacity,p.gunAmmo+150);if(g.mode!=='freeflight'){p.heat=Math.min(6,p.heat+2);p.radar=Math.min(4,p.radar+1);if(p.human)emit(g,'rearm','Weapons topped up · gun rounds, +2 heat, +1 radar',{pilotId:p.id})}}
- const i=pilotGInput(p,input||{}),before=forward(p),wasGrounded=p.grounded,previousHeight=p.pos.y;
- p.departureHold=departureBlocked(g,p);if(p.departureHold){i.brake=true;i.pitch=0;}p.braking=!!i.brake;p.repairing=false;
+ if(input?.toggleAirbrake){p.airbrake=!p.airbrake;emit(g,'systems',`Airbrake ${p.airbrake?'DEPLOYED':'STOWED'}`,{pilotId:p.id});}
+ if(input?.toggleGear){if(!p.grounded){p.gearDown=!p.gearDown;emit(g,'systems',`Landing gear ${p.gearDown?'DOWN':'UP'}`,{pilotId:p.id});}else emit(g,'systems','Landing gear stays down while on the ground',{pilotId:p.id});}
+ if(input?.toggleManeuver){p.maneuverAssist=!p.maneuverAssist;emit(g,'systems',`Arcade maneuver assist ${p.maneuverAssist?'ON · high agility':'OFF'}`,{pilotId:p.id});}
+ const i={...pilotGInput(p,input||{})},before=forward(p),wasGrounded=p.grounded,previousHeight=p.pos.y;
+ i.brake=!!(i.brake||p.airbrake);p.departureHold=departureBlocked(g,p);if(p.departureHold){i.brake=true;i.pitch=0;}p.braking=!!i.brake;p.repairing=false;
  const powerInput=clamp(Number(i.throttle)||0,-1,1),manualPower=p.human&&Math.abs(powerInput)>.9,direction=manualPower?Math.sign(powerInput):0;
  p.throttleHeld=direction&&direction===p.throttleDirection?(p.throttleHeld||0)+dt:0;p.throttleDirection=direction;
  // Fine taps, fast held travel. Assist and AI retain their gentler power rate;
@@ -318,7 +334,8 @@ function updatePilot(g,p,input,dt){
  const powerRate=manualPower?(p.throttleHeld<.16?.6:1.25):.38;
  p.throttle=clamp(p.throttle+powerInput*dt*powerRate,0,1);
  if(p.grounded){p.pitch=0;p.roll=0;p.yaw+=clamp(Number(i.roll)||0,-1,1)*dt*(p.speed<60?0.32:0.15)+clamp(Number(i.yaw)||0,-1,1)*dt*.28;
- if(!p.departureHold&&p.speed>=AIRPORT.takeoffSpeed&&Number(i.pitch)>.12){p.grounded=false;p.landed=false;p.flightState='airborne';p.departureActive=g.mode!=='freeflight';p.pitch=.12;p.pos.y=(AIRFIELDS[p.runwayId]?.elevation||0)+4;emit(g,'takeoff',g.mode==='freeflight'?'Positive climb. Follow the route.':'Airborne. Join the fight.',{pilotId:p.id});if(g.mode==='freeflight'&&p.id==='host'){g.flightStage=g.routeIndex>=routeFor(g).length?'approach':'route';if(g.flightStage==='approach')g.approachIndex=0}}
+ if(!p.departureHold&&p.speed>=Math.max(AIRPORT.takeoffSpeed,(p.stallSpeed||AIRPORT.takeoffSpeed)*1.03)&&Number(i.pitch)>.12){p.grounded=false;p.landed=false;p.flightState='airborne';p.departureActive=g.mode!=='freeflight';p.pitch=.12;p.pos.y=(AIRFIELDS[p.runwayId]?.elevation||0)+4;emit(g,'takeoff',g.mode==='freeflight'?'Positive climb. Follow the route.':'Airborne. Join the fight.',{pilotId:p.id});if(g.mode==='freeflight'&&p.id==='host'){g.flightStage=g.routeIndex>=routeFor(g).length?'approach':'route';if(g.flightStage==='approach')g.approachIndex=0}}
+ }else if(p.human&&!i.autopilot){advanceAttitude(p,i,dt);
  }else{
  const wantedRoll=clamp(Number(i.roll)||0,-1,1)*1.0;
  p.roll+=(wantedRoll-p.roll)*Math.min(1,dt*3.8);
@@ -326,11 +343,12 @@ function updatePilot(g,p,input,dt){
  const wantedPitch=clamp(Number(i.pitch)||0,-1,1)*.52*pitchAuthority;
  const maxPitchChange=pitchRateLimit(p)*dt;
  p.pitch+=clamp((wantedPitch-p.pitch)*Math.min(1,dt*1.8),-maxPitchChange,maxPitchChange);
- p.yaw=angle(p.yaw+(Math.sin(p.roll)*.62+clamp(Number(i.yaw)||0,-1,1)*.17)*dt*clamp(p.speed/100,.35,1.3)*turnAuthority(p.speed));
+ p.yaw=angle(p.yaw+(Math.sin(p.roll)*.62+clamp(Number(i.yaw)||0,-1,1)*.17)*dt*clamp(p.speed/100,.35,1.3)*turnAuthority(p.speed,p));
  }
  const f=forward(p);updatePilotG(p,before,f,dt,wasGrounded);advanceFlightEnergy(p,i,dt,{freeflight:g.mode==='freeflight'});
  if(p.departureHold)p.speed=0;
  if(p.grounded&&!p.landed)p.flightState=p.speed>1?'takeoff':'parked';
+ if(!p.human&&!p.grounded&&p.pos.y>(AIRFIELDS[p.runwayId]?.elevation||0)+35)p.gearDown=false;
  if(!p.grounded&&p.departureActive&&p.pos.y>(AIRFIELDS[p.runwayId]?.elevation||0)+260)p.departureActive=false;
  p.pos.x+=f.x*p.speed*dt;p.pos.z+=f.z*p.speed*dt;
  if(!p.grounded)p.pos.y+=f.y*p.speed*dt-(p.stallSink||0)*dt;
@@ -352,7 +370,7 @@ function updatePilot(g,p,input,dt){
    if(g.mode==='freeflight'&&p.id==='host')g.flightStage=finished?'landed':'practice';
    emit(g,'landed',g.mode!=='freeflight'?`Touchdown at ${landingField.shortName}. Reduce power and brake to repair. Missiles cannot hit you; guns still can.`:finished?'Touchdown! Hold brakes and roll to a stop.':`Practice landing at ${landingField.shortName}. The route is still open.`,{pilotId:p.id});
   }else if(g.mode==='freeflight'){
-   p.pos.y=Math.max(100,ground+140);p.pitch=.18;p.speed=Math.max(110,p.speed);p.throttle=.8;emit(g,'recovery','Go around · safe recovery. Follow the landing guide and try again.',{pilotId:p.id});
+   p.pos.y=Math.max(100,ground+140);p.pitch=.18;p.speed=Math.max(110,p.speed);p.throttle=.8;emit(g,'recovery',!landingField?'TERRAIN · safe recovery. Climb above the ridge before turning.':!p.gearDown?'GEAR UP · go around. Press G to lower gear before landing.':landingField&&landingField.id!==p.homeBaseId?'NOT YOUR BASE · only your HOME runway accepts landings.':'Go around · align with your HOME runway, gear down and below 224 knots.',{pilotId:p.id});
    if(p.id==='host'){g.flightStage=g.routeIndex>=routeFor(g).length?'approach':'route';g.approachIndex=0;}
   }else kill(g,p,'terrain');
  }
@@ -361,7 +379,7 @@ function updatePilot(g,p,input,dt){
  if(i.fireGun&&g.time>=(p.spawnProtectedUntil||0))fireGunRound(g,p);
  if(g.mode!=='freeflight'){
  const q=selectTarget(g,p);if(q&&!p.grounded&&!missileImmune(q)&&q.id===p.targetId)p.lock=Math.min(3,p.lock+dt);else{p.targetId=q?.id||null;p.lock=q&&!p.grounded&&!missileImmune(q)?dt:0}
- if(i.fireHeat)launch(g,p,'heat');if(i.fireRadar)launch(g,p,'radar');if(i.flare)counter(g,p,'flare');if(i.chaff)counter(g,p,'chaff');
+ if(!p.bomber&&i.fireHeat)launch(g,p,'heat');if(!p.bomber&&i.fireRadar)launch(g,p,'radar');if(i.flare)counter(g,p,'flare');if(i.chaff)counter(g,p,'chaff');
  if(i.bomb&&p.bomber&&p.bombs>0&&p.bombCD<=0){p.bombs--;p.bombCD=1;g.bombs.push({id:++g.serial,ownerId:p.id,pos:{...p.pos},vel:{x:f.x*p.speed,y:f.y*p.speed,z:f.z*p.speed},age:0});emit(g,'bomb','Bomb released',{pilotId:p.id})}
  }
 }
@@ -483,7 +501,7 @@ export function step(g,inputs={},dt=1/60){if(g.status!=='playing')return;dt=clam
 export function snapshot(g){return JSON.parse(JSON.stringify(g))}
 export function applySnapshot(g,s){
  if(combatMissionBlocked(s))return false;
- if(!s||s.version!==1||!Array.isArray(s.pilots)||s.pilots.length<1||s.pilots.length>COMBAT_LIMITS.maxPilots)return false;
+ if(!s||s.version!==2||!Array.isArray(s.pilots)||s.pilots.length<1||s.pilots.length>COMBAT_LIMITS.maxPilots)return false;
  const ids=new Set();
  for(const p of s.pilots){
   if(!p||typeof p.id!=='string'||!p.id||ids.has(p.id)||!Number.isInteger(p.team)||p.team<0||p.team>=COMBAT_LIMITS.maxTeams)return false;
@@ -495,17 +513,19 @@ export function applySnapshot(g,s){
 }
 
 export const APPROACH=approachFor('local');
-export function routeGuidance(g,p){
+function routeGuidanceAngles(g,p){
  let input={pitch:0,roll:0,yaw:0,throttle:0,brake:false},target,desiredPower=.7;
  const runway=AIRFIELDS[p.runwayId]||AIRFIELDS.home,destination=destinationFor(g),approach=approachFor(g),route=routeFor(g);
  if(p.grounded&&!p.landed){const local=fieldCoordinates(runway,p.pos),headingError=angle(runway.heading-p.yaw);input.pitch=p.speed>76?.6:0;input.roll=clamp(-local.across*.02+headingError*1.8,-.4,.4);input.throttle=p.throttle<.7?1:p.throttle>.72?-1:0;return input}
  if(p.grounded&&p.landed)return{...input,throttle:-1,brake:true};
  if(g.flightStage==='route')target=route[g.routeIndex];
  if(g.flightStage==='approach'){
-  desiredPower=.54;if(g.approachIndex<approach.length)target=approach[g.approachIndex];
+  desiredPower=g.approachIndex===0?.75:.54;if(g.approachIndex<approach.length)target=approach[g.approachIndex];
   else{const local=fieldCoordinates(destination,p.pos),ahead=local.along+420,height=Math.max(2,(-150-ahead)*.17);target=fieldPoint(destination,0,ahead,height);desiredPower=p.pos.y<destination.elevation+18?.32:.42;input.brake=p.speed>103;}
  }
  if(target){const heading=angle(desiredHeading(p,target)-p.yaw),distance=horizontal(p.pos,target),desiredPitch=Math.atan2(target.y-p.pos.y,Math.max(120,distance));if(g.flightStage==='route')desiredPower=clamp(.7+Math.max(0,desiredPitch)*.22,.7,.82);input.roll=clamp(heading*1.8,-1,1);input.pitch=clamp(desiredPitch/.52+(desiredPitch-p.pitch)*2,-1,1);if(g.flightStage==='approach'&&g.approachIndex>=approach.length&&p.pos.y<destination.elevation+12)input.pitch=-.025/.52;}
  input.throttle=p.throttle<desiredPower-.01?.5:p.throttle>desiredPower+.01?-.5:0;return input;
 }
 
+
+export function routeGuidance(g,p){const wantGear=p.grounded||g.flightStage==='approach'||g.flightStage==='landed';return {...routeGuidanceAngles(g,p),autopilot:true,toggleGear:!p.grounded&&!!p.gearDown!==wantGear};}

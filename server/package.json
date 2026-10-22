@@ -1,0 +1,1 @@
+{"name":"skybreak-authoritative-server","version":"0.1.0","private":true,"type":"module","engines":{"node":">=22"},"scripts":{"start":"node index.js","test":"node --test *.test.js"},"dependencies":{"ws":"8.22.0"}}

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateInput, createInputGuard, decodePairing, interpolateSnapshots, serializePacket } from '../network.js';
+import { PROTOCOL, validateInput, createInputGuard, decodePairing, interpolateSnapshots, serializePacket } from '../network.js';
 import {createGame,configurePlayers,step,snapshot} from '../sim.js';
 
 test('untrusted input rejects identity, nonfinite/out-of-range axes and invalid button types', () => {
@@ -28,7 +28,7 @@ test('manual pairing rejects malformed, wrong-kind, camera/audio and unreasonabl
   assert.throws(()=>decodePairing('JETS3.any-previous-code'),/Reload Jets on both devices/);
   assert.throws(()=>decodePairing('JETS4.any-previous-code'),/Reload Jets on both devices/);
   const payload={v:4,type:'offer',session:'s'.repeat(20),pair:'p'.repeat(20),slot:'p1',description:{type:'offer',sdp:'v=0\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\n'}};
-  const code=()=>`JETS5.${btoa(JSON.stringify(payload))}`;
+  const code=()=>`${PROTOCOL}.${btoa(JSON.stringify(payload))}`;
   assert.equal(decodePairing(code(),'offer').slot,'p1');
   assert.throws(()=>decodePairing(code(),'answer'));
   payload.description.sdp+='m=audio 9 UDP/TLS/RTP/SAVPF 111\r\n';

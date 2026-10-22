@@ -2,11 +2,13 @@
 const clamp=(value,low,high)=>Math.max(low,Math.min(high,Number.isFinite(value)?value:0));
 const NEARBY_VOICES=4,NEARBY_RANGE=2800,TRANSIENT_LIMIT=16;
 export function flightSound(p,inside=false){
- const thrust=clamp(p.throttle,0,1),mach=clamp(Number.isFinite(p.mach)?p.mach:(p.speed||0)/343,0,3),burner=p.bomber?0:clamp((thrust-.82)/.18,0,1),buffet=p.grounded?0:Math.max(0,1-Math.abs(mach-1)/.12),fastAir=clamp((mach-.55)/.45,0,1);
- return{jet:(.035+thrust*.2+burner*.085+buffet*.014)*(inside?.72:1),jetFrequency:(inside?340:450)+thrust*(inside?1050:1700)+burner*420,jetQ:.8-burner*.3,
-  wind:(clamp(Math.pow(mach,1.4)*.15+fastAir*fastAir*(3-2*fastAir)*.08,0,.5)+(p.braking?.045:0))*(inside?.55:1),windFrequency:(inside?1000:1800)+mach*1700,
-  engineFrequency:35+thrust*52+burner*18+mach*5,engine:(.008+thrust*.024+burner*.014)*(inside?1.3:1),engineCutoff:(inside?120:150)+thrust*65,
-  turbineFrequency:145+thrust*390+burner*90+mach*24,turbine:(.002+thrust*.008+burner*.003)*(inside?.65:1)};
+ const health=clamp(p.engineHealth??1,0,1),running=!(Number.isFinite(p.fuelKg)&&p.fuelKg<=0),thrust=clamp(p.throttle,0,1)*health*(running?1:0),mach=clamp(Number.isFinite(p.mach)?p.mach:(p.speed||0)/343,0,3),burner=!p.bomber&&p.afterburnerActive?1:0,buffet=p.grounded?0:Math.max(0,1-Math.abs(mach-1)/.12),fastAir=clamp((mach-.55)/.45,0,1),drag=(p.airbrake?.045:0)+(p.gearDown?.025:0),load=clamp((Math.abs(p.gLoad||1)-3)/6,0,1);
+ return{jet:((running?.035:0)+thrust*.23+burner*.16+buffet*.025)*(inside?.57:1),jetFrequency:(inside?280:450)+thrust*(inside?950:1850)+burner*520,jetQ:.9-burner*.4,
+  wind:clamp(Math.pow(mach,1.4)*.14+fastAir*fastAir*(3-2*fastAir)*.09+drag*clamp(mach*2,0,1),0,.5)*(inside?.45:1),windFrequency:(inside?850:1800)+mach*(inside?1200:1800),
+  engineFrequency:(p.bomber?28:35)+thrust*55+burner*14+mach*4,engine:((running?.009:0)+thrust*.032+burner*.024)*(inside?1.35:1),engineCutoff:(inside?120:170)+thrust*80,
+  turbineFrequency:(p.bomber?120:185)+thrust*550+burner*110+mach*24,turbine:((running?.002:0)+thrust*.012+burner*.004)*(inside?.55:1),
+  rumble:(burner*.17+buffet*.09+load*.026+drag*.6)*(inside?.8:1),rumbleFrequency:70+thrust*100+burner*50,
+  harmonicFrequency:280+thrust*880+burner*125,harmonic:thrust*.0035*(inside?.4:1)};
 }
 export function threatAudioProfile(threat){
  if(!threat)return null;
@@ -21,13 +23,13 @@ function velocity(p){const speed=clamp(p.speed,0,1000),yaw=p.yaw||0,pitch=p.pitc
 export function nearbyJetSound(p,q,inside=false){
  const dx=q.pos.x-p.pos.x,dy=q.pos.y-p.pos.y,dz=q.pos.z-p.pos.z,distance=Math.hypot(dx,dy,dz),length=Math.max(1,distance),yaw=p.yaw||0,ours=velocity(p),theirs=velocity(q);
  const radial=((theirs.x-ours.x)*dx+(theirs.y-ours.y)*dy+(theirs.z-ours.z)*dz)/length,forward=(dx*Math.sin(yaw)+dz*Math.cos(yaw))/length;
- const pan=clamp((-dx*Math.cos(yaw)+dz*Math.sin(yaw))/length,-1,1),thrust=clamp(q.throttle,0,1),burner=q.bomber?0:clamp((thrust-.82)/.18,0,1);
+ const pan=clamp((-dx*Math.cos(yaw)+dz*Math.sin(yaw))/length,-1,1),thrust=clamp(q.throttle,0,1),burner=!q.bomber&&q.afterburnerActive?1:0;
  const fade=clamp((NEARBY_RANGE-distance)/800,0,1),attenuation=fade/(1+Math.pow(distance/230,1.7)),doppler=clamp(343/(343+clamp(radial,-145,220)),.65,1.65);
  return{distance,radial,pan,doppler,gain:attenuation*(inside?.52:1),noise:.23+thrust*.16+burner*.065,tone:.009+thrust*.016,
   frequency:(460+thrust*1250+burner*350)*doppler*(inside?.65:1)*(forward<0?.78:1),engineFrequency:(q.bomber?54:76)+thrust*82,burner};
 }
 export class FlightAudio{
- constructor(){this.enabled=true;this.ctx=null;this.active=false;this.lastThreat=-Infinity;this.lastGunShots=0;this.voices=new Set();this.nearby=[];this.wasAudible=false}
+ constructor(){this.enabled=true;this.ctx=null;this.active=false;this.lastThreat=-Infinity;this.lastGunShots=0;this.voices=new Set();this.nearby=[];this.wasAudible=false;this.lastCaution=-Infinity;this.cautionType=null;this.previousSystems=null}
  init(){
   if(this.ctx){this.ctx.resume().catch(()=>{});return}const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
   this.ctx=new Audio();const a=this.ctx;this.master=a.createGain();this.master.gain.value=0;const compressor=a.createDynamicsCompressor();compressor.threshold.value=-18;compressor.knee.value=14;compressor.ratio.value=4;compressor.attack.value=.004;compressor.release.value=.17;this.master.connect(compressor).connect(a.destination);
@@ -36,6 +38,9 @@ export class FlightAudio{
   const wind=a.createBufferSource();wind.buffer=this.noiseBuffer;wind.loop=true;const high=a.createBiquadFilter();high.type='highpass';high.frequency.value=450;this.windFilter=a.createBiquadFilter();this.windFilter.type='lowpass';this.windFilter.frequency.value=1600;this.windGain=a.createGain();this.windGain.gain.value=0;wind.connect(high).connect(this.windFilter).connect(this.windGain).connect(this.master);wind.start(0,.37);
   this.engine=a.createOscillator();this.engine.type='sawtooth';this.engine.frequency.value=42;this.engineFilter=a.createBiquadFilter();this.engineFilter.type='lowpass';this.engineFilter.frequency.value=135;this.engineGain=a.createGain();this.engineGain.gain.value=0;this.engine.connect(this.engineFilter).connect(this.engineGain).connect(this.master);this.engine.start();
   this.turbine=a.createOscillator();this.turbine.type='sine';this.turbine.frequency.value=145;this.turbineGain=a.createGain();this.turbineGain.gain.value=0;this.turbine.connect(this.turbineGain).connect(this.master);this.turbine.start();
+  // Independent low-frequency combustion/buffet bed plus a quiet turbine harmonic.
+  const rumble=a.createBufferSource();rumble.buffer=this.noiseBuffer;rumble.loop=true;this.rumbleFilter=a.createBiquadFilter();this.rumbleFilter.type='lowpass';this.rumbleFilter.Q.value=.8;this.rumbleGain=a.createGain();this.rumbleGain.gain.value=0;rumble.connect(this.rumbleFilter).connect(this.rumbleGain).connect(this.master);rumble.start(0,1.17);
+  this.harmonic=a.createOscillator();this.harmonic.type='sine';this.harmonicGain=a.createGain();this.harmonicGain.gain.value=0;this.harmonic.connect(this.harmonicGain).connect(this.master);this.harmonic.start();
   // Fixed continuous voices: proximity updates never allocate an audio graph.
   for(let i=0;i<NEARBY_VOICES;i++){
    const source=a.createBufferSource(),filter=a.createBiquadFilter(),gain=a.createGain(),tone=a.createOscillator(),toneGain=a.createGain(),pan=this.createPan();
@@ -55,10 +60,29 @@ export class FlightAudio{
   this.master.gain.setTargetAtTime(audible?.42:0,t,.025);this.jetGain.gain.setTargetAtTime(active?sound.jet:0,t,.2);this.jetFilter.frequency.setTargetAtTime(sound.jetFrequency,t,.22);this.jetFilter.Q.setTargetAtTime(sound.jetQ,t,.22);
   this.windGain.gain.setTargetAtTime(active?sound.wind:0,t,.18);this.windFilter.frequency.setTargetAtTime(sound.windFrequency,t,.25);this.engine.frequency.setTargetAtTime(sound.engineFrequency,t,.3);this.engineGain.gain.setTargetAtTime(active?sound.engine:0,t,.25);this.engineFilter.frequency.setTargetAtTime(sound.engineCutoff,t,.25);
   this.turbine.frequency.setTargetAtTime(sound.turbineFrequency,t,.4);this.turbineGain.gain.setTargetAtTime(active?sound.turbine:0,t,.3);
+  this.rumbleFilter.frequency.setTargetAtTime(sound.rumbleFrequency,t,.2);this.rumbleGain.gain.setTargetAtTime(active?sound.rumble:0,t,.15);this.harmonic.frequency.setTargetAtTime(sound.harmonicFrequency,t,.35);this.harmonicGain.gain.setTargetAtTime(active?sound.harmonic:0,t,.3);
+  this.updateSystems(p,audible,view==='cockpit',t,!!threat);
   this.updateNearby(p,audible?pilots:[],view==='cockpit',t);
   const cue=threatAudioProfile(threat);
   if(audible&&cue&&(cue.type!==this.lastThreatType||cue.urgent&&!this.lastThreatUrgent||t-this.lastThreat>cue.period)){this.lastThreat=t;this.warning(cue)}
   this.lastThreatType=audible?cue?.type:null;this.lastThreatUrgent=audible&&!!cue?.urgent;
+ }
+ updateSystems(p,audible,inside,t,threat){
+  const state={id:p.id,gear:!!p.gearDown,brake:!!p.airbrake,burner:!!p.afterburnerActive},old=this.previousSystems;
+  if(audible&&old&&old.id===state.id){
+   if(old.gear!==state.gear){this.burst(inside?460:800,110,.55,inside?.12:.07);this.beep(state.gear?270:360,.08,.018,{delay:.5})}
+   if(old.brake!==state.brake)this.burst(1400,380,.22,inside?.055:.035);
+   if(!old.burner&&state.burner)this.burst(480,90,.65,inside?.15:.23);
+  }
+  this.previousSystems=audible?state:null;
+  const fuel=Number.isFinite(p.fuelFraction)?p.fuelFraction:(p.fuelCapacityKg?p.fuelKg/p.fuelCapacityKg:1);
+  const caution=!p.grounded&&(p.stallSink||0)>8?'stall':(p.engineHealth??1)<.4?'engine':(p.controlHealth??1)<.4?'controls':fuel<.08?'fuel':(p.gLoad||0)>7.5?'load':null;
+  // Cockpit-only cautions have long repeat intervals and yield to weapon threats.
+  if(audible&&inside&&caution&&!threat&&(caution!==this.cautionType||t-this.lastCaution>(caution==='stall'?3.5:12))){
+   this.lastCaution=t;const urgent=caution==='stall',frequency=urgent?210:caution==='fuel'?610:390;
+   this.beep(frequency,.16,urgent?.045:.025,{wave:'triangle'});this.beep(frequency*(urgent?1.12:.8),.18,urgent?.035:.02,{delay:.22,wave:'triangle'});
+  }
+  if(!audible||!caution)this.cautionType=null;else if(inside&&!threat)this.cautionType=caution;
  }
  updateNearby(p,pilots,inside,t){
   const occupied=new Set(this.nearby.map(v=>v.id)),candidates=[];
