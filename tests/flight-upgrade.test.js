@@ -53,3 +53,30 @@ test('pilot load is signed for pull, push and inverted flight',()=>{
  }
  assert(pull.normalLoad>1&&pull.gLoad>1);assert(push.normalLoad<0&&push.gLoad<0);assert(inverted.gLoad<0);
 });
+
+test('faster airborne fighter has strong dry thrust and a finite burner speed advantage',()=>{
+ const dry=plane({throttle:.82,gearDown:false}),burner=plane({throttle:1,gearDown:false});
+ advance(dry,14);advance(burner,8);
+ assert(dry.speed>343&&dry.speed<355,`dry speed after 14 seconds ${dry.speed}`);
+ assert(burner.speed>500&&burner.speed<510,`burner speed after 8 seconds ${burner.speed}`);
+ advance(burner,7);
+ assert(burner.speed>620&&burner.speed<640,`15-second burner peak ${burner.speed}`);
+ assert(!burner.afterburnerActive);assert(burner.afterburnerNeedsRelease);
+ const peak=burner.speed;advance(burner,10);assert(burner.speed<peak,'dry thrust cannot sustain the burner peak');
+});
+
+test('airborne thrust increase leaves both runway accelerations unchanged',()=>{
+ const fighter=plane({grounded:true,speed:0,throttle:1,pos:{y:0}});
+ const bomber=plane({bomber:true,grounded:true,speed:0,throttle:1,pos:{y:0}});
+ advance(fighter,10);advance(bomber,10);
+ assert(Math.abs(fighter.speed-80.813)<.02,`fighter runway speed ${fighter.speed}`);
+ assert(Math.abs(bomber.speed-34.068)<.02,`bomber runway speed ${bomber.speed}`);
+});
+
+test('faster thrust still respects drag, gravity, airbrakes and the Mach 2 hard cap',()=>{
+ const level=plane({throttle:1,speed:400,normalLoad:1}),turn=plane({throttle:1,speed:400,normalLoad:8}),braked=plane({throttle:1,speed:400,normalLoad:1});
+ advance(level,2);advance(turn,2);advance(braked,2,{brake:true});
+ assert(turn.speed<level.speed,'high-load turns must still cost energy');
+ assert(braked.speed<level.speed,'airbrakes must still remove energy');
+ const dive=plane({throttle:1,speed:685,pitch:-Math.PI/2});advance(dive,2);assert.equal(dive.speed,FLIGHT.maxFighterSpeed);
+});

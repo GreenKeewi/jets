@@ -1,9 +1,9 @@
 // SI units: metres, seconds, kilograms. Mach uses a fixed 343 m/s reference.
 // This is an energy-based game model, not an aircraft certification simulator.
-export const FLIGHT=Object.freeze({soundSpeed:343,maxFighterSpeed:686,cruiseSpeed:285,maxBomberSpeed:309,bomberCruiseSpeed:245,afterburnerDuration:15,afterburnerCooldown:10});
+export const FLIGHT=Object.freeze({soundSpeed:343,maxFighterSpeed:686,cruiseSpeed:315,maxBomberSpeed:309,bomberCruiseSpeed:245,afterburnerDuration:15,afterburnerCooldown:10});
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const GRAVITY=9.81;
-const FIGHTER=Object.freeze({dryMass:8500,fuelCapacity:3200,parasite:.0001,induced:3000,turnInduced:11000,maxThrust:15,burnerThrust:30,groundThrust:8.5,stallSpeed:78,turnDragLimit:24});
+const FIGHTER=Object.freeze({dryMass:8500,fuelCapacity:3200,parasite:.0001,induced:3000,turnInduced:11000,maxThrust:18,burnerThrust:36,groundThrust:8.5,stallSpeed:78,turnDragLimit:24});
 const BOMBER=Object.freeze({dryMass:72000,fuelCapacity:65000,parasite:.00008,induced:3800,turnInduced:9000,maxThrust:7.68,burnerThrust:0,groundThrust:5.2,stallSpeed:85,turnDragLimit:16});
 const frame=p=>p.bomber?BOMBER:FIGHTER;
 const controlFactor=p=>.4+.6*clamp(Number.isFinite(p.controlHealth)?p.controlHealth:1,0,1);
@@ -12,7 +12,7 @@ function interpolate(power,points){for(let i=1;i<points.length;i++)if(power<=poi
 // A UI/planning reference curve only; actual speed is never servoed to this value.
 export function fighterTargetSpeed(throttle,{freeflight=false}={}){
  const power=clamp(Number(throttle)||0,0,1);
- return interpolate(power,freeflight?[[0,0],[.7,147],[.78,285],[.84,315],[1,686]]:[[0,0],[.55,115.5],[.72,255],[.78,285],[.84,315],[1,686]]);
+ return interpolate(power,freeflight?[[0,0],[.7,147],[.78,315],[.84,350],[1,686]]:[[0,0],[.55,115.5],[.72,280],[.78,315],[.84,350],[1,686]]);
 }
 export function initializeFuel(p,fraction=1){
  const a=frame(p);p.fuelCapacityKg=a.fuelCapacity;p.fuelFraction=clamp(Number.isFinite(fraction)?fraction:1,0,1);p.fuelKg=p.fuelCapacityKg*p.fuelFraction;p.massKg=a.dryMass+p.fuelKg;

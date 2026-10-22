@@ -1,32 +1,46 @@
-// Original compact glass/analogue panel; values are driven by the simulation.
+// Compact flight strip: essentials in normal flight, manual systems only in K mode.
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,Number.isFinite(n)?n:0));
+const finite=(n,fallback=0)=>Number.isFinite(n)?n:fallback;
 export function drawCockpit(canvas,p){
- const c=canvas.getContext('2d'),w=canvas.width,h=canvas.height;c.clearRect(0,0,w,h);c.save();c.scale(w/960,h/240);
- const green='#a2edc5',dim='#638e80',amber='#ffd294',red='#ff8073';
- function text(s,x,y,size=10,color=green,align='left'){c.font=`${size>=19?'600 ':''}${size}px monospace`;c.fillStyle=color;c.textAlign=align;c.fillText(s,x,y)}
+ const c=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
+ c.clearRect(0,0,w,h);c.save();c.scale(w/960,h/120);
+ const green='#b6f3d5',dim='#8ba49f',amber='#ffd294',red='#ff9387';
+ function text(s,x,y,size=11,color=green,align='left'){c.font=`${size>=20?'600 ':''}${size}px monospace`;c.fillStyle=color;c.textAlign=align;c.fillText(s,x,y)}
  function line(x1,y1,x2,y2,color=dim,width=1){c.strokeStyle=color;c.lineWidth=width;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke()}
- function box(x,y,bw,bh,fill,stroke='#3b514f'){c.fillStyle=fill;c.strokeStyle=stroke;c.lineWidth=1;c.beginPath();c.roundRect(x,y,bw,bh,5);c.fill();c.stroke()}
- function dial(x,y,r,label,value,max,display,color=green){c.fillStyle='#071015';c.strokeStyle='#5a6f6d';c.lineWidth=2;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();c.stroke();for(let i=0;i<=10;i++){const a=(-220+i*26)*Math.PI/180;line(x+Math.cos(a)*(r-4),y+Math.sin(a)*(r-4),x+Math.cos(a)*(r-(i%5===0?10:7)),y+Math.sin(a)*(r-(i%5===0?10:7)),'#8daca2',1)}const a=(-220+clamp(value/max,0,1)*260)*Math.PI/180;line(x,y,x+Math.cos(a)*(r-12),y+Math.sin(a)*(r-12),color,2);text(label,x,y-r*.35,8,dim,'center');text(display,x,y+r*.5,11,color,'center')}
- function mfd(x,title){box(x,26,254,183,'#111d22','#536662');box(x+17,42,220,151,'#051715','#366957');text(title,x+127,56,10,green,'center');for(let i=0;i<5;i++){box(x+39+i*40,198,20,6,'#53605b');box(x+39+i*40,30,20,6,'#53605b')}for(let i=0;i<4;i++){box(x+5,62+i*33,7,16,'#53605b');box(x+242,62+i*33,7,16,'#53605b')}}
- const panel=c.createLinearGradient(0,0,0,240);panel.addColorStop(0,'#273237');panel.addColorStop(.15,'#151f24');panel.addColorStop(1,'#0b1318');box(3,3,954,234,panel,'#526361');
- for(const x of[12,948])for(const y of[12,228]){c.fillStyle='#69736c';c.beginPath();c.arc(x,y,3,0,Math.PI*2);c.fill();line(x-2,y+1,x+2,y-1,'#1a2427')}
- text(p.bomber?'WING / FLIGHT SYSTEMS':'FALCON / FLIGHT SYSTEMS',23,18,9,'#afc0b8');text('ORIGINAL SIM PANEL',936,18,8,dim,'right');
- mfd(24,'NAV / FLIGHT');mfd(682,'ENGINE / STORES');
- const speed=clamp(p.speed,0,2000),alt=Math.max(0,p.pos?.y||0),heading=((-(p.yaw||0)*180/Math.PI)%360+360)%360,fuel=Number.isFinite(p.fuelFraction)?p.fuelFraction:(p.fuelCapacityKg?p.fuelKg/p.fuelCapacityKg:1),g=Number.isFinite(p.gLoad)?p.gLoad:1;
- // Left multi-function display: navigation rose and primary digital readouts.
- const nx=101,ny=127,nr=43;c.strokeStyle='#306b56';c.lineWidth=1;c.beginPath();c.arc(nx,ny,nr,0,Math.PI*2);c.stroke();c.save();c.translate(nx,ny);c.rotate(p.yaw||0);for(let n=0;n<12;n++){const a=n*Math.PI/6;line(Math.sin(a)*36,-Math.cos(a)*36,Math.sin(a)*42,-Math.cos(a)*42,dim)}for(const [t,a]of[['N',0],['E',Math.PI/2],['S',Math.PI],['W',Math.PI*1.5]])text(t,Math.sin(a)*29,-Math.cos(a)*29+3,8,green,'center');c.restore();line(nx,ny-10,nx,ny+13,green,2);line(nx-12,ny+4,nx+12,ny+4,green,2);text(`${Math.round(heading).toString().padStart(3,'0')}°`,nx,182,11,green,'center');
- text('IAS / KT',161,80,8,dim);text(Math.round(speed*1.944).toString().padStart(3,'0'),161,103,22);text('ALT / FT',161,122,8,dim);text(Math.round(alt*3.281).toLocaleString('en-US'),161,143,18);text(`M ${(speed/343).toFixed(2)}`,161,168,11);text(`G ${g>=0?'+':''}${g.toFixed(1)}`,161,183,11,g<-.5||g>7?amber:green);
- // Central attitude ball with pitch ladder, fixed aircraft reference and bank ticks.
- const ax=480,ay=94,ar=52;c.save();c.beginPath();c.arc(ax,ay,ar,0,Math.PI*2);c.clip();c.translate(ax,ay);c.rotate(p.roll||0);const horizon=clamp(p.pitch||0,-1.4,1.4)*63;c.fillStyle='#356d85';c.fillRect(-150,-180+horizon,300,180);c.fillStyle='#7b694f';c.fillRect(-150,horizon,300,180);line(-100,horizon,100,horizon,'#c5ded1',1.5);for(let step=-4;step<=4;step++){if(!step)continue;const y=horizon+step*13;line(-15,y,15,y,'#d4e5da');text(String(Math.abs(step)*10),22,y+3,7,'#d4e5da')}c.restore();c.strokeStyle='#82918b';c.lineWidth=3;c.beginPath();c.arc(ax,ay,ar+2,0,Math.PI*2);c.stroke();for(const degrees of[-60,-30,0,30,60]){const a=(degrees-90)*Math.PI/180;line(ax+Math.cos(a)*58,ay+Math.sin(a)*58,ax+Math.cos(a)*63,ay+Math.sin(a)*63,'#c1d0c4')}
- line(ax-35,ay,ax-13,ay,amber,3);line(ax+13,ay,ax+35,ay,amber,3);line(ax-13,ay,ax,ay+5,amber,2);line(ax,ay+5,ax+13,ay,amber,2);text('ATTITUDE',ax,163,8,dim,'center');
- dial(338,82,34,'KNOTS',speed*1.944,900,Math.round(speed*1.944));dial(622,82,34,'ALT / KFT',alt*3.281/1000,60,(alt*3.281/1000).toFixed(1));dial(338,170,30,'FUEL',fuel,1,`${Math.round(fuel*100)}%`,fuel<.15?amber:green);dial(622,170,30,'LOAD / G',g+3,12,`${g>=0?'+':''}${g.toFixed(1)}`,g>7||g<-.5?amber:green);
- // Right MFD includes actual reserve and finite afterburner state.
- text('POWER CMD',712,79,9,dim);text(`${Math.round((p.throttle||0)*100)}%`,908,80,14,green,'right');box(712,87,196,7,'#18352b','#18352b');c.fillStyle=p.afterburnerActive?amber:green;c.fillRect(712,87,196*clamp(p.throttle,0,1),7);
- text('FUEL KG',712,112,9,dim);text(Number.isFinite(p.fuelKg)?Math.round(p.fuelKg).toLocaleString('en-US'):'—',908,113,14,fuel<.15?amber:green,'right');
- const burner=p.bomber?'NOT FITTED':p.afterburnerActive?`ACTIVE ${(p.afterburnerRemaining??0).toFixed(1)}s`:p.afterburnerCooldown>0?`COOL ${p.afterburnerCooldown.toFixed(1)}s`:p.afterburnerNeedsRelease?'LOWER POWER':'READY';text('A/B',712,135,9,dim);text(burner,908,135,10,p.afterburnerActive||p.afterburnerCooldown>0?amber:green,'right');
- text('ENG HEALTH',712,156,9,dim);text(`${Math.round((p.engineHealth??1)*100)}%`,908,156,11,(p.engineHealth??1)<.6?red:green,'right');text('CTRL HEALTH',712,177,9,dim);text(`${Math.round((p.controlHealth??1)*100)}%`,908,177,11,(p.controlHealth??1)<.6?red:green,'right');
- // Annunciators show commanded states and do not infer gear from altitude.
- const warnings=[['GEAR',p.gearDown?'DOWN':'UP',p.gearDown?green:dim],['BRAKE',p.airbrake?'OPEN':'CLOSED',p.airbrake?amber:dim],['ASSIST',p.maneuverAssist?'ON':'OFF',p.maneuverAssist?green:amber]];
- warnings.forEach(([label,state,color],i)=>{const x=399+i*55;box(x,184,51,28,'#0a1518','#354540');text(label,x+25.5,194,6,dim,'center');text(state,x+25.5,206,7,color,'center')});
- const caution=(p.engineHealth??1)<.6?'ENGINE DAMAGE':(p.controlHealth??1)<.6?'CONTROL DAMAGE':fuel<.08?'LOW FUEL':g>7?'HIGH G':g<-.5?'NEGATIVE G':'';text(caution||'SYSTEMS NOMINAL',480,228,9,caution?amber:dim,'center');text('NAV',151,225,8,dim,'center');text(p.bomber?'BOMBER':'SINGLE ENGINE',810,225,8,dim,'center');c.restore();
+ c.fillStyle='#0b171d';c.fillRect(0,0,960,120);line(0,1,960,1,'#405a61');line(16,86,944,86,'#294049');
+ const speed=clamp(p.speed,0,2000),alt=Math.max(0,finite(p.pos?.y));
+ // World yaw increases toward west, so the heading uses the opposite sign.
+ const yaw=finite(p.yaw),heading=(Math.round(-yaw*180/Math.PI)%360+360)%360;
+ const fuel=clamp(Number.isFinite(p.fuelFraction)?p.fuelFraction:p.fuelCapacityKg>0?p.fuelKg/p.fuelCapacityKg:1,0,1);
+ const g=finite(p.gLoad,1);
+ // A small, banked horizon with a fixed aircraft reference replaces the old dial bank.
+ const ax=57,ay=42,ar=29;
+ c.save();c.beginPath();c.arc(ax,ay,ar,0,Math.PI*2);c.clip();c.translate(ax,ay);c.rotate(finite(p.roll));
+ const horizon=clamp(p.pitch,-1.4,1.4)*32;
+ c.fillStyle='#356d85';c.fillRect(-120,-120+horizon,240,120);
+ c.fillStyle='#78664d';c.fillRect(-120,horizon,240,120);
+ line(-100,horizon,100,horizon,'#e2eee6',2);c.restore();
+ c.strokeStyle='#78928d';c.lineWidth=1;c.beginPath();c.arc(ax,ay,ar,0,Math.PI*2);c.stroke();
+ line(ax-21,ay,ax-7,ay,amber,2);line(ax+7,ay,ax+21,ay,amber,2);line(ax-7,ay,ax,ay+4,amber,2);line(ax,ay+4,ax+7,ay,amber,2);
+ text('ATTITUDE',ax,79,9,dim,'center');
+ function readout(label,value,unit,x,color=green){text(label,x,23,10,dim);text(value,x,53,25,color);if(unit)text(unit,x,73,10,dim)}
+ readout('SPEED',String(Math.round(speed*1.944)),'KNOTS',114);
+ readout('ALTITUDE',Math.round(alt*3.281).toLocaleString('en-US'),'FEET',245);
+ readout('HEADING',`${String(heading).padStart(3,'0')}°`,'',405);
+ readout('FUEL',`${Math.round(fuel*100)}%`,'',545,fuel<.15?amber:green);
+ readout('LOAD',`G ${g>=0?'+':''}${g.toFixed(1)}`,'',665,g<-.5||g>7?amber:green);
+ text(`POWER ${Math.round(clamp(p.throttle,0,1)*100)}%`,810,23,10,dim);
+ const remaining=Math.max(0,finite(p.afterburnerRemaining)),cooldown=Math.max(0,finite(p.afterburnerCooldown));
+ const burner=p.bomber?'NOT FITTED':p.afterburnerActive?`ACTIVE ${remaining.toFixed(1)}s`:cooldown>0?`COOL ${cooldown.toFixed(1)}s`:p.afterburnerNeedsRelease?'LOWER POWER':`READY ${remaining.toFixed(1)}s`;
+ text('AFTERBURNER',810,45,10,dim);text(burner,810,66,13,p.afterburnerActive||cooldown>0||p.afterburnerNeedsRelease?amber:green);
+ // Normal flight keeps gear/braking automatic. Never advertise manual bindings there.
+ text(p.maneuverAssist?'K MODE · MANUAL':'NORMAL FLIGHT',20,108,11,dim);
+ if(p.maneuverAssist){text(`GEAR [G] ${p.gearDown?'DOWN':'UP'}`,230,108,11,green);text(`AIRBRAKE [X] ${p.airbrake?'OPEN':'CLOSED'}`,410,108,11,p.airbrake?amber:dim)}
+ else text('AUTO GEAR',230,108,11,dim);
+ const cautions=[];
+ if((p.engineHealth??1)<.6)cautions.push('ENGINE DAMAGE');
+ if((p.controlHealth??1)<.6)cautions.push('CONTROL DAMAGE');
+ if(fuel<.08)cautions.push('LOW FUEL');
+ text(cautions.join(' · '),940,108,10,cautions.length?red:dim,'right');
+ c.restore();
 }

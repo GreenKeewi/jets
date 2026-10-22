@@ -2,7 +2,7 @@ import test from 'node:test';
 import {airportForTeam,departureBlocked,missileImmune} from '../airport-operations.js';
 import {fieldCoordinates} from '../missions.js';
 import assert from 'node:assert/strict';
-import {createGame,step,snapshot,applySnapshot,configurePlayers,respawnPilot,threatFor,dist,COMBAT_LIMITS,AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit,MISSILE} from '../sim.js';
+import {createGame,step,snapshot,applySnapshot,configurePlayers,respawnPilot,threatFor,dist,COMBAT_LIMITS,FLIGHT,AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit,MISSILE} from '../sim.js';
 
 function run(g,seconds,input={}){for(let n=0;n<seconds*60&&g.status==='playing';n++)step(g,typeof input==='function'?input(g):input);return g;}
 function humanFixture(options={}){const g=createGame(options);g.pilots.forEach((p,i)=>Object.assign(p,{human:true,grounded:false,departureActive:false,gearDown:false,pos:{x:i*5000,y:3000,z:0},speed:285,throttle:.78,yaw:0,pitch:0,roll:0,collisionGraceUntil:0,spawnProtectedUntil:0}));return g;}
@@ -173,11 +173,13 @@ test('radar guidance loses the track when its supporting shooter stops locking',
 });
 
 test('an airborne rear squad threatens straight cruise with a real reaction window',()=>{
- const g=humanFixture({teamSizes:[1,3],skirmish:true,seed:3}),p=g.pilots[0];
- g.pilots.slice(1).forEach((q,i)=>Object.assign(q,{human:false,pos:{x:(i-1)*80,y:3000,z:-1800-i*60},yaw:0,speed:285,throttle:.78}));
+ for(const speed of [285,FLIGHT.cruiseSpeed]){
+ const g=humanFixture({teamSizes:[1,3],skirmish:true,seed:3}),p=g.pilots[0];p.speed=speed;
+ g.pilots.slice(1).forEach((q,i)=>Object.assign(q,{human:false,pos:{x:(i-1)*80,y:3000,z:-1800-i*60},yaw:0,speed,throttle:.78}));
  let locking=false,incoming=null;
  for(let n=0;n<20*60;n++){step(g);const t=threatFor(g,p);if(t?.kind==='lock')locking=true;if(t&&t.kind!=='lock'){incoming=t;break;}}
  assert(locking);assert(incoming);assert(g.time<20);assert(incoming.timeToImpact>2);assert.equal(p.hp,100);
+ }
 });
 
 test('gun effects and events share unique authoritative serial IDs even around protected pilots',()=>{

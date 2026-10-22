@@ -1,4 +1,4 @@
-import {AIRFIELDS,fieldPoint,fieldCoordinates,fieldUnder} from './missions.js?v=skybreak2-1022';
+import {AIRFIELDS,fieldPoint,fieldCoordinates,fieldUnder} from './missions.js?v=skybreak3-1022';
 
 // Home-base runway operations. Gear is mandatory for a qualifying touchdown.
 export const AIRPORT=Object.freeze({takeoffSpeed:80,landingSpeed:115,repairSpeed:8,repairPower:.2,repairRate:8,repairDelay:3,queueDistance:240});
@@ -52,4 +52,13 @@ export function repairAtAirport(g,p,dt){
  if(p.dead||p.hp<=0||!p.landed||!onRunway(p)||p.speed>AIRPORT.repairSpeed||p.throttle>AIRPORT.repairPower||g.time-(p.lastDamage?.t??-Infinity)<AIRPORT.repairDelay)return;
  if(p.fuelKg<p.fuelCapacityKg){p.fuelKg=Math.min(p.fuelCapacityKg,p.fuelKg+p.fuelCapacityKg*.025*dt);p.fuelFraction=p.fuelKg/p.fuelCapacityKg;p.refueling=true;}
  if(p.hp<100||(p.engineHealth??1)<1||(p.controlHealth??1)<1){p.hp=Math.min(100,p.hp+AIRPORT.repairRate*dt);p.engineHealth=Math.min(1,(p.engineHealth??1)+.08*dt);p.controlHealth=Math.min(1,(p.controlHealth??1)+.08*dt);p.repairing=true;}
+}
+
+// Normal mode manages systems; K mode leaves them in the pilot's hands.
+export function automaticSystems(p){
+ if(!p.human||p.maneuverAssist)return;
+ p.airbrake=false;
+ const home=AIRFIELDS[p.homeBaseId],near=home&&Math.hypot(p.pos.x-home.x,p.pos.z-home.z)<2800;
+ const height=p.pos.y-(home?.elevation||0);
+ p.gearDown=!!(p.grounded||(near&&height<25&&p.pitch>=0)||(near&&height<220&&p.speed<155&&p.pitch<.06&&!p.departureActive));
 }

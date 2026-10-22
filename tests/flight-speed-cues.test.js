@@ -12,7 +12,7 @@ const makeCamera=()=>{const c=new THREE.PerspectiveCamera(70,16/9,.8,45000);c.po
 test('fighter FOV increases modestly through the full speed envelope and respects reduced motion',()=>{
  for(const view of ['chase','cockpit']){
   const base=flightFov(0,view),cruise=flightFov(285,view),maximum=flightFov(686,view);
-  assert(cruise>base&&maximum>cruise);assert.equal(maximum-base,9.5);
+  assert(cruise>base&&maximum>cruise);assert.equal(maximum-base,view==='cockpit'?9.5:11.5);
   assert.equal(flightFov(10000,view),maximum);assert.equal(flightFov(686,view,true),base);
  }
 });

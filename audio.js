@@ -4,7 +4,7 @@ const NEARBY_VOICES=4,NEARBY_RANGE=2800,TRANSIENT_LIMIT=16;
 export function flightSound(p,inside=false){
  const health=clamp(p.engineHealth??1,0,1),running=!(Number.isFinite(p.fuelKg)&&p.fuelKg<=0),thrust=clamp(p.throttle,0,1)*health*(running?1:0),mach=clamp(Number.isFinite(p.mach)?p.mach:(p.speed||0)/343,0,3),burner=!p.bomber&&p.afterburnerActive?1:0,buffet=p.grounded?0:Math.max(0,1-Math.abs(mach-1)/.12),fastAir=clamp((mach-.55)/.45,0,1),drag=(p.airbrake?.045:0)+(p.gearDown?.025:0),load=clamp((Math.abs(p.gLoad||1)-3)/6,0,1);
  return{jet:((running?.035:0)+thrust*.23+burner*.16+buffet*.025)*(inside?.57:1),jetFrequency:(inside?280:450)+thrust*(inside?950:1850)+burner*520,jetQ:.9-burner*.4,
-  wind:clamp(Math.pow(mach,1.4)*.14+fastAir*fastAir*(3-2*fastAir)*.09+drag*clamp(mach*2,0,1),0,.5)*(inside?.45:1),windFrequency:(inside?850:1800)+mach*(inside?1200:1800),
+  wind:clamp(Math.pow(mach,1.4)*.145+fastAir*fastAir*(3-2*fastAir)*.105+drag*clamp(mach*2,0,1),0,.5)*(inside?.45:1),windFrequency:(inside?850:1800)+mach*(inside?1200:1800),
   engineFrequency:(p.bomber?28:35)+thrust*55+burner*14+mach*4,engine:((running?.009:0)+thrust*.032+burner*.024)*(inside?1.35:1),engineCutoff:(inside?120:170)+thrust*80,
   turbineFrequency:(p.bomber?120:185)+thrust*550+burner*110+mach*24,turbine:((running?.002:0)+thrust*.012+burner*.004)*(inside?.55:1),
   rumble:(burner*.17+buffet*.09+load*.026+drag*.6)*(inside?.8:1),rumbleFrequency:70+thrust*100+burner*50,

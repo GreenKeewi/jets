@@ -1,20 +1,20 @@
 import {advanceAttitude} from './attitude.js';
-import {AIRPORT,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak2-1022';
-import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak2-1022';
-import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak2-1022';
-import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak2-1022';
-import {tryHeatFlare} from './heat-seeker.js?v=skybreak2-1022';
-import {freshPilotG,pilotGInput,updatePilotG} from './pilot-g.js?v=skybreak2-1022';
-import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak2-1022';
-import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak2-1022';
-import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak2-1022';
-export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak2-1022';
-import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak2-1022';
-export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak2-1022';
-import {surfaceHeight} from './world.js?v=skybreak2-1022';
-import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak2-1022';
-import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak2-1022';
-export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak2-1022';
+import {AIRPORT,automaticSystems,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak3-1022';
+import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak3-1022';
+import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak3-1022';
+import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak3-1022';
+import {tryHeatFlare} from './heat-seeker.js?v=skybreak3-1022';
+import {freshPilotG,pilotGInput,updatePilotG} from './pilot-g.js?v=skybreak3-1022';
+import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak3-1022';
+import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak3-1022';
+import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak3-1022';
+export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak3-1022';
+import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak3-1022';
+export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak3-1022';
+import {surfaceHeight} from './world.js?v=skybreak3-1022';
+import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak3-1022';
+import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak3-1022';
+export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak3-1022';
 // Flight and combat rules are renderer-independent so missions can be replayed deterministically.
 export const RUNWAY=AIRFIELDS.home;
 export const ROUTE=ROUTES.local.gates;
@@ -104,7 +104,7 @@ export function createGame({mode='dogfight',teamSize=1,teamSizes,skirmish=false,
  const g={version:2,startingFuel:clamp(Number(startingFuel)||.75,.25,1),mode,missionId,combatMission:tactical?{transportTeam,route:transportTeam===null?[]:missionRoute(arenaId),routeIndex:1,deadline:missionId==='ambush'?90:150}:null,arenaId,routeId,destinationId:ROUTES[routeId].destination,teamSize:sizes[0],teamSizes:sizes,skirmish:mode==='dogfight'&&!tactical&&skirmish===true,scores:sizes.map(()=>0),role:role==='defend'?'defend':'attack',difficulty:difficulty==='ace'?'ace':'normal',rng:seed>>>0,time:0,tick:0,status:'playing',result:null,pilots:[],missiles:[],bullets:[],countermeasures:[],bombs:[],effects:[],events:[],serial:0,targetHp:100,bombed:false,routeIndex:0,flightStage:'takeoff',approachIndex:0,missionMessage:'',escaped:false};
  g.formations=createFormations(g);
  for(let team=0;team<sizes.length;team++)for(let slot=0;slot<sizes[team];slot++)g.pilots.push(spawnPilot(g,g.pilots.length,team,slot));
- emit(g,'start',tactical?COMBAT_MISSIONS[missionId].description:mode==='freeflight'?'Clear for takeoff. Add power, then gently climb.':mode==='strike'?(g.role==='attack'?'Strike package ready at the airport. Take off, reach the target, then escape.':'Intercept the bomber before it escapes.'):'Airport departure. Add power; above 155 knots hold W to lift off. G lowers gear. Land and stop at your HOME runway to repair; fly within 250 m of HOME to rearm.');
+ emit(g,'start',tactical?COMBAT_MISSIONS[missionId].description:mode==='freeflight'?'Clear for takeoff. Add power, then gently climb.':mode==='strike'?(g.role==='attack'?'Strike package ready at the airport. Take off, reach the target, then escape.':'Intercept the bomber before it escapes.'):'Airport departure. Add power; above 155 knots hold W to lift off. Gear is automatic; K enables advanced manual controls. Land and stop at your HOME runway to repair; fly within 250 m of HOME to rearm.');
  return g;
 }
 export function configurePlayers(g,ids=['host']){
@@ -195,7 +195,9 @@ function terrainAvoidance(g,p,input){
  }
  if(p.pos.y<ground+(valley?135:190))pullUp=Math.max(pullUp,.85);
  if(pullUp){i.pitch=Math.max(i.pitch,pullUp);i.throttle=Math.max(i.throttle||0,.5);i.fireGun=false;}
- if(!valley&&p.pos.y>1700&&!pullUp)i.pitch=Math.min(-.5,i.pitch);
+ // Stay below the world ceiling, not an arbitrary low-altitude combat lid.
+ // A target above 1,700 m must remain reachable without forced diving.
+ if(!valley&&p.pos.y>5200&&!pullUp)i.pitch=Math.min(-.35,i.pitch);
  // Ease off high-load pursuits before an energy stall; regain speed with power.
  if(p.speed<(p.stallSpeed||83)+25){i.throttle=1;i.roll=clamp(i.roll||0,-.3,.3);if(!pullUp)i.pitch=Math.min(i.pitch||0,.05);}
  return i;
@@ -256,8 +258,17 @@ function ai(g,p,dt){
   i.roll=clamp(angle((p.aiExtendYaw??p.yaw)-p.yaw)*1.4,-.18,.18);i.yaw=0;
   const clearance=p.pos.y-surfaceHeight(p.pos.x,p.pos.z);i.pitch=lowEnergy&&clearance>260?-.1:0;
  }
- const desiredSpeed=p.bomber?245:g.mode==='strike'?185:g.arenaId==='valley'?(ace?265:245):(ace?290+(p.slot%3)*8:260+(p.slot%3)*12)+(aggressive?18:cautious?-15:0);
- i.throttle=p.speed<desiredSpeed-5?.5:p.speed>desiredSpeed+5?-.25:0;
+ let desiredSpeed=p.bomber?245:g.mode==='strike'?185:g.arenaId==='valley'?(ace?265:245):FLIGHT.cruiseSpeed+(p.slot%3)*8+(aggressive?18:cautious?-15:0);
+ if(enemy&&!p.bomber&&g.mode!=='strike'&&g.arenaId!=='valley'){
+  const range=dist(p.pos,enemy.pos);
+  // Close on a straight runner, then match speed for a sustained firing pass.
+  // In a hard turn shed excess energy instead of demanding cruise power.
+  desiredSpeed=headingError<.7?clamp(enemy.speed+clamp((range-400)*.045,-45,90),210,470):Math.min(desiredSpeed,headingError>1.25?255:285);
+ }
+ // Throttle is a lever, not an instant speed setting. Anticipate acceleration
+ // so boosted thrust does not repeatedly overshoot into a wide, slow turn.
+ const predictedSpeed=p.speed+(p.speedAcceleration||0)*1.8;
+ i.throttle=clamp((desiredSpeed-predictedSpeed)*.025,-.7,.7);
  if(lowEnergy||p.aiBreak>0&&p.speed<desiredSpeed)i.throttle=1;
  if(g.mode==='strike'&&p.bomber&&canBomb(g,p)&&p.bombCD<=0&&!g.bombs.some(b=>b.ownerId===p.id)){
   // Account for the aircraft's vertical velocity, not just horizontal distance
@@ -322,11 +333,12 @@ function counter(g,p,type){const key=type==='flare'?'flares':'chaff',cd=type+'CD
 function updatePilot(g,p,input,dt){
  if(p.dead)return;
  for(const k of ['gunCD','heatCD','radarCD','flareCD','chaffCD','bombCD'])p[k]=Math.max(0,p[k]-dt);
- if(input?.toggleAirbrake){p.airbrake=!p.airbrake;emit(g,'systems',`Airbrake ${p.airbrake?'DEPLOYED':'STOWED'}`,{pilotId:p.id});}
- if(input?.toggleGear){if(!p.grounded){p.gearDown=!p.gearDown;emit(g,'systems',`Landing gear ${p.gearDown?'DOWN':'UP'}`,{pilotId:p.id});}else emit(g,'systems','Landing gear stays down while on the ground',{pilotId:p.id});}
- if(input?.toggleManeuver){p.maneuverAssist=!p.maneuverAssist;emit(g,'systems',`Arcade maneuver assist ${p.maneuverAssist?'ON · high agility':'OFF'}`,{pilotId:p.id});}
+ if(input?.toggleManeuver){p.maneuverAssist=!p.maneuverAssist;emit(g,'systems',`Advanced arcade mode ${p.maneuverAssist?'ON · manual G / X':'OFF · automatic systems'}`,{pilotId:p.id});}
+ automaticSystems(p);
+ if(p.maneuverAssist&&input?.toggleAirbrake){p.airbrake=!p.airbrake;emit(g,'systems',`Airbrake ${p.airbrake?'DEPLOYED':'STOWED'}`,{pilotId:p.id});}
+ if(p.maneuverAssist&&input?.toggleGear){if(!p.grounded){p.gearDown=!p.gearDown;emit(g,'systems',`Landing gear ${p.gearDown?'DOWN':'UP'}`,{pilotId:p.id});}else emit(g,'systems','Landing gear stays down while on the ground',{pilotId:p.id});}
  const i={...pilotGInput(p,input||{})},before=forward(p),wasGrounded=p.grounded,previousHeight=p.pos.y;
- i.brake=!!(i.brake||p.airbrake);p.departureHold=departureBlocked(g,p);if(p.departureHold){i.brake=true;i.pitch=0;}p.braking=!!i.brake;p.repairing=false;
+ i.brake=!!(i.brake||p.airbrake||(p.human&&!p.maneuverAssist&&p.grounded&&p.landed&&p.throttle<=.2));p.departureHold=departureBlocked(g,p);if(p.departureHold){i.brake=true;i.pitch=0;}p.braking=!!i.brake;p.repairing=false;
  const powerInput=clamp(Number(i.throttle)||0,-1,1),manualPower=p.human&&Math.abs(powerInput)>.9,direction=manualPower?Math.sign(powerInput):0;
  p.throttleHeld=direction&&direction===p.throttleDirection?(p.throttleHeld||0)+dt:0;p.throttleDirection=direction;
  // Fine taps, fast held travel. Assist and AI retain their gentler power rate;
@@ -335,7 +347,7 @@ function updatePilot(g,p,input,dt){
  p.throttle=clamp(p.throttle+powerInput*dt*powerRate,0,1);
  if(p.grounded){p.pitch=0;p.roll=0;p.yaw+=clamp(Number(i.roll)||0,-1,1)*dt*(p.speed<60?0.32:0.15)+clamp(Number(i.yaw)||0,-1,1)*dt*.28;
  if(!p.departureHold&&p.speed>=Math.max(AIRPORT.takeoffSpeed,(p.stallSpeed||AIRPORT.takeoffSpeed)*1.03)&&Number(i.pitch)>.12){p.grounded=false;p.landed=false;p.flightState='airborne';p.departureActive=g.mode!=='freeflight';p.pitch=.12;p.pos.y=(AIRFIELDS[p.runwayId]?.elevation||0)+4;emit(g,'takeoff',g.mode==='freeflight'?'Positive climb. Follow the route.':'Airborne. Join the fight.',{pilotId:p.id});if(g.mode==='freeflight'&&p.id==='host'){g.flightStage=g.routeIndex>=routeFor(g).length?'approach':'route';if(g.flightStage==='approach')g.approachIndex=0}}
- }else if(p.human&&!i.autopilot){advanceAttitude(p,i,dt);
+ }else if(p.human&&p.maneuverAssist&&!i.autopilot){advanceAttitude(p,i,dt);
  }else{
  const wantedRoll=clamp(Number(i.roll)||0,-1,1)*1.0;
  p.roll+=(wantedRoll-p.roll)*Math.min(1,dt*3.8);
@@ -370,7 +382,7 @@ function updatePilot(g,p,input,dt){
    if(g.mode==='freeflight'&&p.id==='host')g.flightStage=finished?'landed':'practice';
    emit(g,'landed',g.mode!=='freeflight'?`Touchdown at ${landingField.shortName}. Reduce power and brake to repair. Missiles cannot hit you; guns still can.`:finished?'Touchdown! Hold brakes and roll to a stop.':`Practice landing at ${landingField.shortName}. The route is still open.`,{pilotId:p.id});
   }else if(g.mode==='freeflight'){
-   p.pos.y=Math.max(100,ground+140);p.pitch=.18;p.speed=Math.max(110,p.speed);p.throttle=.8;emit(g,'recovery',!landingField?'TERRAIN · safe recovery. Climb above the ridge before turning.':!p.gearDown?'GEAR UP · go around. Press G to lower gear before landing.':landingField&&landingField.id!==p.homeBaseId?'NOT YOUR BASE · only your HOME runway accepts landings.':'Go around · align with your HOME runway, gear down and below 224 knots.',{pilotId:p.id});
+   p.pos.y=Math.max(100,ground+140);p.pitch=.18;p.speed=Math.max(110,p.speed);p.throttle=.8;emit(g,'recovery',!landingField?'TERRAIN · safe recovery. Climb above the ridge before turning.':!p.gearDown?(p.maneuverAssist?'GEAR UP · go around. Press G to lower gear before landing.':'Go around · slow down on your HOME approach for automatic gear.'):landingField&&landingField.id!==p.homeBaseId?'NOT YOUR BASE · only your HOME runway accepts landings.':'Go around · align with your HOME runway, gear down and below 224 knots.',{pilotId:p.id});
    if(p.id==='host'){g.flightStage=g.routeIndex>=routeFor(g).length?'approach':'route';g.approachIndex=0;}
   }else kill(g,p,'terrain');
  }
