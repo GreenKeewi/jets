@@ -163,3 +163,6 @@ body:not(.graphics-ready) #menu .menu-scene-label{display:none}
 @media(min-width:701px){#menu #bot-roster p{display:none}}
 
 #menu #fatal{position:static;inset:auto;margin-top:14px;padding:10px 12px;display:block;border-radius:2px;font-size:10px;box-shadow:none}#menu #fatal[hidden]{display:none}#menu #fatal strong{white-space:normal}#menu #fatal span{display:block;margin-top:5px;line-height:1.5}
+
+/* Release label uses package.json as its single version source. */
+#menu .menu-version{flex:0 0 auto;margin-left:auto;white-space:nowrap;font:11px monospace;color:#b7c6ca;letter-spacing:.3px}
