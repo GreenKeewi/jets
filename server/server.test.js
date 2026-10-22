@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {once} from 'node:events';
 import {WebSocket} from 'ws';
 import {createGameServer} from './index.js';
+import {AIRFIELDS,fieldPoint,fieldCoordinates} from '../missions.js';
+import {collisionRadius} from '../aircraft-collision.js';
 import {createRoomManager} from './rooms.js';
 import {SERVER_PROTOCOL,SIM_BUILD,createInputBuffer,validateInput,validateJoin} from './protocol.js';
 import {normalizeEndpoints,probeRegions,selectRegion,createServerClient} from '../server-client.js';
@@ -101,4 +103,23 @@ test('browser adapter connects two real clients, delivers control/snapshots and 
     const p=a.sampleSnapshot().pilots.find(p=>p.id===a.state.localId);assert.equal(typeof p.gearDown,'boolean');assert.ok(snapshots.length>1);
     assert.equal(a.getPlayerIds().length,2);
   } finally {a.disconnect();b.disconnect();await app.close();}
+});
+
+test('late dedicated joins start safely on their own runway, preserving match and aircraft resources',()=>{
+ for(const arenaId of ['coast','valley']){
+  const manager=createRoomManager({region:'enam',maxRooms:1}),first={};const room=manager.join(first,{pool:'global',arenaId});
+  room.game.time=45;room.game.scores=[4,2];
+  for(const p of room.game.pilots.filter(p=>!p.human))Object.assign(p,{grounded:false,pos:{...p.pos,y:p.pos.y+1500},speed:280,throttle:.9,gearDown:false,hp:83,fuel:.42,heat:1});
+  const existing=JSON.stringify(room.game.pilots.find(p=>p.id===first.id)),late={};assert.equal(manager.join(late,{pool:'global',arenaId}),room);
+  const p=room.game.pilots.find(p=>p.id===late.id),field=AIRFIELDS[p.homeBaseId],local=fieldCoordinates(field,p.pos);
+  assert.equal(p.grounded,true);assert.equal(p.speed,0);assert.equal(p.throttle,0);assert.equal(p.gearDown,true);assert.equal(p.pos.y,field.elevation+3);assert(Math.abs(local.across)<1);assert(Math.abs(local.along)<field.halfLength);
+  assert.equal(p.hp,83);assert.equal(p.fuel,.42);assert.equal(p.heat,1);assert.equal(room.game.time,45);assert.deepEqual(room.game.scores,[4,2]);assert.equal(JSON.stringify(room.game.pilots.find(p=>p.id===first.id)),existing);
+  for(const q of room.game.pilots.filter(q=>q!==p&&!q.dead))assert(Math.hypot(q.pos.x-p.pos.x,q.pos.y-p.pos.y,q.pos.z-p.pos.z)>collisionRadius(p)+collisionRadius(q));
+ }
+});
+test('occupied runway rejects a late join without claiming or moving the existing bot',()=>{
+ const manager=createRoomManager({region:'enam',maxRooms:1}),first={};const room=manager.join(first,{pool:'global',arenaId:'coast'});
+ for(const p of room.game.pilots.filter(p=>!p.human))Object.assign(p,{grounded:false,pos:{...p.pos,y:p.pos.y+1500},speed:280});
+ for(const field of Object.values(AIRFIELDS))for(let along=-field.halfLength;along<=field.halfLength;along+=40)room.game.pilots.push({id:`obstacle-${field.id}-${along}`,human:true,team:0,dead:false,pos:fieldPoint(field,0,along,3)});
+ const before=JSON.stringify(room.game.pilots),late={};assert.equal(manager.join(late,{pool:'global',arenaId:'coast'}),null);assert.match(late.joinError,/runway is busy/);assert.equal(late.id,undefined);assert.equal(room.clients.size,1);assert.equal(JSON.stringify(room.game.pilots),before);
 });

@@ -1,5 +1,6 @@
 import {randomUUID, randomInt} from 'node:crypto';
 import {createGame, step, snapshot, respawnPilot} from '../sim.js';
+import {placePilotOnRunway} from '../airport-operations.js';
 import {createInputBuffer} from './protocol.js';
 
 export function createRoomManager({region = 'local', maxRooms = 8, playersPerRoom = 6, clock = () => performance.now()} = {}) {
@@ -16,6 +17,7 @@ export function createRoomManager({region = 'local', maxRooms = 8, playersPerRoo
     rooms,
     join(client, {pool, arenaId}) {
       if (client.room) return null;
+      client.joinError = null;
       let room = [...rooms.values()].find(r => r.pool === pool && r.arenaId === arenaId && r.game.status === 'playing' && r.clients.size < playersPerRoom && r.game.pilots.some(p => !p.human && !p.dead));
       if (!room) {
         if (rooms.size >= maxRooms) return null;
@@ -28,6 +30,14 @@ export function createRoomManager({region = 'local', maxRooms = 8, playersPerRoo
       const team = population(0) <= population(1) ? 0 : 1;
       const seat = room.game.pilots.filter(p => !p.human && !p.dead).sort((a,b) => Number(a.team !== team) - Number(b.team !== team))[0];
       if (!seat) return null;
+      // Never hand an airborne AI aircraft to a new pilot. The same collision-
+      // checked runway placement is used by Node and Cloudflare; failed joins
+      // leave the existing bot and match unchanged, without a free rearm/refuel.
+      if (!placePilotOnRunway(room.game, seat)) {
+        client.joinError = 'The runway is busy. Wait for aircraft to clear it, then try again.';
+        if (!room.clients.size) rooms.delete(room.id);
+        return null;
+      }
       const oldId = seat.id;
       client.id = `pilot-${randomUUID()}`; client.input = createInputBuffer(); client.room = room;
       seat.id = client.id; seat.human = true;

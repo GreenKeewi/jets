@@ -1,8 +1,8 @@
-import {SUN_DIRECTION} from './seeker-environment.js?v=skybreak3-1022';
+import {SUN_DIRECTION} from './seeker-environment.js?v=skybreak4-1022';
 import * as THREE from './vendor/three.module.js';
-import {terrainHeight,worldNoise,coastPoint,northernRidgeHeight,SEA_LEVEL,ISLANDS,TERRAIN_TILE_SIZE,TERRAIN_EDGE_SEGMENTS,TERRAIN_LOD_SEGMENTS} from './world.js?v=skybreak3-1022';
-import {createAircraft} from './aircraft.js?v=skybreak3-1022';
-import {AIRFIELDS,fieldPoint,fieldCoordinates,WORLD_BOUNDS} from './missions.js?v=skybreak3-1022';
+import {terrainHeight,worldNoise,coastPoint,northernRidgeHeight,SEA_LEVEL,ISLANDS,TERRAIN_TILE_SIZE,TERRAIN_EDGE_SEGMENTS,TERRAIN_LOD_SEGMENTS} from './world.js?v=skybreak4-1022';
+import {createAircraft} from './aircraft.js?v=skybreak4-1022';
+import {AIRFIELDS,fieldPoint,fieldCoordinates,WORLD_BOUNDS} from './missions.js?v=skybreak4-1022';
 const standard=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.88,metalness:.08,...extra});
 function box(w,h,d,mat,x=0,y=0,z=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);return m}
 function canvasTexture(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
@@ -101,7 +101,7 @@ export class Scenery{
  buildRemoteAirport(field){
   const group=new THREE.Group();group.position.set(field.x,field.elevation,field.z);group.rotation.y=field.heading;
   const asphalt=standard(0x354449),concrete=standard(0x9ba392),paint=standard(0xf0e8cc),yellow=standard(0xd8bf70),dark=standard(0x536b70),glass=standard(0x497e89,{metalness:.5});
-  group.add(box(field.width*2,1,field.halfLength*2,asphalt,0,3,0));group.add(box(48,1,field.halfLength*1.7,concrete,field.width+90,3,-50));group.add(box(420,1,340,concrete,310,3,-250));
+  const runway=box(field.width*2,1,field.halfLength*2,asphalt,0,3,0);runway.name=`${field.id}-runway-pavement`;group.add(runway);group.add(box(48,1,field.halfLength*1.7,concrete,field.width+90,3,-50));group.add(box(420,1,340,concrete,310,3,-250));
   for(let z=-field.halfLength+120;z<field.halfLength-80;z+=100)group.add(box(3.5,.1,45,paint,0,3.6,z));for(const side of[-1,1]){group.add(box(2.5,.1,field.halfLength*2-40,paint,side*(field.width-8),3.6,0));for(let z=-field.halfLength;z<=field.halfLength;z+=85){const light=new THREE.Mesh(new THREE.SphereGeometry(1.4,5,4),new THREE.MeshBasicMaterial({color:0xfff1c6}));light.position.set(side*(field.width+4),4,z);group.add(light)}}for(const end of[-field.halfLength+65,field.halfLength-65])for(let n=-2;n<=2;n++)group.add(box(7,.1,65,paint,n*18,3.6,end));
   const texture=canvasTexture(256,256,c=>{c.fillStyle='#eee7cb';c.font='bold 166px sans-serif';c.textAlign='center';c.fillText(field.runway,128,198)}),number=new THREE.Mesh(new THREE.PlaneGeometry(65,65),new THREE.MeshBasicMaterial({map:texture,transparent:true}));number.rotation.x=-Math.PI/2;number.position.set(0,3.7,-field.halfLength+180);group.add(number);group.add(box(1.2,.1,field.halfLength*1.65,yellow,field.width+90,3.6,-50));group.add(box(220,.1,1.2,yellow,220,3.6,-250));
   for(let i=0;i<2;i++){const x=300+i*125;group.add(box(100,32,100,dark,x,19,-450));const r=roof(106,106,12,concrete);r.position.set(x,36,-450);group.add(r);group.add(box(78,24,1,standard(0x263e46),x,16,-399))}
@@ -110,10 +110,10 @@ export class Scenery{
  }
  buildAirport(){
   const s=this.scene,asphalt=standard(0x354449),concrete=standard(0x9da596),paint=standard(0xf0e9cc),yellow=standard(0xd8c27c),dark=standard(0x4f6971),metal=standard(0x7e8f8d),glass=standard(0x417a88,{metalness:.55,roughness:.3});
-  s.add(box(200,1,2000,asphalt,-1800,3,-2000));s.add(box(68,1,1800,concrete,-1570,3,-2100));s.add(box(620,1,460,concrete,-1310,3,-2550));
-  for(let z=-2950;z<-1000;z+=110)s.add(box(4,.1,48,paint,-1800,3.6,z));for(const side of[-1,1]){s.add(box(3,.1,1940,paint,-1800+side*91,3.6,-2000));for(let z=-3000;z<=-1000;z+=80){const light=new THREE.Mesh(new THREE.SphereGeometry(1.5,5,4),new THREE.MeshBasicMaterial({color:0xfff1c6}));light.position.set(-1800+side*105,4,z);s.add(light)}}
-  for(const end of[-2890,-1110])for(let i=-3;i<=3;i++)s.add(box(7,.1,80,paint,-1800+i*17,3.6,end));
-  const numberTex=canvasTexture(256,256,c=>{c.fillStyle='#eee7cb';c.font='bold 168px sans-serif';c.textAlign='center';c.fillText('36',128,198)}),number=new THREE.Mesh(new THREE.PlaneGeometry(72,72),new THREE.MeshBasicMaterial({map:numberTex,transparent:true}));number.rotation.x=-Math.PI/2;number.position.set(-1800,3.7,-2790);s.add(number);
+  const field=AIRFIELDS.home,start=field.z-field.halfLength,end=field.z+field.halfLength;const runway=box(field.width*2,1,field.halfLength*2,asphalt,field.x,field.elevation+3,field.z);runway.name="home-runway-pavement";s.add(runway);s.add(box(68,1,1800,concrete,-1570,3,-2100));s.add(box(620,1,460,concrete,-1310,3,-2550));
+  for(let z=start+50;z<end-50;z+=110)s.add(box(4,.1,48,paint,-1800,3.6,z));for(const side of[-1,1]){s.add(box(3,.1,field.halfLength*2-60,paint,field.x+side*(field.width-9),field.elevation+3.6,field.z));for(let z=start;z<=end;z+=80){const light=new THREE.Mesh(new THREE.SphereGeometry(1.5,5,4),new THREE.MeshBasicMaterial({color:0xfff1c6}));light.position.set(-1800+side*105,4,z);s.add(light)}}
+  for(const threshold of[start+110,end-110])for(let i=-3;i<=3;i++)s.add(box(7,.1,80,paint,-1800+i*17,3.6,threshold));
+  const numberTex=canvasTexture(256,256,c=>{c.fillStyle='#eee7cb';c.font='bold 168px sans-serif';c.textAlign='center';c.fillText('36',128,198)}),number=new THREE.Mesh(new THREE.PlaneGeometry(72,72),new THREE.MeshBasicMaterial({map:numberTex,transparent:true}));number.rotation.x=-Math.PI/2;number.position.set(field.x,field.elevation+3.7,start+210);s.add(number);
   s.add(box(1.2,.12,1750,yellow,-1570,3.6,-2100));for(let i=0;i<4;i++){const z=-2820+i*390;s.add(box(150,.1,2,yellow,-1660,3.7,z));}
   for(let i=0;i<4;i++){const x=-1390+i*118;s.add(box(100,35,125,dark,x,21,-2720));const r=roof(106,132,14,metal);r.position.set(x,39,-2720);s.add(r);s.add(box(79,24,1,standard(0x273d48),x,16,-2657));for(let n=0;n<5;n++)s.add(box(1,24,1.2,metal,x-34+n*17,16,-2656));s.add(box(84,2,1,paint,x,31,-2656));}
   s.add(box(36,75,36,concrete,-1510,41,-2220));s.add(box(72,19,62,glass,-1510,88,-2220));s.add(box(78,4,68,dark,-1510,100,-2220));s.add(box(2,19,2,metal,-1510,112,-2220));for(let side of[-1,1])s.add(box(3,20,60,metal,-1510+side*30,88,-2220));

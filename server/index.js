@@ -52,7 +52,7 @@ export function createGameServer({region = process.env.REGION || 'local', origin
         const join = validateJoin(packet, region);
         if (!join) { send(client,{t:'error',message:'Incompatible version or invalid region. Reload the game.'}); return ws.close(1008, 'Invalid join'); }
         const room = manager.join(client, join);
-        if (!room) { send(client,{t:'error',message:'This region is full. Choose another region or try later.'}); return ws.close(1013, 'Region full'); }
+        if (!room) { send(client,{t:'error',message:client.joinError || 'This region is full. Choose another region or try later.'}); return ws.close(1013, client.joinError || 'Region full'); }
         client.joined = true; clearTimeout(timeout);
         send(client,{t:'welcome',protocol:SERVER_PROTOCOL,build:SIM_BUILD,id:client.id,roomId:room.id,region,pool:room.pool,config:room.config,value:manager.snapshot(room)});
       } else if (packet.t === 'input') {

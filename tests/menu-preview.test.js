@@ -16,7 +16,7 @@ test('actual menu aircraft is framed right of the menu with stable reduced motio
 test('menu preview remains visible after returning from cockpit and swaps airframes',()=>{
  const r={jets:new Map(),scene:new THREE.Scene(),view:'cockpit',menuPreview:true,shadow:new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial()),updateVortex(){},disposeAircraft:Renderer.prototype.disposeAircraft};
  const p={id:'host',team:0,bomber:false,pos:{x:-1800,y:3,z:-1850},yaw:0,pitch:0,roll:0,speed:0,grounded:true,gearDown:true,throttle:0};
- const g={pilots:[p],time:0};Renderer.prototype.updateAircraft.call(r,g,p,1/60);assert.equal(r.jets.get('host').visible,true);r.jets.get('host').updateMatrixWorld(true);const wheels=new THREE.Box3().setFromObject(r.jets.get('host').userData.gear);assert(Math.abs(wheels.min.y)<.03,`parked wheels should contact pavement, not hover: ${wheels.min.y}`);
+ const g={pilots:[p],time:0};Renderer.prototype.updateAircraft.call(r,g,p,1/60);assert.equal(r.jets.get('host').visible,true);r.jets.get('host').updateMatrixWorld(true);const wheels=new THREE.Box3().setFromObject(r.jets.get('host').userData.gear);assert(Math.abs(wheels.min.y-3.5)<.03,`parked wheels should contact pavement, match the elevated runway top at3.5m: ${wheels.min.y}`);
  p.bomber=true;Renderer.prototype.updateAircraft.call(r,g,p,1/60);assert.equal(r.jets.get('host').userData.bomber,true);
  r.menuPreview=false;Renderer.prototype.updateAircraft.call(r,g,p,1/60);assert.equal(r.jets.get('host').visible,false);
 });

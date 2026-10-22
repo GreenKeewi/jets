@@ -39,6 +39,28 @@ test('motion reseeds safely when aircraft changes or sortie time rewinds',()=>{
  air.update(pilot({id:'wingman'}),camera,0);assert.notDeepEqual(Array.from(air.points),positions);
 });
 
+test('500-knot cruise has readable peripheral parallax without changing physical motion',()=>{
+ const air=new FlightAirMotion(new THREE.Scene()),camera=makeCamera(),speed=500*.514444,p=pilot({speed});
+ air.update(p,camera,0);camera.updateMatrixWorld();
+ const spread=Math.tan(camera.fov*Math.PI/360),positions=air.geometry.attributes.position;
+ let nearCount=0;
+ for(let i=0;i<AIR_MOTION_BUDGET;i++){
+  const x=air.points[i*3],y=air.points[i*3+1]-camera.position.y,z=air.points[i*3+2];
+  const screenRadius=Math.hypot(x/(z*spread*camera.aspect),y/(z*spread));
+  assert(screenRadius>=.42&&screenRadius<=.98,'wisps leave the central aiming region clear');
+  if(z<=105){nearCount++;assert(z>=45);assert(screenRadius>=.62)}
+  assert(Math.abs(Math.hypot(positions.getX(i*2)-positions.getX(i*2+1),positions.getY(i*2)-positions.getY(i*2+1),positions.getZ(i*2)-positions.getZ(i*2+1))-speed/55)<.0001);
+ }
+ assert.equal(nearCount,AIR_MOTION_BUDGET/2);assert(air.material.opacity>.16&&air.material.opacity<.22);
+ const point=new THREE.Vector3(...air.points.slice(0,3)),original=Array.from(air.points),before=point.clone().project(camera);
+ camera.position.z+=speed/60;camera.lookAt(0,700,camera.position.z+100);camera.updateMatrixWorld();
+ air.update(p,camera,1/60);const after=point.clone().project(camera);
+ assert.deepEqual(Array.from(air.points),original,'one frame of travel does not drag the air with the plane');
+ assert(Math.hypot(after.x,after.y)>Math.hypot(before.x,before.y),'actual 500-knot displacement produces outward peripheral flow');
+ assert.equal(p.speed,speed);assert.deepEqual(p.pos,{x:0,y:700,z:0});
+ air.update(p,camera,2/60,true);assert.equal(air.lines.visible,false);
+});
+
 test('dry cruise, afterburner and narrow transonic vapor match the new speed scale',()=>{
  assert.equal(aircraftPower(pilot()).burner,0);assert.equal(aircraftPower(pilot({throttle:1,afterburnerActive:true})).burner,1);
  assert.equal(aircraftPower(pilot({throttle:1,bomber:true})).burner,0);

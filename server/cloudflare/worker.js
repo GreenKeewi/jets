@@ -71,7 +71,7 @@ export class SkyRoom extends DurableObject {
       // regional option selects this endpoint; everybody here shares the same sky.
       join.pool = 'global';
       const room = this.manager.join(client,join);
-      if (!room) return this.drop(socket,1013,'The shared sky is full or flying another arena. Try again later.');
+      if (!room) return this.drop(socket,1013,client.joinError || 'The shared sky is full or flying another arena. Try again later.');
       client.joined = true;
       this.send(client,{t:'welcome',protocol:SERVER_PROTOCOL,build:SIM_BUILD,id:client.id,roomId:room.id,region:this.region,pool:'global',config:room.config,value:this.manager.snapshot(room)});
     } else if (packet.t === 'input') {

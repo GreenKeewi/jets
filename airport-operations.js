@@ -1,4 +1,5 @@
-import {AIRFIELDS,fieldPoint,fieldCoordinates,fieldUnder} from './missions.js?v=skybreak3-1022';
+import {collisionRadius} from './aircraft-collision.js?v=skybreak4-1022';
+import {AIRFIELDS,fieldPoint,fieldCoordinates,fieldUnder} from './missions.js?v=skybreak4-1022';
 
 // Home-base runway operations. Gear is mandatory for a qualifying touchdown.
 export const AIRPORT=Object.freeze({takeoffSpeed:80,landingSpeed:115,repairSpeed:8,repairPower:.2,repairRate:8,repairDelay:3,queueDistance:240});
@@ -61,4 +62,20 @@ export function automaticSystems(p){
  const home=AIRFIELDS[p.homeBaseId],near=home&&Math.hypot(p.pos.x-home.x,p.pos.z-home.z)<2800;
  const height=p.pos.y-(home?.elevation||0);
  p.gearDown=!!(p.grounded||(near&&height<25&&p.pitch>=0)||(near&&height<220&&p.speed<155&&p.pitch<.06&&!p.departureActive));
+}
+
+// Claiming an AI seat must never spawn a new human in mid-flight. Keep stores
+// and damage unchanged so reconnecting is not a free rearm/repair shortcut.
+export function placePilotOnRunway(g,p){
+ const field=AIRFIELDS[p.homeBaseId]||AIRFIELDS[p.runwayId];
+ if(!field||p.dead)return false;
+ let position=null;
+ for(let attempt=0;attempt<12;attempt++){
+  const candidate=fieldPoint(field,0,-field.halfLength+100+attempt*105,3);
+  if(g.pilots.every(q=>q===p||q.dead||Math.hypot(candidate.x-q.pos.x,candidate.y-q.pos.y,candidate.z-q.pos.z)>collisionRadius(q)+collisionRadius(p)+35)){position=candidate;break;}
+ }
+ if(!position)return false;
+ Object.assign(p,groundSpawn(g,p),{pos:position,homeBaseId:field.id,runwayId:field.id,yaw:field.heading,gLoad:1,stallSink:0,speedAcceleration:0,braking:false,afterburnerActive:false,throttleHeld:0,throttleDirection:0});
+ for(const m of g.missiles||[])if(m.targetId===p.id){m.seekerLost=true;m.targetId=null;}
+ return true;
 }

@@ -1,12 +1,12 @@
-import {viewAxes,gunMuzzle} from './view-axes.js?v=skybreak3-1022';
-import {GUN} from './guns.js?v=skybreak3-1022';
+import {viewAxes,gunMuzzle} from './view-axes.js?v=skybreak4-1022';
+import {GUN} from './guns.js?v=skybreak4-1022';
 import * as THREE from './vendor/three.module.js';
-import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=skybreak3-1022';
-import {surfaceHeight} from './world.js?v=skybreak3-1022';
-import {routeFor,destinationFor,fieldPoint} from './missions.js?v=skybreak3-1022';
-import {Scenery} from './scenery.js?v=skybreak3-1022';
-import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak3-meshfix-1022';
-import {batchStatic} from './geometry.js?v=skybreak3-1022';
+import {RUNWAY,ROUTE,TARGET,ESCAPE,forward,bombSolution,canBomb,clamp} from './sim.js?v=skybreak4-1022';
+import {surfaceHeight} from './world.js?v=skybreak4-1022';
+import {routeFor,destinationFor,fieldPoint} from './missions.js?v=skybreak4-1022';
+import {Scenery} from './scenery.js?v=skybreak4-1022';
+import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak4-1022';
+import {batchStatic} from './geometry.js?v=skybreak4-1022';
 export const makeJet=createAircraft;
 const COLORS={mint:0x9cead6,orange:0xffac7a};
 function canvasTexture(width,height,draw){const c=document.createElement('canvas');c.width=width;c.height=height;draw(c.getContext('2d'),width,height);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return tex}
@@ -32,19 +32,21 @@ export class FlightAirMotion{
   if(!this.lines.visible){this.ready=false;return}
   const origin=camera.position,count=quality<.8?24:AIR_MOTION_BUDGET,reset=!this.ready||this.pilotId!==p.id||time<this.lastTime||origin.distanceToSquared(this.lastPosition)>360000;
   camera.updateMatrixWorld();this.right.setFromMatrixColumn(camera.matrixWorld,0);this.up.setFromMatrixColumn(camera.matrixWorld,1);this.forward.setFromMatrixColumn(camera.matrixWorld,2).negate();
-  const axes=forward(p);this.direction.set(axes.x,axes.y,axes.z);const aspect=camera.aspect,spread=Math.tan(camera.fov*Math.PI/360),positions=this.geometry.attributes.position,length=clamp(speed/80,.7,8.6);
+  const axes=forward(p);this.direction.set(axes.x,axes.y,axes.z);const aspect=camera.aspect,spread=Math.tan(camera.fov*Math.PI/360),positions=this.geometry.attributes.position,length=clamp(speed/55,.7,10);
   for(let i=0;i<count;i++){
    const k=i*3,dx=this.points[k]-origin.x,dy=this.points[k+1]-origin.y,dz=this.points[k+2]-origin.z,depth=dx*this.forward.x+dy*this.forward.y+dz*this.forward.z;
    if(reset||depth<12||depth>390||dx*dx+dy*dy+dz*dz>360000){
     // A sparse near-air layer gives readable parallax; these points still stay
     // fixed in world space and are passed at the aircraft's actual m/s.
-    const seed=i+this.cycles[i]++*AIR_MOTION_BUDGET,near=i%3===0,z=near?55+airHash(seed+19)*55:reset?100+airHash(seed+19)*225:220+airHash(seed+19)*105,angle=airHash(seed+83)*Math.PI*2,radius=(near?.5:.36)+airHash(seed+179)*(near?.42:.67),x=Math.cos(angle)*z*spread*aspect*radius,y=Math.sin(angle)*z*spread*radius;
+    // Half the samples pass within 45–105 m, rather than relying on distant
+    // scenery. Keep the aiming center clear: stronger flow belongs at the edges.
+    const seed=i+this.cycles[i]++*AIR_MOTION_BUDGET,near=i%2===0,z=near?45+airHash(seed+19)*60:reset?120+airHash(seed+19)*205:220+airHash(seed+19)*105,angle=airHash(seed+83)*Math.PI*2,radius=(near?.62:.42)+airHash(seed+179)*(near?.32:.56),x=Math.cos(angle)*z*spread*aspect*radius,y=Math.sin(angle)*z*spread*radius;
     this.points[k]=origin.x+this.forward.x*z+this.right.x*x+this.up.x*y;this.points[k+1]=origin.y+this.forward.y*z+this.right.y*x+this.up.y*y;this.points[k+2]=origin.z+this.forward.z*z+this.right.z*x+this.up.z*y;
    }
    // A short exposure streak describes real travelled distance, not a speed multiplier.
    positions.setXYZ(i*2,this.points[k],this.points[k+1],this.points[k+2]);positions.setXYZ(i*2+1,this.points[k]-this.direction.x*length,this.points[k+1]-this.direction.y*length,this.points[k+2]-this.direction.z*length);
   }
-  positions.needsUpdate=true;this.geometry.setDrawRange(0,count*2);this.material.opacity=.035+clamp((speed-75)/268,0,1)*.12;
+  positions.needsUpdate=true;this.geometry.setDrawRange(0,count*2);this.material.opacity=.04+clamp((speed-75)/268,0,1)*.18;
   this.ready=true;this.pilotId=p.id;this.lastTime=time;this.lastPosition.copy(origin);
  }
 }
@@ -193,7 +195,7 @@ export class Renderer{
   this.lastFollowId=p.id;this.lastFollowPosition={...p.pos};const tilt=this.view==='cockpit'?p.roll:0;const up=viewAxes(p,tilt).up;this.camera.up.set(up.x,up.y,up.z);this.camera.lookAt(look);const desiredFov=flightFov(p.speed,this.view,this.reducedMotion);this.camera.fov+=(desiredFov-this.camera.fov)*Math.min(1,dt*4);this.camera.updateProjectionMatrix();
  }
  updateAircraft(g,p,dt){
-  for(const pilot of g.pilots){let model=this.jets.get(pilot.id);if(model&&(model.userData.bomber!==pilot.bomber||model.userData.team!==pilot.team)){this.disposeAircraft(model);this.jets.delete(pilot.id);model=null}if(!model){model=createAircraft(pilot.team,pilot.bomber);this.scene.add(model);this.jets.set(pilot.id,model)}model.visible=!pilot.dead&&!(pilot.id===p.id&&this.view==='cockpit'&&!this.menuPreview);model.position.set(pilot.pos.x,pilot.pos.y+(pilot.grounded?.59:0),pilot.pos.z);model.rotation.set(-pilot.pitch,pilot.yaw,-pilot.roll,'YXZ');animateAircraft(model,pilot,g.time,dt);const detailed=pilot.id===p.id||Math.hypot(pilot.pos.x-p.pos.x,pilot.pos.y-p.pos.y,pilot.pos.z-p.pos.z)<1600;model.userData.detailed.visible=detailed;model.userData.distant.visible=!detailed;this.updateVortex(pilot,model,g.time)}
+  for(const pilot of g.pilots){let model=this.jets.get(pilot.id);if(model&&(model.userData.bomber!==pilot.bomber||model.userData.team!==pilot.team)){this.disposeAircraft(model);this.jets.delete(pilot.id);model=null}if(!model){model=createAircraft(pilot.team,pilot.bomber);this.scene.add(model);this.jets.set(pilot.id,model)}model.visible=!pilot.dead&&!(pilot.id===p.id&&this.view==='cockpit'&&!this.menuPreview);model.position.set(pilot.pos.x,pilot.pos.y+(pilot.grounded?4.08:0),pilot.pos.z);model.rotation.set(-pilot.pitch,pilot.yaw,-pilot.roll,'YXZ');animateAircraft(model,pilot,g.time,dt);const detailed=pilot.id===p.id||Math.hypot(pilot.pos.x-p.pos.x,pilot.pos.y-p.pos.y,pilot.pos.z-p.pos.z)<1600;model.userData.detailed.visible=detailed;model.userData.distant.visible=!detailed;this.updateVortex(pilot,model,g.time)}
   for(const[id,model]of this.jets)if(!g.pilots.some(p=>p.id===id)){this.disposeAircraft(model);this.jets.delete(id)}
   const ground=surfaceHeight(p.pos.x,p.pos.z),height=p.pos.y-ground;this.shadow.visible=!p.dead&&height<230;this.shadow.position.set(p.pos.x+height*.45,ground+.6,p.pos.z+height*.35);this.shadow.scale.set(p.bomber?70:42,p.bomber?65:45,1);this.shadow.material.opacity=Math.max(0,.6-height/350);
  }
