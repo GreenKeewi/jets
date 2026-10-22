@@ -1,21 +1,23 @@
-export {placePilotOnRunway} from './airport-operations.js?v=skybreak4-1022';
+import {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak6-1022';
+export {placePilotOnRunway} from './airport-operations.js?v=skybreak6-1022';
 import {advanceAttitude} from './attitude.js';
-import {AIRPORT,automaticSystems,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak4-1022';
-import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak4-1022';
-import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak4-1022';
-import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak4-1022';
-import {tryHeatFlare} from './heat-seeker.js?v=skybreak4-1022';
-import {freshPilotG,pilotGInput,updatePilotG} from './pilot-g.js?v=skybreak4-1022';
-import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak4-1022';
-import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak4-1022';
-import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak4-1022';
-export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak4-1022';
-import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak4-1022';
-export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak4-1022';
-import {surfaceHeight} from './world.js?v=skybreak4-1022';
-import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak4-1022';
-import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak4-1022';
-export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak4-1022';
+import {AIRPORT,automaticSystems,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak6-1022';
+import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak6-1022';
+import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak6-1022';
+import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak6-1022';
+import {tryHeatFlare} from './heat-seeker.js?v=skybreak6-1022';
+import {freshPilotG,pilotGInput,updatePilotG} from './pilot-g.js?v=skybreak6-1022';
+import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak6-1022';
+import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak6-1022';
+import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak6-1022';
+export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak6-1022';
+import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak6-1022';
+export {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak6-1022';
+export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak6-1022';
+import {surfaceHeight} from './world.js?v=skybreak6-1022';
+import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak6-1022';
+import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak6-1022';
+export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak6-1022';
 // Flight and combat rules are renderer-independent so missions can be replayed deterministically.
 export const RUNWAY=AIRFIELDS.home;
 export const ROUTE=ROUTES.local.gates;
@@ -166,16 +168,16 @@ function formationInput(g,p){
  const squad=g.formations?.[p.team];if(!squad||g.time>squad.until)return null;
  const leader=g.pilots.find(q=>q.team===p.team&&q.slot===0&&!q.dead);if(!leader)return null;
  if(leader===p){const speed=p.bomber?115:g.combatMission?215:g.mode==='strike'?185:FLIGHT.cruiseSpeed;return{roll:clamp(angle(squad.yaw-p.yaw)*2,-1,1),pitch:0,yaw:0,throttle:p.speed<speed-.5?.15:p.speed>speed+.5?-.15:0};}
- const slot=formationPoint(leader.pos,leader.yaw,p.slot,squad.spacing,squad.type),f=forward(leader),lead=Math.max(200,leader.speed*1.2);
+ const slot=formationPoint(leader.pos,leader.yaw,p.slot,squad.spacing,squad.type),f=forward(leader),lead=Math.max(200,worldSpeed(leader)*1.2);
  const target={x:slot.x+f.x*lead,y:slot.y+f.y*lead,z:slot.z+f.z*lead},input=steer(p,target);
  const along=(slot.x-p.pos.x)*f.x+(slot.z-p.pos.z)*f.z,desired=leader.speed+clamp(along*.45,-35,35);
  input.throttle=p.speed<desired-1?.25:p.speed>desired+1?-.25:0;return input;
 }
 export function desiredHeading(p,target){return Math.atan2(target.x-p.pos.x,target.z-p.pos.z)}
 function terrainAvoidance(g,p,input){
- const i={...input},f=forward(p),valley=g.arenaId==='valley',ground=surfaceHeight(p.pos.x,p.pos.z);
+ const i={...input},f=forward(p),velocity=worldVelocity(p),valley=g.arenaId==='valley',ground=surfaceHeight(p.pos.x,p.pos.z);
  if(valley){
-  const look={x:p.pos.x+f.x*p.speed*3.6,z:p.pos.z+f.z*p.speed*3.6};
+  const look={x:p.pos.x+velocity.x*3.6,z:p.pos.z+velocity.z*3.6};
   if(!inValley(p.pos,-130)||!inValley(look,-160)){
    // Turn back along the corridor before reaching a wall or leaving its mouth.
    // All pilots still use the same controls; there is no position snapping.
@@ -189,8 +191,8 @@ function terrainAvoidance(g,p,input){
  }
  let pullUp=0;
  for(const seconds of[.8,1.6,2.8]){
-  const x=p.pos.x+f.x*p.speed*seconds,z=p.pos.z+f.z*p.speed*seconds;
-  const predicted=p.pos.y+(f.y*p.speed-(p.stallSink||0))*seconds;
+  const x=p.pos.x+velocity.x*seconds,z=p.pos.z+velocity.z*seconds;
+  const predicted=p.pos.y+velocity.y*seconds;
   const margin=valley?115:200,deficit=surfaceHeight(x,z)+margin-predicted;
   if(deficit>0)pullUp=Math.max(pullUp,clamp(deficit/180,.15,.9));
  }
@@ -243,8 +245,8 @@ function ai(g,p,dt){
  }
  else{
   enemy=pursuitTarget(g,p);if(!enemy)return terrainAvoidance(g,p,{roll:0,pitch:0,yaw:0,throttle:0});
-  const range=dist(p.pos,enemy.pos),ef=forward(enemy),gun=gunIntercept(p,enemy,1000),lead=clamp(range/Math.max(180,p.speed+enemy.speed),.2,aggressive?1.15:ace?1.1:cautious?.65:.8);
-  target=gun?.point||{x:enemy.pos.x+ef.x*enemy.speed*lead,y:enemy.pos.y+ef.y*enemy.speed*lead,z:enemy.pos.z+ef.z*enemy.speed*lead};
+  const range=dist(p.pos,enemy.pos),ev=worldVelocity(enemy),gun=gunIntercept(p,enemy,1000),lead=clamp(range/Math.max(180,worldSpeed(p)+worldSpeed(enemy)),.2,aggressive?1.15:ace?1.1:cautious?.65:.8);
+  target=gun?.point||{x:enemy.pos.x+ev.x*lead,y:enemy.pos.y+ev.y*lead,z:enemy.pos.z+ev.z*lead};
   if(p.personality==='paired'&&p.slot%2===1&&range>850){const side=p.team%2?1:-1;target={x:target.x+Math.cos(enemy.yaw)*side*230,y:target.y+70,z:target.z-Math.sin(enemy.yaw)*side*230};}
  }
  if(g.arenaId==='valley'){const x=clamp(target.x,VALLEY.minX+550,VALLEY.maxX-550);target={x,z:valleyCenter(x)+clamp(target.z-valleyCenter(x),-470,470),y:clamp(target.y,valleyFloor(x)+140,valleyFloor(x)+340)};}
@@ -274,8 +276,7 @@ function ai(g,p,dt){
  if(g.mode==='strike'&&p.bomber&&canBomb(g,p)&&p.bombCD<=0&&!g.bombs.some(b=>b.ownerId===p.id)){
   // Account for the aircraft's vertical velocity, not just horizontal distance
   // to a fixed release point. Hold the remaining stores until impact is known.
-  const f=forward(p),vy=f.y*p.speed,t=(vy+Math.sqrt(vy*vy+90*Math.max(0,p.pos.y-4)))/45;
-  const impact={x:p.pos.x+f.x*p.speed*t,z:p.pos.z+f.z*p.speed*t};
+  const impact=bombSolution(p);
   if(horizontal(impact,TARGET)<180)i.bomb=true;
  }
  let incoming=null,incomingRange=Infinity;
@@ -304,9 +305,9 @@ function ai(g,p,dt){
  return terrainAvoidance(g,p,i);
 }
 function avoidAircraft(g,p,i){
- const pf=forward(p),ownIndex=g.pilots.indexOf(p);let imminent=null,best=Infinity;
+ const pv=worldVelocity(p),ownIndex=g.pilots.indexOf(p);let imminent=null,best=Infinity;
  for(const q of g.pilots){if(q===p||q.dead||dist(p.pos,q.pos)>1100)continue;
-  const qf=forward(q),r={x:q.pos.x-p.pos.x,y:q.pos.y-p.pos.y,z:q.pos.z-p.pos.z},v={x:qf.x*q.speed-pf.x*p.speed,y:qf.y*q.speed-pf.y*p.speed,z:qf.z*q.speed-pf.z*p.speed};
+  const qv=worldVelocity(q),r={x:q.pos.x-p.pos.x,y:q.pos.y-p.pos.y,z:q.pos.z-p.pos.z},v={x:qv.x-pv.x,y:qv.y-pv.y,z:qv.z-pv.z};
   const vv=v.x*v.x+v.y*v.y+v.z*v.z,t=clamp(-(r.x*v.x+r.y*v.y+r.z*v.z)/Math.max(1,vv),0,2.2);
   const separation=Math.hypot(r.x+v.x*t,r.y+v.y*t,r.z+v.z*t);
   if(separation<collisionRadius(p)+collisionRadius(q)+55&&t<best){best=t;imminent=q;}
@@ -327,14 +328,15 @@ function selectTarget(g,p){
  return current&&score>=currentScore*.65?current:best;
 }
 function launch(g,p,type){if(p.bomber||p.grounded||g.time<(p.spawnProtectedUntil||0))return;const cd=type==='heat'?'heatCD':'radarCD';if(p[cd]>0||p[type]<=0)return;const target=g.pilots.find(q=>q.id===p.targetId&&!q.dead);if(!target||missileImmune(target)||p.lock<(type==='heat'?0.45:1.45))return;
- p[type]--;p[cd]=type==='heat'?1.65:2.5;const f=forward(p);g.missiles.push({id:++g.serial,type,ownerId:p.id,team:p.team,targetId:target.id,pos:{x:p.pos.x+f.x*18,y:p.pos.y+f.y*18-2,z:p.pos.z+f.z*18},dir:f,speed:p.speed+90,age:0,life:type==='heat'?13:17,decoyed:false,seekerLost:false,lostTime:0});emit(g,'launch',type==='heat'?'Fox two · heat seeker away':'Fox one · radar missile away',{pilotId:p.id});}
-export function bombSolution(p){const t=Math.sqrt(Math.max(0,p.pos.y-4)*2/45),f=forward(p);return{x:p.pos.x+f.x*p.speed*t,y:4,z:p.pos.z+f.z*p.speed*t}}
+ p[type]--;p[cd]=type==='heat'?1.65:2.5;const f=forward(p);g.missiles.push({id:++g.serial,type,ownerId:p.id,team:p.team,targetId:target.id,pos:{x:p.pos.x+f.x*18,y:p.pos.y+f.y*18-2,z:p.pos.z+f.z*18},dir:f,speed:worldSpeed(p)+90*TRAVEL.maxMultiplier,age:0,life:type==='heat'?13:17,decoyed:false,seekerLost:false,lostTime:0});emit(g,'launch',type==='heat'?'Fox two · heat seeker away':'Fox one · radar missile away',{pilotId:p.id});}
+export function bombSolution(p){const v=worldVelocity(p),t=(v.y+Math.sqrt(v.y*v.y+90*Math.max(0,p.pos.y-4)))/45;return{x:p.pos.x+v.x*t,y:4,z:p.pos.z+v.z*t}}
 export function canBomb(g,p){return p.bomber&&p.bombs>0&&!g.bombed&&p.pos.y>100&&p.pos.y<1000&&horizontal(bombSolution(p),TARGET)<330}
 function counter(g,p,type){const key=type==='flare'?'flares':'chaff',cd=type+'CD';if(!p[key]||p[cd]>0)return;p[key]--;p[cd]=1.2;const burstId=g.serial+1;for(let i=0;i<6;i++)g.countermeasures.push({id:++g.serial,burstId,type,ownerId:p.id,pos:{...p.pos},vel:{x:(random(g)-.5)*60,y:(random(g)-.5)*40-12,z:(random(g)-.5)*60},age:0,life:type==='flare'?3.8:5});emit(g,'counter',type==='flare'?'Flares out':'Chaff out',{pilotId:p.id})}
 function updatePilot(g,p,input,dt){
  if(p.dead)return;
  for(const k of ['gunCD','heatCD','radarCD','flareCD','chaffCD','bombCD'])p[k]=Math.max(0,p[k]-dt);
  if(input?.toggleManeuver){p.maneuverAssist=!p.maneuverAssist;emit(g,'systems',`Advanced arcade mode ${p.maneuverAssist?'ON · manual G / X':'OFF · automatic systems'}`,{pilotId:p.id});}
+ p.travelApproach=g.mode==='freeflight'&&g.flightStage==='approach';
  automaticSystems(p);
  if(p.maneuverAssist&&input?.toggleAirbrake){p.airbrake=!p.airbrake;emit(g,'systems',`Airbrake ${p.airbrake?'DEPLOYED':'STOWED'}`,{pilotId:p.id});}
  if(p.maneuverAssist&&input?.toggleGear){if(!p.grounded){p.gearDown=!p.gearDown;emit(g,'systems',`Landing gear ${p.gearDown?'DOWN':'UP'}`,{pilotId:p.id});}else emit(g,'systems','Landing gear stays down while on the ground',{pilotId:p.id});}
@@ -363,8 +365,9 @@ function updatePilot(g,p,input,dt){
  if(p.grounded&&!p.landed)p.flightState=p.speed>1?'takeoff':'parked';
  if(!p.human&&!p.grounded&&p.pos.y>(AIRFIELDS[p.runwayId]?.elevation||0)+35)p.gearDown=false;
  if(!p.grounded&&p.departureActive&&p.pos.y>(AIRFIELDS[p.runwayId]?.elevation||0)+260)p.departureActive=false;
- p.pos.x+=f.x*p.speed*dt;p.pos.z+=f.z*p.speed*dt;
- if(!p.grounded)p.pos.y+=f.y*p.speed*dt-(p.stallSink||0)*dt;
+ const velocity=worldVelocity(p);
+ p.pos.x+=velocity.x*dt;p.pos.z+=velocity.z*dt;
+ if(!p.grounded)p.pos.y+=velocity.y*dt;
  if(p.grounded){
   const field=AIRFIELDS[p.runwayId]||RUNWAY,local=fieldCoordinates(field,p.pos);
   if(Math.abs(local.across)>field.width||Math.abs(local.along)>field.halfLength){
@@ -377,7 +380,7 @@ function updatePilot(g,p,input,dt){
  }
  const landingField=fieldUnder(p.pos),ground=surfaceHeight(p.pos.x,p.pos.z),clearance=landingField?landingField.elevation+3:Math.max(3,ground+3);
  if(!p.dead&&!p.grounded&&p.pos.y<=clearance){
-  if(previousHeight>=clearance-.5&&validTouchdown(p,landingField,f.y*p.speed-(p.stallSink||0))){
+  if(previousHeight>=clearance-.5&&validTouchdown(p,landingField,velocity.y)){
    p.grounded=true;p.pos.y=landingField.elevation+3;p.landed=true;p.flightState='landed';p.departureActive=false;p.runwayId=landingField.id;p.pitch=0;p.roll=0;
    const finished=g.mode==='freeflight'&&g.routeIndex>=routeFor(g).length&&landingField.id===g.destinationId;
    if(g.mode==='freeflight'&&p.id==='host')g.flightStage=finished?'landed':'practice';
@@ -393,12 +396,12 @@ function updatePilot(g,p,input,dt){
  if(g.mode!=='freeflight'){
  const q=selectTarget(g,p);if(q&&!p.grounded&&!missileImmune(q)&&q.id===p.targetId)p.lock=Math.min(3,p.lock+dt);else{p.targetId=q?.id||null;p.lock=q&&!p.grounded&&!missileImmune(q)?dt:0}
  if(!p.bomber&&i.fireHeat)launch(g,p,'heat');if(!p.bomber&&i.fireRadar)launch(g,p,'radar');if(i.flare)counter(g,p,'flare');if(i.chaff)counter(g,p,'chaff');
- if(i.bomb&&p.bomber&&p.bombs>0&&p.bombCD<=0){p.bombs--;p.bombCD=1;g.bombs.push({id:++g.serial,ownerId:p.id,pos:{...p.pos},vel:{x:f.x*p.speed,y:f.y*p.speed,z:f.z*p.speed},age:0});emit(g,'bomb','Bomb released',{pilotId:p.id})}
+ if(i.bomb&&p.bomber&&p.bombs>0&&p.bombCD<=0){p.bombs--;p.bombCD=1;g.bombs.push({id:++g.serial,ownerId:p.id,pos:{...p.pos},vel:worldVelocity(p),age:0});emit(g,'bomb','Bomb released',{pilotId:p.id})}
  }
 }
 export const MISSILE=Object.freeze({
- heat:Object.freeze({maxSpeed:820,acceleration:145,turnRate:.42,seekerAngle:1.05,seekerMemory:.32,damage:48}),
- radar:Object.freeze({maxSpeed:980,acceleration:165,turnRate:.34,seekerAngle:1.12,seekerMemory:.45,damage:60})
+ heat:Object.freeze({maxSpeed:820*TRAVEL.maxMultiplier,acceleration:145*TRAVEL.maxMultiplier,turnRate:.42,seekerAngle:1.05,seekerMemory:.32,damage:48}),
+ radar:Object.freeze({maxSpeed:980*TRAVEL.maxMultiplier,acceleration:165*TRAVEL.maxMultiplier,turnRate:.34,seekerAngle:1.12,seekerMemory:.45,damage:60})
 });
 const vectorDot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
 function unitVector(v){const n=Math.hypot(v.x,v.y,v.z)||1;return{x:v.x/n,y:v.y/n,z:v.z/n}}
@@ -430,8 +433,8 @@ function updateMissiles(g,dt,previous){
     m.lostTime=(m.offBoresight>specs.seekerAngle||unsupported)?(m.lostTime||0)+dt:Math.max(0,(m.lostTime||0)-dt*2);
     if(m.lostTime>specs.seekerMemory||environmentLost){m.seekerLost=true;emit(g,'evade',environmentLost?(m.type==='radar'?'Radar missile lost the track in ground clutter':'Heat seeker lost the track in sun glare'):'Missile lost the track',{pilotId:target.id});}
     else{
-     const lead=Math.min(2.5,d/Math.max(180,m.speed))*.68,f=forward(target);
-     const aim=unitVector({x:target.pos.x+f.x*target.speed*lead-m.pos.x,y:target.pos.y+f.y*target.speed*lead-m.pos.y,z:target.pos.z+f.z*target.speed*lead-m.pos.z});
+     const lead=Math.min(2.5,d/Math.max(180,m.speed))*.68,v=worldVelocity(target);
+     const aim=unitVector({x:target.pos.x+v.x*lead-m.pos.x,y:target.pos.y+v.y*lead-m.pos.y,z:target.pos.z+v.z*lead-m.pos.z});
      m.dir=turnMissile(m.dir,aim,specs.turnRate*interference.turnScale*dt);
     }
    }
@@ -456,7 +459,7 @@ export function threatFor(g,pilot){
  const incoming=[];
  for(const m of g.missiles){if(m.targetId!==p.id||m.decoyed||m.seekerLost||m.age>=m.life)continue;
   const distance=dist(p.pos,m.pos),line=unitVector({x:p.pos.x-m.pos.x,y:p.pos.y-m.pos.y,z:p.pos.z-m.pos.z}),f=forward(p);
-  const closing=vectorDot(m.dir,line)*m.speed-vectorDot(f,line)*p.speed,acceleration=MISSILE[m.type]?.acceleration||145;
+  const closing=vectorDot(m.dir,line)*m.speed-vectorDot(worldVelocity(p),line),acceleration=MISSILE[m.type]?.acceleration||145;
   const timeToImpact=(-closing+Math.sqrt(closing*closing+2*acceleration*distance))/acceleration;
   incoming.push({kind:m.type,sourceId:m.ownerId,missileId:m.id,bearing:angle(desiredHeading(p,m.pos)-p.yaw),distance,timeToImpact,locked:true});
  }
@@ -504,7 +507,7 @@ function mission(g,dt){
  if(g.skirmish&&g.time>=COMBAT_LIMITS.matchSeconds){const high=Math.max(...g.scores),winners=g.scores.map((score,team)=>score===high?team:null).filter(team=>team!==null);g.status='complete';g.result={title:'Skirmish complete',text:`Squad scores: ${g.scores.join(' / ')}. Return to base.`,winner:winners.length===1?winners[0]:null};return}
  if(g.time>480){g.status='complete';g.result={title:'Sortie complete',text:'Fuel reserve reached. The squadron is returning to base.',winner:null}}
 }
-export function step(g,inputs={},dt=1/60){if(g.status!=='playing')return;dt=clamp(dt,0,.05);g.time+=dt;g.tick++;for(const p of g.pilots)if(p.dead&&!p.human&&g.skirmish&&g.time>=(p.respawnAt??Infinity))respawnPilot(g,p.id);const previous=new Map(g.pilots.filter(p=>!p.dead).map(p=>[p.id,{...p.pos}]));for(const p of g.pilots)if(!p.dead)updatePilot(g,p,p.human?(inputs[p.id]||{}):ai(g,p,dt),dt);updateAircraftCollisions(g,previous);updateMissiles(g,dt,previous);advanceGunRounds(g,dt,{ground:surfaceHeight,canHit:p=>g.time>=(p.spawnProtectedUntil||0),onHit:(round,target)=>{recordDamage(g,target,'gun',round.ownerId,GUN.damage,round.pos);emit(g,'gun-hit','Machine gun hit',{pilotId:round.ownerId,targetId:target.id});},onKill:(target,owner)=>kill(g,target,owner)});
+export function step(g,inputs={},dt=1/60){if(g.status!=='playing')return;dt=clamp(dt,0,.05);g.time+=dt;g.tick++;for(const p of g.pilots)if(p.dead&&!p.human&&g.skirmish&&g.time>=(p.respawnAt??Infinity))respawnPilot(g,p.id);const previous=new Map(g.pilots.filter(p=>!p.dead).map(p=>[p.id,{...p.pos}]));for(const p of g.pilots)if(!p.dead)updatePilot(g,p,p.human?(inputs[p.id]||{}):ai(g,p,dt),dt);updateAircraftCollisions(g,previous);updateMissiles(g,dt,previous);advanceGunRounds(g,dt,{previous,ground:surfaceHeight,canHit:p=>g.time>=(p.spawnProtectedUntil||0),onHit:(round,target)=>{recordDamage(g,target,'gun',round.ownerId,GUN.damage,round.pos);emit(g,'gun-hit','Machine gun hit',{pilotId:round.ownerId,targetId:target.id});},onKill:(target,owner)=>kill(g,target,owner)});
  for(const c of g.countermeasures){c.age+=dt;c.pos.x+=c.vel.x*dt;c.pos.y+=c.vel.y*dt;c.pos.z+=c.vel.z*dt;c.vel.y-=12*dt}g.countermeasures=g.countermeasures.filter(c=>c.age<c.life);
  for(const b of g.bombs){b.age+=dt;b.vel.y-=45*dt;b.pos.x+=b.vel.x*dt;b.pos.y+=b.vel.y*dt;b.pos.z+=b.vel.z*dt;if(b.pos.y<=Math.max(4,surfaceHeight(b.pos.x,b.pos.z))){if(horizontal(b.pos,TARGET)<330&&!g.bombed){g.targetHp=0;g.bombed=true;emit(g,'target','Target destroyed. Turn toward ESCAPE.');g.effects.push({id:++g.serial,type:'target',pos:{...TARGET},age:0,life:8})}else emit(g,'miss','Bomb missed. Circle back for another pass.');b.pos.y=-999}}g.bombs=g.bombs.filter(b=>b.pos.y>-100);
  // Service surviving aircraft after this tick's damage; never revive a loss.

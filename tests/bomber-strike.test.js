@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createGame,step,horizontal,TARGET} from '../sim.js';
+import {createGame,step,horizontal,TARGET,worldSpeed} from '../sim.js';
 import {groundSpawn} from '../airport-operations.js';
 
 // The third base is not currently offered by strike's two-team menu. Seed its
@@ -15,7 +15,7 @@ for(const [base,role,team] of [['home','attack',0],['northpoint','defend',1],['w
   for(let n=0;n<240/dt&&g.status==='playing';n++){
    const stores=p.bombs;step(g,{},dt);
    const distance=horizontal(p.pos,previous);travel+=distance;
-   assert(distance<=p.speed*dt+1,'aircraft must fly continuously, never teleport');previous={...p.pos};
+   assert(distance<=worldSpeed(p)*dt+1,'aircraft must fly continuously, never teleport');previous={...p.pos};
    airborne||=!p.grounded;
    if(p.bombs<stores){released+=stores-p.bombs;assert(airborne);assert(p.pos.y>100);assert(horizontal(p.pos,TARGET)>400,'release leads the target rather than dropping overhead');}
    impact||=g.bombed;

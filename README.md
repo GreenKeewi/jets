@@ -12,6 +12,10 @@ Serve this directory with a static server, for example `python3 -m http.server 8
 
 The expanded archipelago occupies a 72 × 72 km flight area across eight authored islands. All three airports now have 2.5 km runways. Terrain collision and rendered terrain share the same height model. Airports, coastal settlements, harbours and mountain ridges give the longer routes distinct destinations.
 
+## Arcade travel
+
+At cruise, airborne aircraft cover up to 50% more world distance while indicated knots, energy, signed G and vision effects use the normal flight model. The boost blends in from 120 to 220 m/s of indicated airspeed; grounded aircraft, departure climbs, gear-down flight and free-flight final approach keep normal travel. AI, weapon lead, missile speeds, bomb impact estimates and collision sweeps use the actual world motion. This is intentional arcade balance, not real-world groundspeed.
+
 ## Keyboard
 
 **A / D** or **Left / Right** bank and turn visually left / right. **Up / Down** increases / reduces engine power; Shift and Z/minus remain power aliases. **W / S** climbs / descends. Normal mode self-levels and manages gear/braking automatically. K enables advanced arcade controls: X toggles persistent air/wheel brakes and G toggles gear. **Hold Space for the machine gun**: unguided rounds need no lock, so lead the target with the crosshair. Weapons restock only near your HOME base. **Fighters: Q fires a heat-seeking missile; E fires a radar missile. Bombers have guns and bombs only.** Build a short/full lock respectively, then press once. Holding or auto-repeat on Q/E does not steer, change power or launch repeatedly. F flares; C chaff; B bomb; R respawn in bot skirmishes; V chase/cockpit; L free-flight route assist; I extra instruments; H controls; Escape or P pause; M mute. In K mode, release pitch/roll input to hold the current attitude and roll back level manually. Tab, Enter and native select arrows navigate menus. Pairing fields support Ctrl+A/C/V.

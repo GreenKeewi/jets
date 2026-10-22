@@ -1,3 +1,4 @@
+import {worldVelocity as velocity} from './arcade-travel.js?v=skybreak6-1022';
 // Original procedural jet, wind and radio cues; no downloaded audio or media permissions.
 const clamp=(value,low,high)=>Math.max(low,Math.min(high,Number.isFinite(value)?value:0));
 const NEARBY_VOICES=4,NEARBY_RANGE=2800,TRANSIENT_LIMIT=16;
@@ -19,7 +20,7 @@ export function threatAudioProfile(threat){
  const range=info.range??700,time=info.timeToImpact??Infinity,urgent=(Number.isFinite(time)&&time<4)||(Number.isFinite(range)&&range<650);
  return{type:type==='radar'?'radar':'heat',period:urgent?.27:.7,frequency:type==='radar'?820:550,duration:.075,gain:urgent?.06:.045,urgent,pan};
 }
-function velocity(p){const speed=clamp(p.speed,0,1000),yaw=p.yaw||0,pitch=p.pitch||0;return{x:Math.sin(yaw)*Math.cos(pitch)*speed,y:Math.sin(pitch)*speed-(p.stallSink||0),z:Math.cos(yaw)*Math.cos(pitch)*speed}}
+
 export function nearbyJetSound(p,q,inside=false){
  const dx=q.pos.x-p.pos.x,dy=q.pos.y-p.pos.y,dz=q.pos.z-p.pos.z,distance=Math.hypot(dx,dy,dz),length=Math.max(1,distance),yaw=p.yaw||0,ours=velocity(p),theirs=velocity(q);
  const radial=((theirs.x-ours.x)*dx+(theirs.y-ours.y)*dy+(theirs.z-ours.z)*dz)/length,forward=(dx*Math.sin(yaw)+dz*Math.cos(yaw))/length;
