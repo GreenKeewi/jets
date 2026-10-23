@@ -1,0 +1,33 @@
+{
+  "method": "Actual WebGL terrain with diagnostic orthographic camera; not normal gameplay",
+  "metrics": {
+    "distance": 17896.647730790253,
+    "continuousWater": 3901.4692053122753,
+    "sampledShoreGap": 3023.199958036069,
+    "home": {
+      "id": "home",
+      "name": "Coastal Air Base",
+      "shortName": "Coastal",
+      "x": -1800,
+      "z": -2000,
+      "elevation": 0,
+      "heading": 0,
+      "halfLength": 1250,
+      "width": 100,
+      "runway": "36"
+    },
+    "northpoint": {
+      "id": "northpoint",
+      "name": "Northpoint Ridge",
+      "shortName": "Northpoint",
+      "x": 10500,
+      "z": 11000,
+      "elevation": 72,
+      "heading": 0,
+      "halfLength": 1250,
+      "width": 85,
+      "runway": "36"
+    }
+  },
+  "errors": []
+}

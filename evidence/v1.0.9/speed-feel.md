@@ -1,0 +1,12 @@
+# Speed-feel changes and checks
+
+The 1.5× arcade travel multiplier, physical airspeed, HUD knots, load calculation, fuel, weapon travel, takeoff/landing distances and flight envelope are unchanged. Changes strengthen visual scale and sound at the same speed.
+
+- Cockpit FOV at 500 knots rises from approximately 83.0° to 86.5°; chase from 75.8° to 79.3°. Maximum is 89.5° cockpit / 82.5° chase. Changes remain smoothly interpolated. Reduced motion keeps the original fixed 76° / 67° and disables air wisps.
+- The same 48 fixed-buffer wisps (24 on low quality) remain world-anchored. Half now pass 28–75 m away rather than 45–105 m. At 500 knots their exposure length is 6.1 m rather than 4.7 m, with stronger but bounded opacity. The aiming center remains clear; there is no camera shake, flashing or motion blur.
+- Sea foam uses 55 m spacing rather than 110 m, increasing local landmark density fourfold with the same 625-instance budget. A second bounded 625-instance draw supplies low land shrubs/rocks. Both remain fixed in world coordinates, refresh only on grid-cell changes, cull at altitude and keep runway/approach clearance. Low quality retains 169 nearby foam instances (previously all foam disappeared) while culling the land detail.
+- Wind grows earlier with speed and is less attenuated inside; low engine fundamentals are slightly stronger. Signals remain under the existing compressor. `audio.json` records real Chromium offline PCM and running live AudioContext/analyser measurements: nonzero, finite output; no clipped test mix; silent mute/dead output; higher burner RMS and lower cockpit RMS than chase. No human listening claim.
+
+`tests/flight-speed-cues.test.js`, `tests/audio-mixing.test.js`, and `tests/arcade-travel.test.js` pass. These cover finite/bounded geometry, world anchoring, no physical position changes, FOV/reduced motion, runway clearance, quality culling, sound ordering, unchanged travel and landing behavior. `tests/audio-browser.cjs` passes real Web Audio rendering and transient cleanup.
+
+`speed-before.png` and `speed-after.png` are inspected native browser screenshots from the same explicit low-pass fixture (95 m, approximately 500 knots, ocean, cockpit). Normal animation frames run after the fixture; screenshots therefore differ slightly in distance/time. They demonstrate readable instruments and stronger peripheral streaks, not a measured subjective sensation. `speed-after-chase.png` shows the resulting low-pass scenery outside the cockpit. End-to-end mission testing is reported separately.

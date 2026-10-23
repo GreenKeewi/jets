@@ -11,8 +11,8 @@ test('expanded archipelago has eight distinct islands within a 72 km square',()=
  for(const island of ISLANDS.slice(3)){assert.ok(Math.hypot(island.x,island.z)>22000,island.id);for(let n=0;n<32;n++){const p=coastPoint(n/32*Math.PI*2,0,island.id);assert.ok(Math.abs(terrainHeight(p.x,p.z)-SEA_LEVEL)<.05,`${island.id}: ${n}`)}}
 });
 
-test('original airport coordinates and protected runway foundations are preserved',()=>{
- assert.deepEqual(Object.values(AIRFIELDS).map(f=>[f.id,f.x,f.z,f.elevation,f.heading]),[['home',-1800,-2000,0,0],['northpoint',4200,10300,72,0],['westhaven',-9900,4200,8,Math.PI/2]]);
+test('home and westhaven remain fixed; moved Northpoint retains protected runway foundations',()=>{
+ assert.deepEqual(Object.values(AIRFIELDS).map(f=>[f.id,f.x,f.z,f.elevation,f.heading]),[['home',-1800,-2000,0,0],['northpoint',10500,11000,72,0],['westhaven',-9900,4200,8,Math.PI/2]]);
  for(const field of Object.values(AIRFIELDS))for(let along=-field.halfLength;along<=field.halfLength;along+=100)for(const across of[-field.width,0,field.width]){const p=fieldPoint(field,across,along);assert.equal(terrainHeight(p.x,p.z),field.elevation+2,`${field.id}: ${across},${along}`)}
 });
 

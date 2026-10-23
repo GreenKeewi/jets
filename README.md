@@ -189,29 +189,32 @@ Public shape references: [USAF F-16 overview](https://www.airmanmagazine.af.mil/
 
 Multiplayer compatibility is JETS7 / skybreak3-1022. Reload both devices and generate fresh room codes. Existing peer rooms remain distinct from the separately prepared authoritative-server work.
 
-The compact home menu uses the actual aircraft and home airport as its backdrop when WebGL is available; its clearly labeled technical illustration is a graphics-unavailable fallback. The classic pre-update 580×110 two-instrument cockpit and canopy are restored, with truthful gear and afterburner indicators. Fighter airborne thrust is 20% stronger, with unchanged runway thrust, and chase-view speed FOV increases gently. AI matches pursuit speed rather than blindly holding cruise power.
+The home menu uses the actual aircraft and home airport as its WebGL backdrop. Local Chromium WebGL gameplay and cockpit screenshots are now verified; earlier cloud graphics limitations no longer describe this release. The public-site browser certificate warning was not bypassed.
 
 ### Current verification status
 
-The automated game/controller/physics/geometry suite and 12 standalone backend tests pass. Coverage includes 48 bomber departure combinations, full first-bomb-hit/escape trajectories from every airport at 30/60 Hz, all scenic routes landing at home, keyboard-state/controller flows, fuel/afterburner, signed G, damage and staged server routing. The optional shared-server endpoint remains empty/inactive until separately deployed and verified. A cloud WebGL limitation prevents claiming a completed rendered 3D playtest; no browser security settings were changed.
-
-Asset-level visual auditing uses CPU renders of the actual original meshes and instrument drawing function, not screenshots of rendered gameplay. This audit found and fixed inward fuselage triangle winding, with explicit outward-normal regressions for both aircraft and both LODs. Gear struts connect to the wing and parked wheels sit on the pavement instead of floating. Normal and advanced/damage instrument layouts were inspected without text overlap. The final rendered WebGL gameplay/performance check still requires a GPU-capable browser.
-
-### Final runway and feel corrections
-
-The HOME pavement mesh now shares the 2,500m runway dimensions used by spawning and physics, fixing starts behind the old 2,000m visual strip. Initial squads, peer late joins and staged-server late joins are regression-tested against runway placement. Rendered gear contact is calibrated to the actual elevated asphalt surface. World-anchored nearby airflow cues are more visible at 500 knots, with unchanged flight speed and no additional FOV boost; reduced-motion mode disables them.
+Automated physics, mission, controls and backend suites pass. Local browser testing includes native keyboard sorties, cockpit layouts and generated audio signals. No human listening or cross-network multiplayer validation is claimed. The optional shared-server endpoint remains empty until deployed with separately authorized Cloudflare access.
 
 ## v1.0.7 cloud update
 
 Gear and airbrake work in both control modes. The Controls & accessibility dialog saves keyboard assignments, rejects conflicts, resets defaults, and offers reduced visual effects. First-person view includes original seated legs/boots, pedals, stick and a live throttle, with the readable instrument panel retained. See [cockpit design](cockpit-design.md).
 
-Signed pilot load now comes from physical acceleration minus gravity in the pilot frame. Actual flight-path limiting replaces impossible sustained turns, and positive/negative exposure accumulates and recovers over time. See [flight model and authoritative sources](flight-model.md) for the fictional envelopes and physiology simplifications. Fighter afterburner begins at 110%, continues without a timer, and consumes 8 kg/s (dry maximum 3.8 kg/s).
+Signed pilot load now comes from physical acceleration minus gravity in the pilot frame. Actual flight-path limiting replaces impossible sustained turns, with a signed G display. The original exposure effects were subsequently removed in v1.0.8. See [flight model and authoritative sources](flight-model.md) for the fictional envelopes and physiology simplifications. Fighter afterburner begins at 110%, continues without a timer, and consumes 8 kg/s (dry maximum 3.8 kg/s).
 
 Strike depots now sit beyond the enemy airfield, with a long outbound route and escape. At most two occasional airfield SAM launches occur per sortie; bomber flares deterministically defeat these cinematic missiles. Bombers still carry bombs and guns only.
 
 Audio includes a fix for powered sound from destroyed engines and false historical gun bursts. Browser-generated PCM and a running AudioContext were tested, not human-listened. The dedicated backend passed local Node and Cloudflare runtime tests but still has no public endpoint or configured deployment authorization. Existing friend rooms are separate; no cross-network multiplayer claim is made. See [verification evidence](evidence/v1.0.7/audio-backend.md).
 
+## v1.0.8 immediate G-effects fix
 
-## v1.0.8 focused G feedback fix
+Blackout, redout and G-induced control lockouts are removed entirely. G only adds a light, capped edge vignette with a clear center. The signed G meter and actual flight envelope remain. Sustained excessive G causes small, capped airframe wear after a grace period; ordinary turns do not. Existing home-base landing service repairs the wear. See [verification](evidence/v1.0.8/g-response/README.md) for the explicitly arcade values and tests.
 
-Blackout, redout and all G-induced input locks are removed. Signed G remains physical; only a light neutral edge vignette remains (12% cap, fully clear central 68%). Sustained excessive G adds gentle, nonlethal wear after five seconds, capped at ten HP and repaired by HOME runway service. It does not trigger hit flashes or damage sounds. See [current design and tests](evidence/v1.0.8/g-response/README.md). Cockpit, speed-feel and map changes are separate later work.
+## v1.0.9 cockpit and handling feedback
+
+The B-2-inspired bomber now has its own broad two-seat cockpit, split windshield framing, wide instrument panel and grouped engine controls, based on public cockpit photographs. The fighter keeps its existing interior. All geometry is original, and the simplified instruments/controls are arcade representations.
+
+Nearby world-fixed sea foam and land detail, closer peripheral airflow streaks, modestly wider speed FOV and a stronger wind/engine mix improve speed sensation. Indicated knots, fuel/energy, landing behavior and the existing 1.5× cruise travel scale are unchanged. Reduced-motion retains fixed FOV and disables added airflow streaks. See [speed verification](evidence/v1.0.9/speed-feel.md).
+
+The full native-keyboard Strike & Escape validation now covers runway departure, SAM warning and flare defeat, a real bomb impact and the successful escape end state. The test pilot uses telemetry to choose native key presses, without position writes or simulation stepping. See [complete-sortie evidence](evidence/v1.0.9/strike-keyboard/README.md).
+
+Northpoint now occupies a separate island, 17.90 km from HOME with a 3.90 km continuous water crossing along the direct route. The depot, SAMs, AI and escape markers use the moved airport. Northern Valley is a 22.84 km mountain corridor with eight linked bends and a 1.2 km floor; AI follows the bends and manages speed. Airbrake drag builds gradually to 12–16 m/s² at sea level, down from an abrupt 28, while wheel braking is unchanged.

@@ -5,6 +5,7 @@ import {AIRCRAFT_PALETTES,aircraftPower,createAircraft,animateAircraft} from '..
 import {flightFov,FlightAirMotion,AIR_MOTION_BUDGET} from '../render.js';
 import {flightSound} from '../audio.js';
 import {Scenery} from '../scenery.js';
+import {AIRFIELDS,fieldCoordinates} from '../missions.js';
 
 const pilot=(values={})=>({id:'host',pos:{x:0,y:700,z:0},yaw:0,pitch:0,roll:0,speed:285,throttle:.78,grounded:false,dead:false,...values});
 const makeCamera=()=>{const c=new THREE.PerspectiveCamera(70,16/9,.8,45000);c.position.set(0,700,0);c.lookAt(0,700,100);return c};
@@ -12,7 +13,7 @@ const makeCamera=()=>{const c=new THREE.PerspectiveCamera(70,16/9,.8,45000);c.po
 test('fighter FOV increases modestly through the full speed envelope and respects reduced motion',()=>{
  for(const view of ['chase','cockpit']){
   const base=flightFov(0,view),cruise=flightFov(285,view),maximum=flightFov(686,view);
-  assert(cruise>base&&maximum>cruise);assert.equal(maximum-base,view==='cockpit'?9.5:11.5);
+  assert(cruise>base&&maximum>cruise);assert.equal(maximum-base,view==='cockpit'?13.5:15.5);
   assert.equal(flightFov(10000,view),maximum);assert.equal(flightFov(686,view,true),base);
  }
 });
@@ -48,10 +49,10 @@ test('500-knot cruise has readable peripheral parallax without changing physical
   const x=air.points[i*3],y=air.points[i*3+1]-camera.position.y,z=air.points[i*3+2];
   const screenRadius=Math.hypot(x/(z*spread*camera.aspect),y/(z*spread));
   assert(screenRadius>=.42&&screenRadius<=.98,'wisps leave the central aiming region clear');
-  if(z<=105){nearCount++;assert(z>=45);assert(screenRadius>=.62)}
-  assert(Math.abs(Math.hypot(positions.getX(i*2)-positions.getX(i*2+1),positions.getY(i*2)-positions.getY(i*2+1),positions.getZ(i*2)-positions.getZ(i*2+1))-speed/55)<.0001);
+  if(z<=75){nearCount++;assert(z>=28);assert(screenRadius>=.62)}
+  assert(Math.abs(Math.hypot(positions.getX(i*2)-positions.getX(i*2+1),positions.getY(i*2)-positions.getY(i*2+1),positions.getZ(i*2)-positions.getZ(i*2+1))-speed/42)<.0001);
  }
- assert.equal(nearCount,AIR_MOTION_BUDGET/2);assert(air.material.opacity>.16&&air.material.opacity<.22);
+ assert.equal(nearCount,AIR_MOTION_BUDGET/2);assert(air.material.opacity>.20&&air.material.opacity<.29);
  const point=new THREE.Vector3(...air.points.slice(0,3)),original=Array.from(air.points),before=point.clone().project(camera);
  camera.position.z+=speed/60;camera.lookAt(0,700,camera.position.z+100);camera.updateMatrixWorld();
  air.update(p,camera,1/60);const after=point.clone().project(camera);
@@ -73,7 +74,7 @@ test('dry cruise, afterburner and narrow transonic vapor match the new speed sca
 
 test('procedural audio keeps gaining wind intensity through Mach 2 without clipping-scale gain',()=>{
  const slow=flightSound(pilot({speed:110})),cruise=flightSound(pilot()),fast=flightSound(pilot({speed:686,throttle:1,afterburnerActive:true}));
- assert(slow.wind<cruise.wind&&cruise.wind<fast.wind);assert(fast.wind<.5);
+ assert(slow.wind<cruise.wind&&cruise.wind<fast.wind);assert(fast.wind<=.5);
  assert(fast.jet>cruise.jet);assert(fast.engine>cruise.engine);
  assert(flightSound(pilot({speed:686}),true).wind<flightSound(pilot({speed:686})).wind);
  assert(flightSound(pilot({speed:100000})).wind<=.5);
@@ -92,9 +93,18 @@ test('team 2 aircraft animates its reusable vapor and exhaust without geometry a
 
 test('whitecaps use bounded instancing, stable grid locations and low-quality culling',()=>{
  const s=Object.create(Scenery.prototype);s.scene=new THREE.Scene();s.setupSurfaceDetail();const camera=makeCamera();camera.position.set(13000,200,-6000);
- s.updateSurfaceDetail(camera,1);assert(s.whitecaps.count>0&&s.whitecaps.count<=625);assert.equal(s.scene.children.length,1);
+ s.updateSurfaceDetail(camera,1);assert(s.whitecaps.count>0&&s.whitecaps.count<=625);assert.equal(s.scene.children.length,2);
  const matrices=s.whitecaps.instanceMatrix.array.slice();s.updateSurfaceDetail(camera,1);assert.deepEqual(s.whitecaps.instanceMatrix.array,matrices);
  camera.position.x+=110;s.updateSurfaceDetail(camera,1);assert(s.whitecaps.count<=625);assert(s.whitecaps.instanceMatrix.array.every(Number.isFinite));
- s.updateSurfaceDetail(camera,.65);assert.equal(s.whitecaps.visible,false);
+ s.updateSurfaceDetail(camera,.65);assert.equal(s.whitecaps.visible,true);assert(s.whitecaps.count>0&&s.whitecaps.count<=169);
  camera.position.y=2000;s.updateSurfaceDetail(camera,1);assert.equal(s.whitecaps.visible,false);
+});
+
+test('low-pass ground detail is world-fixed, bounded and clear of runway approaches',()=>{
+ const s=Object.create(Scenery.prototype);s.scene=new THREE.Scene();s.setupSurfaceDetail();const camera=makeCamera();camera.position.set(0,100,600);
+ s.updateSurfaceDetail(camera,1);assert(s.groundDetail.count>0&&s.groundDetail.count<=625);
+ const matrices=s.groundDetail.instanceMatrix.array.slice();s.updateSurfaceDetail(camera,1);assert.deepEqual(s.groundDetail.instanceMatrix.array,matrices);
+ const matrix=new THREE.Matrix4(),position=new THREE.Vector3();for(let i=0;i<s.groundDetail.count;i++){s.groundDetail.getMatrixAt(i,matrix);position.setFromMatrixPosition(matrix);assert(Number.isFinite(position.y));for(const f of Object.values(AIRFIELDS)){const q=fieldCoordinates(f,position);assert(Math.abs(q.across)>=f.width+160||Math.abs(q.along)>=f.halfLength+180);}}
+ camera.position.y=5000;s.updateSurfaceDetail(camera,1);assert.equal(s.groundDetail.visible,false);
+ camera.position.y=100;s.updateSurfaceDetail(camera,.65);assert.equal(s.groundDetail.visible,false);
 });

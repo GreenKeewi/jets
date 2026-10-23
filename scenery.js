@@ -1,8 +1,8 @@
-import {SUN_DIRECTION} from './seeker-environment.js?v=skybreak8-1023';
+import {SUN_DIRECTION} from './seeker-environment.js?v=skybreak9-1023';
 import * as THREE from './vendor/three.module.js';
-import {terrainHeight,worldNoise,coastPoint,northernRidgeHeight,SEA_LEVEL,ISLANDS,TERRAIN_TILE_SIZE,TERRAIN_EDGE_SEGMENTS,TERRAIN_LOD_SEGMENTS} from './world.js?v=skybreak8-1023';
-import {createAircraft} from './aircraft.js?v=skybreak8-1023';
-import {AIRFIELDS,fieldPoint,fieldCoordinates,WORLD_BOUNDS} from './missions.js?v=skybreak8-1023';
+import {terrainHeight,worldNoise,coastPoint,northernRidgeHeight,NORTHPOINT_SHIFT,SEA_LEVEL,ISLANDS,TERRAIN_TILE_SIZE,TERRAIN_EDGE_SEGMENTS,TERRAIN_LOD_SEGMENTS} from './world.js?v=skybreak9-1023';
+import {createAircraft} from './aircraft.js?v=skybreak9-1023';
+import {AIRFIELDS,fieldPoint,fieldCoordinates,WORLD_BOUNDS} from './missions.js?v=skybreak9-1023';
 const standard=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.88,metalness:.08,...extra});
 function box(w,h,d,mat,x=0,y=0,z=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);return m}
 function canvasTexture(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
@@ -57,17 +57,31 @@ export class Scenery{
  }
 
  setupSurfaceDetail(){
-  // Sparse 5–17 m whitecaps provide an honest nearby distance reference over water.
+  // Dense 5–17 m whitecaps provide an honest nearby distance reference over water.
   // A fixed 25 × 25 lattice is recycled only on cell boundaries; samples never drift
   // with the camera, and cost remains one instanced draw even at Mach 2.
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute([-.5,0,0,-.15,0,.48,.1,0,-.1,.5,0,.22,.1,0,-.1,-.15,0,.48],3));geometry.computeVertexNormals();
-  this.whitecaps=new THREE.InstancedMesh(geometry,new THREE.MeshBasicMaterial({color:0x8ab9bf,transparent:true,opacity:.37,depthWrite:false,side:THREE.DoubleSide}),625);this.whitecaps.instanceMatrix.setUsage(THREE.DynamicDrawUsage);this.whitecaps.frustumCulled=false;this.whitecapMatrix=new THREE.Matrix4();this.whitecapScale=new THREE.Vector3();this.whitecapPosition=new THREE.Vector3();this.whitecapRotation=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),-.55);this.whitecapCell='';this.scene.add(this.whitecaps);
+  this.whitecaps=new THREE.InstancedMesh(geometry,new THREE.MeshBasicMaterial({color:0x8ab9bf,transparent:true,opacity:.48,depthWrite:false,side:THREE.DoubleSide}),625);this.whitecaps.instanceMatrix.setUsage(THREE.DynamicDrawUsage);this.whitecaps.frustumCulled=false;this.whitecapMatrix=new THREE.Matrix4();this.whitecapScale=new THREE.Vector3();this.whitecapPosition=new THREE.Vector3();this.whitecapRotation=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),-.55);this.whitecapCell='';this.scene.add(this.whitecaps);
+  // Low shrubs/rocks give land the same world-fixed near-field scale as sea foam.
+  this.groundDetail=new THREE.InstancedMesh(new THREE.ConeGeometry(1,1,4),new THREE.MeshStandardMaterial({color:0x475e3a,roughness:1}),625);this.groundDetail.instanceMatrix.setUsage(THREE.DynamicDrawUsage);this.groundDetail.frustumCulled=false;this.groundDetailCell='';this.scene.add(this.groundDetail);
  }
  updateSurfaceDetail(camera,quality){
-  this.whitecaps.visible=camera.position.y<1800&&quality>.7;if(!this.whitecaps.visible)return;
-  const spacing=110,cx=Math.floor(camera.position.x/spacing),cz=Math.floor(camera.position.z/spacing),key=`${cx},${cz}`;this.whitecaps.material.opacity=.37*Math.max(0,Math.min(1,(1800-camera.position.y)/1000));if(key===this.whitecapCell)return;this.whitecapCell=key;
-  let count=0;for(let ix=-12;ix<=12;ix++)for(let iz=-12;iz<=12;iz++){
-   const xCell=cx+ix,zCell=cz+iz,seed=xCell*157.7+zCell*311.9,x=(xCell+.5)*spacing+(hash(seed)-.5)*70,z=(zCell+.5)*spacing+(hash(seed+17)-.5)*70;if(terrainHeight(x,z)>SEA_LEVEL-1)continue;
+  const aboveGround=camera.position.y-terrainHeight(camera.position.x,camera.position.z);
+  this.groundDetail.visible=aboveGround<700&&quality>.7;
+  if(this.groundDetail.visible){
+   const spacing=65,cx=Math.floor(camera.position.x/spacing),cz=Math.floor(camera.position.z/spacing),key=`${cx},${cz}`;
+   if(key!==this.groundDetailCell){this.groundDetailCell=key;let count=0;
+    for(let ix=-12;ix<=12;ix++)for(let iz=-12;iz<=12;iz++){
+     const seed=(cx+ix)*157.7+(cz+iz)*311.9,x=(cx+ix+.5)*spacing+(hash(seed)-.5)*40,z=(cz+iz+.5)*spacing+(hash(seed+17)-.5)*40,y=terrainHeight(x,z);
+     if(y<SEA_LEVEL+3||Object.values(AIRFIELDS).some(f=>{const q=fieldCoordinates(f,{x,z});return Math.abs(q.across)<f.width+160&&Math.abs(q.along)<f.halfLength+180}))continue;
+     const height=1.5+hash(seed+41)*3;this.whitecapPosition.set(x,y+height*.4,z);this.whitecapScale.set(2+hash(seed+73)*5,height,2+hash(seed+83)*5);this.whitecapMatrix.compose(this.whitecapPosition,this.whitecapRotation,this.whitecapScale);this.groundDetail.setMatrixAt(count++,this.whitecapMatrix);
+    }this.groundDetail.count=count;this.groundDetail.instanceMatrix.needsUpdate=true;
+   }
+  }
+  this.whitecaps.visible=camera.position.y<1800;if(!this.whitecaps.visible)return;
+  const spacing=55,cx=Math.floor(camera.position.x/spacing),cz=Math.floor(camera.position.z/spacing),key=`${cx},${cz},${quality>.7}`;this.whitecaps.material.opacity=.48*Math.max(0,Math.min(1,(1800-camera.position.y)/1000));if(key===this.whitecapCell)return;this.whitecapCell=key;
+  const radius=quality>.7?12:6;let count=0;for(let ix=-radius;ix<=radius;ix++)for(let iz=-radius;iz<=radius;iz++){
+   const xCell=cx+ix,zCell=cz+iz,seed=xCell*157.7+zCell*311.9,x=(xCell+.5)*spacing+(hash(seed)-.5)*35,z=(zCell+.5)*spacing+(hash(seed+17)-.5)*35;if(terrainHeight(x,z)>SEA_LEVEL-1)continue;
    this.whitecapPosition.set(x,SEA_LEVEL+.25,z);this.whitecapScale.set(5+hash(seed+41)*12,1,1+hash(seed+73)*2);this.whitecapMatrix.compose(this.whitecapPosition,this.whitecapRotation,this.whitecapScale);this.whitecaps.setMatrixAt(count++,this.whitecapMatrix);
   }
   this.whitecaps.count=count;this.whitecaps.instanceMatrix.needsUpdate=true;
@@ -89,7 +103,7 @@ export class Scenery{
   scene.add(ribbon([[-1430,-2500],[-1210,-1900],[-930,-820],[-480,220],[530,1070]],1.5,standard(0xd0c7a1),.8));
  }
  buildForests(){
-  const cells=new Map(),cellSize=2400,regions=[{x:-4300,z:-4600,w:8500,d:9200,count:2600,seed:0},{x:-4700,z:4600,w:13000,d:8700,count:3000,seed:10000},{x:-13200,z:800,w:7200,d:7600,count:2300,seed:20000},...ISLANDS.slice(3).filter(island=>island.biome!=='volcanic').map((island,index)=>({x:island.x-island.rx,z:island.z-island.rz,w:island.rx*2,d:island.rz*2,count:1200,seed:30000+index*10000}))];
+  const cells=new Map(),cellSize=2400,regions=[{x:-4300,z:-4600,w:8500,d:9200,count:2600,seed:0},{x:-4700+NORTHPOINT_SHIFT.x,z:4600+NORTHPOINT_SHIFT.z,w:13000,d:8700,count:3000,seed:10000},{x:-13200,z:800,w:7200,d:7600,count:2300,seed:20000},...ISLANDS.slice(3).filter(island=>island.biome!=='volcanic').map((island,index)=>({x:island.x-island.rx,z:island.z-island.rz,w:island.rx*2,d:island.rz*2,count:1200,seed:30000+index*10000}))];
   const palette=[0x345b49,0x426c50,0x52775a,0x638462];
   for(const region of regions)for(let n=0;n<region.count;n++){const i=n+region.seed,x=region.x+hash(i*3+1)*region.w,z=region.z+hash(i*3+2)*region.d,h=terrainHeight(x,z);if(h<9||h>950||worldNoise(x*2.7,z*2.7)<-.05||x>-1000&&x<1600&&z>-1600&&z<1500)continue;
    if(Object.values(AIRFIELDS).some(field=>{const p=fieldCoordinates(field,{x,z});return Math.abs(p.across-200)<970&&Math.abs(p.along)<field.halfLength+600}))continue;
@@ -182,8 +196,8 @@ export class Scenery{
  }
  buildRemoteLandmarks(){
   const s=this.scene,walls=standard(0xc5c4ae),roofMaterial=standard(0x7a8e83),street=standard(0x929d87),glass=standard(0x4e7b84);
-  for(const location of[{x:-9300,z:3500},{x:5400,z:10900}]){for(let i=0;i<18;i++){const x=location.x+(i%6)*75,z=location.z+Math.floor(i/6)*85,base=terrainHeight(x,z),height=12+hash(i+7)*16;s.add(box(38,height,40,walls,x,base+height/2,z));const r=roof(42,44,8,roofMaterial);r.position.set(x,base+height,z);s.add(r);s.add(box(4,5,.6,glass,x,base+height*.6,z-20.3))}s.add(ribbon([[location.x-100,location.z-70],[location.x+250,location.z-70],[location.x+530,location.z+250]],13,street));}
-  s.add(ribbon([[-9900,4000],[-8800,4200],[-7800,5600],[-8800,6900]],15,street));s.add(ribbon([[4700,10300],[5500,10800],[6400,11900]],15,street));
+  for(const location of[{x:-9300,z:3500},{x:AIRFIELDS.northpoint.x+1200,z:AIRFIELDS.northpoint.z+600}]){for(let i=0;i<18;i++){const x=location.x+(i%6)*75,z=location.z+Math.floor(i/6)*85,base=terrainHeight(x,z),height=12+hash(i+7)*16;s.add(box(38,height,40,walls,x,base+height/2,z));const r=roof(42,44,8,roofMaterial);r.position.set(x,base+height,z);s.add(r);s.add(box(4,5,.6,glass,x,base+height*.6,z-20.3))}s.add(ribbon([[location.x-100,location.z-70],[location.x+250,location.z-70],[location.x+530,location.z+250]],13,street));}
+  s.add(ribbon([[-9900,4000],[-8800,4200],[-7800,5600],[-8800,6900]],15,street));s.add(ribbon([[500,0],[1300,500],[2200,1600]].map(([x,z])=>[AIRFIELDS.northpoint.x+x,AIRFIELDS.northpoint.z+z]),15,street));
   const tip=coastPoint(1.15,-120,'northpoint'),base=terrainHeight(tip.x,tip.z),tower=new THREE.Mesh(new THREE.CylinderGeometry(6,9,38,14),walls);tower.position.set(tip.x,base+19,tip.z);s.add(tower);s.add(box(16,7,16,glass,tip.x,base+42,tip.z));
  }
  buildDepot(){const group=new THREE.Group(),concrete=standard(0x788276),roofMat=standard(0x976d55),metal=standard(0xb2b8a8);group.position.set(0,4,700);group.add(box(245,1,245,standard(0x6f7c70)));group.add(box(170,25,100,concrete,0,13,0));const top=roof(176,106,12,roofMat);top.position.y=26;group.add(top);for(let i=0;i<3;i++){const tank=new THREE.Mesh(new THREE.CylinderGeometry(22,22,35,18),metal);tank.position.set(-115+i*50,18,-95);group.add(tank)}for(let i=0;i<5;i++)group.add(box(14,6,14,standard(0x8b7e61),65+i%2*20,4,-70+Math.floor(i/2)*20));this.depot=group;this.scene.add(group)}

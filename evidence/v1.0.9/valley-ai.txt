@@ -1,0 +1,5 @@
+{ entryX: -12000, clearance: 205.61741587883367 }
+{ entryX: -6000, clearance: 205.49198442621673 }
+{ entryX: -2000, clearance: 205.4917011633475 }
+{ entryX: 0, clearance: 207.54887972974095 }
+{ entryX: 5000, clearance: 210.07831567695686 }

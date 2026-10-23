@@ -1,4 +1,4 @@
-import {flightForward} from './view-axes.js?v=skybreak8-1023';
+import {flightForward} from './view-axes.js?v=skybreak9-1023';
 // Intentional arcade world travel, NOT indicated airspeed or simulated G.
 // Takeoff, gear-down flight and free-flight final approach retain normal distances.
 export const TRAVEL=Object.freeze({maxMultiplier:1.5,blendStart:120,blendEnd:220});

@@ -1,5 +1,5 @@
-import {AIRFIELDS,fieldCoordinates} from './missions.js?v=skybreak8-1023';
-import {GUN} from './guns.js?v=skybreak8-1023';
+import {AIRFIELDS,fieldCoordinates} from './missions.js?v=skybreak9-1023';
+import {GUN} from './guns.js?v=skybreak9-1023';
 
 export const AIRFIELD_RESUPPLY=Object.freeze({radius:250,exitRadius:350,cooldown:12});
 const fields=Object.values(AIRFIELDS);

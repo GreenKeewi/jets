@@ -1,13 +1,13 @@
-import {CockpitInterior} from './cockpit-interior.js?v=skybreak8-1023';
-import {viewAxes,gunMuzzle} from './view-axes.js?v=skybreak8-1023';
-import {GUN} from './guns.js?v=skybreak8-1023';
+import {CockpitInterior} from './cockpit-interior.js?v=skybreak9-1023';
+import {viewAxes,gunMuzzle} from './view-axes.js?v=skybreak9-1023';
+import {GUN} from './guns.js?v=skybreak9-1023';
 import * as THREE from './vendor/three.module.js';
-import {RUNWAY,ROUTE,TARGET,ESCAPE,strikeTarget,strikeEscape,forward,bombSolution,canBomb,clamp} from './sim.js?v=skybreak8-1023';
-import {surfaceHeight} from './world.js?v=skybreak8-1023';
-import {routeFor,destinationFor,fieldPoint} from './missions.js?v=skybreak8-1023';
-import {Scenery} from './scenery.js?v=skybreak8-1023';
-import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak8-1023';
-import {batchStatic} from './geometry.js?v=skybreak8-1023';
+import {RUNWAY,ROUTE,TARGET,ESCAPE,strikeTarget,strikeEscape,forward,bombSolution,canBomb,clamp} from './sim.js?v=skybreak9-1023';
+import {surfaceHeight} from './world.js?v=skybreak9-1023';
+import {routeFor,destinationFor,fieldPoint} from './missions.js?v=skybreak9-1023';
+import {Scenery} from './scenery.js?v=skybreak9-1023';
+import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak9-1023';
+import {batchStatic} from './geometry.js?v=skybreak9-1023';
 export const makeJet=createAircraft;
 const COLORS={mint:0x9cead6,orange:0xffac7a};
 function canvasTexture(width,height,draw){const c=document.createElement('canvas');c.width=width;c.height=height;draw(c.getContext('2d'),width,height);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return tex}
@@ -18,7 +18,7 @@ export const AIR_MOTION_BUDGET=48;
 export function flightFov(speed,view='chase',reducedMotion=false){
  const base=view==='cockpit'?76:67,v=Number.isFinite(speed)?speed:0,t=clamp((v-100)/243,0,1),supersonic=clamp((v-343)/343,0,1);
  // Most of the peripheral opening happens on the way to Mach 1, not Mach 2.
- return base+(reducedMotion?0:(view==='cockpit'?8:10)*t*(2-t)+1.5*supersonic);
+ return base+(reducedMotion?0:(view==='cockpit'?12:14)*t*(2-t)+1.5*supersonic);
 }
 const airHash=n=>{const h=Math.sin(n*127.1+311.7)*43758.5453;return h-Math.floor(h)};
 export class FlightAirMotion{
@@ -33,21 +33,21 @@ export class FlightAirMotion{
   if(!this.lines.visible){this.ready=false;return}
   const origin=camera.position,count=quality<.8?24:AIR_MOTION_BUDGET,reset=!this.ready||this.pilotId!==p.id||time<this.lastTime||origin.distanceToSquared(this.lastPosition)>360000;
   camera.updateMatrixWorld();this.right.setFromMatrixColumn(camera.matrixWorld,0);this.up.setFromMatrixColumn(camera.matrixWorld,1);this.forward.setFromMatrixColumn(camera.matrixWorld,2).negate();
-  const axes=forward(p);this.direction.set(axes.x,axes.y,axes.z);const aspect=camera.aspect,spread=Math.tan(camera.fov*Math.PI/360),positions=this.geometry.attributes.position,length=clamp(speed/55,.7,10);
+  const axes=forward(p);this.direction.set(axes.x,axes.y,axes.z);const aspect=camera.aspect,spread=Math.tan(camera.fov*Math.PI/360),positions=this.geometry.attributes.position,length=clamp(speed/42,.7,12);
   for(let i=0;i<count;i++){
    const k=i*3,dx=this.points[k]-origin.x,dy=this.points[k+1]-origin.y,dz=this.points[k+2]-origin.z,depth=dx*this.forward.x+dy*this.forward.y+dz*this.forward.z;
    if(reset||depth<12||depth>390||dx*dx+dy*dy+dz*dz>360000){
     // A sparse near-air layer gives readable parallax; these points still stay
     // fixed in world space and are passed at the aircraft's actual m/s.
-    // Half the samples pass within 45–105 m, rather than relying on distant
+    // Half the samples pass within 28–75 m, rather than relying on distant
     // scenery. Keep the aiming center clear: stronger flow belongs at the edges.
-    const seed=i+this.cycles[i]++*AIR_MOTION_BUDGET,near=i%2===0,z=near?45+airHash(seed+19)*60:reset?120+airHash(seed+19)*205:220+airHash(seed+19)*105,angle=airHash(seed+83)*Math.PI*2,radius=(near?.62:.42)+airHash(seed+179)*(near?.32:.56),x=Math.cos(angle)*z*spread*aspect*radius,y=Math.sin(angle)*z*spread*radius;
+    const seed=i+this.cycles[i]++*AIR_MOTION_BUDGET,near=i%2===0,z=near?28+airHash(seed+19)*47:reset?120+airHash(seed+19)*205:220+airHash(seed+19)*105,angle=airHash(seed+83)*Math.PI*2,radius=(near?.62:.42)+airHash(seed+179)*(near?.32:.56),x=Math.cos(angle)*z*spread*aspect*radius,y=Math.sin(angle)*z*spread*radius;
     this.points[k]=origin.x+this.forward.x*z+this.right.x*x+this.up.x*y;this.points[k+1]=origin.y+this.forward.y*z+this.right.y*x+this.up.y*y;this.points[k+2]=origin.z+this.forward.z*z+this.right.z*x+this.up.z*y;
    }
    // A short exposure streak describes real travelled distance, not a speed multiplier.
    positions.setXYZ(i*2,this.points[k],this.points[k+1],this.points[k+2]);positions.setXYZ(i*2+1,this.points[k]-this.direction.x*length,this.points[k+1]-this.direction.y*length,this.points[k+2]-this.direction.z*length);
   }
-  positions.needsUpdate=true;this.geometry.setDrawRange(0,count*2);this.material.opacity=.04+clamp((speed-75)/268,0,1)*.18;
+  positions.needsUpdate=true;this.geometry.setDrawRange(0,count*2);this.material.opacity=.05+clamp((speed-75)/268,0,1)*.23;
   this.ready=true;this.pilotId=p.id;this.lastTime=time;this.lastPosition.copy(origin);
  }
 }

@@ -1,23 +1,23 @@
-import {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak8-1023';
-export {placePilotOnRunway} from './airport-operations.js?v=skybreak8-1023';
+import {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak9-1023';
+export {placePilotOnRunway} from './airport-operations.js?v=skybreak9-1023';
 import {advanceAttitude} from './attitude.js';
-import {AIRPORT,automaticSystems,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak8-1023';
-import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak8-1023';
-import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak8-1023';
-import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak8-1023';
-import {tryHeatFlare} from './heat-seeker.js?v=skybreak8-1023';
-import {freshPilotG,pilotGInput,updatePilotG,advanceAirframeWear,sanitizePilotG,physicalVelocity,signedPilotLoad,limitFlightEnvelope} from './pilot-g.js?v=skybreak8-1023';
-import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak8-1023';
-import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak8-1023';
-import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak8-1023';
-export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak8-1023';
-import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak8-1023';
-export {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak8-1023';
-export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak8-1023';
-import {surfaceHeight} from './world.js?v=skybreak8-1023';
-import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak8-1023';
-import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak8-1023';
-export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak8-1023';
+import {AIRPORT,automaticSystems,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak9-1023';
+import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak9-1023';
+import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak9-1023';
+import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak9-1023';
+import {tryHeatFlare} from './heat-seeker.js?v=skybreak9-1023';
+import {freshPilotG,pilotGInput,updatePilotG,advanceAirframeWear,sanitizePilotG,physicalVelocity,signedPilotLoad,limitFlightEnvelope} from './pilot-g.js?v=skybreak9-1023';
+import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak9-1023';
+import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak9-1023';
+import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak9-1023';
+export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak9-1023';
+import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak9-1023';
+export {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak9-1023';
+export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak9-1023';
+import {surfaceHeight} from './world.js?v=skybreak9-1023';
+import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak9-1023';
+import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak9-1023';
+export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak9-1023';
 // Flight and combat rules are renderer-independent so missions can be replayed deterministically.
 export const RUNWAY=AIRFIELDS.home;
 export const ROUTE=ROUTES.local.gates;
@@ -26,7 +26,7 @@ const strikeDepot=field=>{const sign=field.id==='home'?-1:1,x=field.x+280,z=fiel
 export const TARGET=strikeDepot(AIRFIELDS.northpoint);
 const DEFEND_TARGET=strikeDepot(AIRFIELDS.home);
 export const strikeTarget=g=>g?.role==='defend'?DEFEND_TARGET:TARGET;
-export const strikeEscape=g=>g?.role==='defend'?{x:6000,y:850,z:14500,radius:700}:ESCAPE;
+export const strikeEscape=g=>g?.role==='defend'?{x:AIRFIELDS.northpoint.x+1800,y:850,z:AIRFIELDS.northpoint.z+4200,radius:700}:ESCAPE;
 export const ESCAPE={x:2700,y:500,z:-1500,radius:550};
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const angle=(v)=>Math.atan2(Math.sin(v),Math.cos(v));
@@ -182,18 +182,20 @@ export function desiredHeading(p,target){return Math.atan2(target.x-p.pos.x,targ
 function terrainAvoidance(g,p,input){
  const i={...input},f=forward(p),velocity=worldVelocity(p),valley=g.arenaId==='valley',ground=surfaceHeight(p.pos.x,p.pos.z);
  if(valley){
-  const look={x:p.pos.x+velocity.x*3.6,z:p.pos.z+velocity.z*3.6};
-  if(!inValley(p.pos,-130)||!inValley(look,-160)){
-   // Turn back along the corridor before reaching a wall or leaving its mouth.
-   // All pilots still use the same controls; there is no position snapping.
-   const returning=p.pos.x<VALLEY.minX+850||p.pos.x>VALLEY.maxX-850;
-   const x=returning?500:clamp(p.pos.x+(f.x>=0?1000:-1000),VALLEY.minX+900,VALLEY.maxX-900);
-   const target=valleyPoint(x,0,VALLEY.cruiseClearance+(p.slot%2)*35),safe=steer(p,target);
-   i.roll=safe.roll;i.yaw=safe.yaw;i.pitch=safe.pitch;i.fireGun=false;
-  }else if(p.pos.y>valleyFloor(p.pos.x)+430){
-   i.pitch=Math.min(i.pitch,-.22);
-  }
+  // Follow each linked bend instead of aiming through the intervening ridge.
+  // A wide climbing reversal begins before the mouth, not an impossible late U-turn.
+  const returning=(f.x<0&&p.pos.x<VALLEY.minX+2600)||(f.x>0&&p.pos.x>VALLEY.maxX-2600);
+  const low=p.pos.y<valleyFloor(p.pos.x)+650;
+  const look={x:p.pos.x+velocity.x*2.2,z:p.pos.z+velocity.z*2.2};
+  if(low||returning||!inValley(p.pos,-130)||!inValley(look,-160)){
+   const climbing=returning&&p.pos.y<valleyFloor(p.pos.x)+1100;
+   const x=returning&&!climbing?(VALLEY.minX+VALLEY.maxX)/2:clamp(p.pos.x+(f.x>=0?650:-650),VALLEY.minX+900,VALLEY.maxX-900);
+   const target=valleyPoint(x,0,returning?1250:VALLEY.cruiseClearance+(p.slot%2)*35),safe=steer(p,target);
+   i.roll=climbing?clamp(safe.roll,-.18,.18):safe.roll;i.yaw=climbing?clamp(safe.yaw,-.12,.12):safe.yaw;i.pitch=climbing?.95:safe.pitch;
+   if(returning||!inValley(look,-160))i.fireGun=false;
+  }else if(p.pos.y>valleyFloor(p.pos.x)+430)i.pitch=Math.min(i.pitch,-.22);
  }
+
  let pullUp=0;
  for(const seconds of[.8,1.6,2.8]){
   const x=p.pos.x+velocity.x*seconds,z=p.pos.z+velocity.z*seconds;
@@ -208,6 +210,8 @@ function terrainAvoidance(g,p,input){
  if(!valley&&p.pos.y>5200&&!pullUp)i.pitch=Math.min(-.35,i.pitch);
  // Ease off high-load pursuits before an energy stall; regain speed with power.
  if(p.speed<(p.stallSpeed||83)+25){i.throttle=1;i.roll=clamp(i.roll||0,-.3,.3);if(!pullUp)i.pitch=Math.min(i.pitch||0,.05);}
+ // Tight terrain calls for managed energy, not repeated burner acceleration.
+ if(valley&&p.speed>245)i.throttle=-1;
  return i;
 }
 function pursuitTarget(g,p){

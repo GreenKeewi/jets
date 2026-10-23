@@ -1,0 +1,1 @@
+PASS bomber native menu launch, distinct panel, stick and eight throttle levers, narrow bounds

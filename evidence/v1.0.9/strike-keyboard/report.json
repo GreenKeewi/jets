@@ -1,0 +1,3038 @@
+{
+  "base": "http://127.0.0.1:8201/",
+  "method": "Normal animation loop and native keyboard with the original reproduction seed (1913564428). No position writes or simulation stepping.",
+  "errors": [],
+  "events": [
+    {
+      "wallSeconds": 0.022,
+      "state": {
+        "version": 2,
+        "startingFuel": 0.75,
+        "mode": "strike",
+        "missionId": "dogfight",
+        "combatMission": null,
+        "arenaId": "coast",
+        "routeId": "local",
+        "destinationId": "home",
+        "teamSize": 1,
+        "teamSizes": [
+          1,
+          1
+        ],
+        "skirmish": false,
+        "scores": [
+          0,
+          0
+        ],
+        "role": "attack",
+        "difficulty": "normal",
+        "rng": 1401300709,
+        "time": 1.566666666666666,
+        "tick": 94,
+        "status": "playing",
+        "result": null,
+        "pilots": [
+          {
+            "normalLoad": 1,
+            "gLoad": 1,
+            "gVision": 0,
+            "contactLoad": 0,
+            "gWearTime": 0,
+            "airframeWear": 0,
+            "gWearActive": false,
+            "engineHealth": 1,
+            "controlHealth": 1,
+            "id": "host",
+            "team": 0,
+            "slot": 0,
+            "human": true,
+            "bomber": true,
+            "objectiveRole": null,
+            "personality": "aggressive",
+            "pos": {
+              "x": -1800,
+              "y": 3,
+              "z": -3140
+            },
+            "yaw": 0,
+            "pitch": 0,
+            "roll": 0,
+            "speed": 0,
+            "throttle": 0,
+            "hp": 100,
+            "gunAmmo": 300,
+            "heat": 0,
+            "radar": 0,
+            "flares": 6,
+            "chaff": 6,
+            "bombs": 3,
+            "resupplyLatched": true,
+            "resupplyReadyAt": 0,
+            "resuppliedAt": null,
+            "lastDamage": null,
+            "gunCD": 0,
+            "gunShots": 0,
+            "heatCD": 0,
+            "radarCD": 0,
+            "flareCD": 0,
+            "chaffCD": 0,
+            "bombCD": 0,
+            "lock": 0,
+            "targetId": null,
+            "dead": false,
+            "grounded": true,
+            "landed": false,
+            "runwayId": "home",
+            "throttleHeld": 0,
+            "throttleDirection": 0,
+            "aiTargetId": null,
+            "aiTargetUntil": 0,
+            "aiGunBurst": 0,
+            "aiGunRest": 0,
+            "aiFlarePending": false,
+            "aiExtendYaw": 0,
+            "aiTimer": 0,
+            "aiShot": 2,
+            "aiDefend": 0,
+            "aiBreak": 0,
+            "aiNextBreak": 7,
+            "rearm": 0,
+            "aiEvade": 0,
+            "spawnProtectedUntil": 0,
+            "collisionGraceUntil": 2.5,
+            "respawnAt": null,
+            "deaths": 0,
+            "kills": 0,
+            "trail": [],
+            "flightState": "parked",
+            "homeBaseId": "home",
+            "gearDown": true,
+            "gearManual": false,
+            "airbrake": false,
+            "maneuverAssist": false,
+            "departureHold": false,
+            "departureActive": true,
+            "departureReadyAt": 0,
+            "repairing": false,
+            "fuelCapacityKg": 65000,
+            "fuelFraction": 0.7498071794871823,
+            "fuelKg": 48737.46666666685,
+            "massKg": 120737.46666666685,
+            "afterburnerActive": false,
+            "afterburnerRemaining": 0,
+            "afterburnerCooldown": 0,
+            "afterburnerNeedsRelease": false,
+            "fuelFlowKgPerSecond": 8,
+            "travelApproach": false,
+            "controlInput": {
+              "pitch": 0,
+              "roll": 0,
+              "yaw": 0
+            },
+            "braking": false,
+            "speedAcceleration": 0,
+            "stallSink": 0,
+            "stallSpeed": 91.36541055352428,
+            "refueling": false
+          },
+          {
+            "normalLoad": 1,
+            "gLoad": 1,
+            "gVision": 0,
+            "contactLoad": 0,
+            "gWearTime": 0,
+            "airframeWear": 0,
+            "gWearActive": false,
+            "engineHealth": 1,
+            "controlHealth": 1,
+            "id": "bot1",
+            "team": 1,
+            "slot": 0,
+            "human": false,
+            "bomber": false,
+            "objectiveRole": null,
+            "personality": "cautious",
+            "pos": {
+              "x": 10500,
+              "y": 75,
+              "z": 9861.033650077636
+            },
+            "yaw": 0,
+            "pitch": 0,
+            "roll": 0,
+            "speed": 2.173385440801845,
+            "throttle": 0.5953333333333337,
+            "hp": 100,
+            "gunAmmo": 300,
+            "heat": 6,
+            "radar": 4,
+            "flares": 6,
+            "chaff": 6,
+            "bombs": 0,
+            "resupplyLatched": true,
+            "resupplyReadyAt": 0,
+            "resuppliedAt": null,
+            "lastDamage": null,
+            "gunCD": 0,
+            "gunShots": 0,
+            "heatCD": 0,
+            "radarCD": 0,
+            "flareCD": 0,
+            "chaffCD": 0,
+            "bombCD": 0,
+            "lock": 0,
+            "targetId": null,
+            "dead": false,
+            "grounded": true,
+            "landed": false,
+            "runwayId": "northpoint",
+            "throttleHeld": 0,
+            "throttleDirection": 0,
+            "aiTargetId": null,
+            "aiTargetUntil": 0,
+            "aiGunBurst": 0,
+            "aiGunRest": 0,
+            "aiFlarePending": false,
+            "aiExtendYaw": 0,
+            "aiTimer": 0,
+            "aiShot": 2.6,
+            "aiDefend": 0,
+            "aiBreak": 0,
+            "aiNextBreak": 8.9,
+            "rearm": 0,
+            "aiEvade": 0,
+            "spawnProtectedUntil": 0,
+            "collisionGraceUntil": 2.5,
+            "respawnAt": null,
+            "deaths": 0,
+            "kills": 0,
+            "trail": [],
+            "flightState": "takeoff",
+            "homeBaseId": "northpoint",
+            "gearDown": true,
+            "gearManual": false,
+            "airbrake": false,
+            "maneuverAssist": false,
+            "departureHold": false,
+            "departureActive": true,
+            "departureReadyAt": 0,
+            "repairing": false,
+            "fuelCapacityKg": 3200,
+            "fuelFraction": 0.7492349444444446,
+            "fuelKg": 2397.5518222222227,
+            "massKg": 10897.551822222224,
+            "afterburnerActive": false,
+            "afterburnerRemaining": 0,
+            "afterburnerCooldown": 0,
+            "afterburnerNeedsRelease": false,
+            "fuelFlowKgPerSecond": 2.505066666666668,
+            "travelApproach": false,
+            "controlInput": {
+              "pitch": 0,
+              "roll": 0,
+              "yaw": 0
+            },
+            "braking": false,
+            "speedAcceleration": 3.4629850080072178,
+            "stallSink": 0,
+            "stallSpeed": 81.0211470295268,
+            "refueling": false
+          }
+        ],
+        "missiles": [],
+        "bullets": [],
+        "countermeasures": [],
+        "bombs": [],
+        "effects": [],
+        "events": [
+          {
+            "id": 1,
+            "type": "start",
+            "text": "Strike package ready at the airport. Take off, reach the target, then escape.",
+            "t": 0
+          }
+        ],
+        "serial": 1,
+        "targetHp": 100,
+        "bombed": false,
+        "routeIndex": 0,
+        "flightStage": "takeoff",
+        "approachIndex": 0,
+        "missionMessage": "",
+        "escaped": false,
+        "formations": [
+          {
+            "team": 0,
+            "origin": {
+              "x": 0,
+              "y": 450,
+              "z": -2450
+            },
+            "yaw": 0,
+            "spacing": 96,
+            "type": "vee",
+            "until": 4.5
+          },
+          {
+            "team": 1,
+            "origin": {
+              "x": 1800,
+              "y": 650,
+              "z": 300
+            },
+            "yaw": -1.5707963267948966,
+            "spacing": 48,
+            "type": "echelon",
+            "until": 4.5
+          }
+        ]
+      }
+    },
+    {
+      "wallSeconds": 150.852,
+      "state": {
+        "version": 2,
+        "startingFuel": 0.75,
+        "mode": "strike",
+        "missionId": "dogfight",
+        "combatMission": null,
+        "arenaId": "coast",
+        "routeId": "local",
+        "destinationId": "home",
+        "teamSize": 1,
+        "teamSizes": [
+          1,
+          1
+        ],
+        "skirmish": false,
+        "scores": [
+          0,
+          0
+        ],
+        "role": "attack",
+        "difficulty": "normal",
+        "rng": 3499576164,
+        "time": 115.66666666666138,
+        "tick": 6940,
+        "status": "playing",
+        "result": null,
+        "pilots": [
+          {
+            "normalLoad": 1.0000000000000706,
+            "gLoad": 1.0000000110761138,
+            "gVision": 0,
+            "contactLoad": 0,
+            "gWearTime": 0,
+            "airframeWear": 0,
+            "gWearActive": false,
+            "engineHealth": 1,
+            "controlHealth": 1,
+            "id": "host",
+            "team": 0,
+            "slot": 0,
+            "human": true,
+            "bomber": true,
+            "objectiveRole": null,
+            "personality": "aggressive",
+            "pos": {
+              "x": 8561.904166913779,
+              "y": 1397.12208170175,
+              "z": 10558.691790937455
+            },
+            "yaw": 0.7461334491815533,
+            "pitch": 4.672481107874929e-30,
+            "roll": -6.096819806999426e-8,
+            "speed": 266.9752591540889,
+            "throttle": 1,
+            "hp": 100,
+            "gunAmmo": 300,
+            "heat": 0,
+            "radar": 0,
+            "flares": 3,
+            "chaff": 3,
+            "bombs": 2,
+            "resupplyLatched": false,
+            "resupplyReadyAt": 0,
+            "resuppliedAt": null,
+            "lastDamage": null,
+            "gunCD": 0,
+            "gunShots": 0,
+            "heatCD": 0,
+            "radarCD": 0,
+            "flareCD": 0,
+            "chaffCD": 0,
+            "bombCD": 0.6833333333333323,
+            "lock": 0,
+            "targetId": null,
+            "dead": false,
+            "grounded": false,
+            "landed": false,
+            "runwayId": "home",
+            "throttleHeld": 0,
+            "throttleDirection": 0,
+            "aiTargetId": null,
+            "aiTargetUntil": 0,
+            "aiGunBurst": 0,
+            "aiGunRest": 0,
+            "aiFlarePending": false,
+            "aiExtendYaw": 0,
+            "aiTimer": 0,
+            "aiShot": 2,
+            "aiDefend": 0,
+            "aiBreak": 0,
+            "aiNextBreak": 7,
+            "rearm": 0,
+            "aiEvade": 0,
+            "spawnProtectedUntil": 0,
+            "collisionGraceUntil": 2.5,
+            "respawnAt": null,
+            "deaths": 0,
+            "kills": 0,
+            "trail": [],
+            "flightState": "airborne",
+            "homeBaseId": "home",
+            "gearDown": false,
+            "gearManual": false,
+            "airbrake": false,
+            "maneuverAssist": false,
+            "departureHold": false,
+            "departureActive": false,
+            "departureReadyAt": 0,
+            "repairing": false,
+            "fuelCapacityKg": 65000,
+            "fuelFraction": 0.6978137735042791,
+            "fuelKg": 45357.89527777814,
+            "massKg": 117357.89527777814,
+            "afterburnerActive": false,
+            "afterburnerRemaining": 0,
+            "afterburnerCooldown": 0,
+            "afterburnerNeedsRelease": false,
+            "fuelFlowKgPerSecond": 30,
+            "travelApproach": false,
+            "controlInput": {
+              "pitch": 0,
+              "roll": 0,
+              "yaw": 0
+            },
+            "braking": false,
+            "speedAcceleration": 1.744106945874364,
+            "stallSink": 2.0229671248588625e-48,
+            "stallSpeed": 94.09753829507882,
+            "refueling": false,
+            "airbrakeDeployment": 0,
+            "envelopeLimited": false
+          },
+          {
+            "normalLoad": 1.0017299752690527,
+            "gLoad": 1.0018169393517669,
+            "gVision": 0,
+            "contactLoad": 0,
+            "gWearTime": 0,
+            "airframeWear": 0,
+            "gWearActive": false,
+            "engineHealth": 1,
+            "controlHealth": 1,
+            "id": "bot1",
+            "team": 1,
+            "slot": 0,
+            "human": false,
+            "bomber": false,
+            "objectiveRole": null,
+            "personality": "cautious",
+            "pos": {
+              "x": 4972.653735690691,
+              "y": 1394.0416813834922,
+              "z": 7483.493232607577
+            },
+            "yaw": 0.8619745595837944,
+            "pitch": 0.0004146728269653053,
+            "roll": -0.01252972071733723,
+            "speed": 185.02408591139104,
+            "throttle": 0.5505016340822889,
+            "hp": 100,
+            "gunAmmo": 300,
+            "heat": 5,
+            "radar": 2,
+            "flares": 6,
+            "chaff": 6,
+            "bombs": 0,
+            "resupplyLatched": false,
+            "resupplyReadyAt": 0,
+            "resuppliedAt": null,
+            "lastDamage": null,
+            "gunCD": 0,
+            "gunShots": 0,
+            "heatCD": 0,
+            "radarCD": 0,
+            "flareCD": 0,
+            "chaffCD": 0,
+            "bombCD": 0,
+            "lock": 0,
+            "targetId": null,
+            "dead": false,
+            "grounded": false,
+            "landed": false,
+            "runwayId": "northpoint",
+            "throttleHeld": 0,
+            "throttleDirection": 0,
+            "aiTargetId": "host",
+            "aiTargetUntil": 28.2999999999999,
+            "aiGunBurst": 0,
+            "aiGunRest": 0,
+            "aiFlarePending": false,
+            "aiExtendYaw": -0.3090016045214643,
+            "aiTimer": 0,
+            "aiShot": 0,
+            "aiDefend": 0,
+            "aiBreak": 0,
+            "aiNextBreak": 0,
+            "rearm": 0,
+            "aiEvade": 0,
+            "spawnProtectedUntil": 0,
+            "collisionGraceUntil": 2.5,
+            "respawnAt": null,
+            "deaths": 0,
+            "kills": 0,
+            "trail": [],
+            "flightState": "airborne",
+            "homeBaseId": "northpoint",
+            "gearDown": false,
+            "gearManual": false,
+            "airbrake": false,
+            "maneuverAssist": false,
+            "departureHold": false,
+            "departureActive": false,
+            "departureReadyAt": 0,
+            "repairing": false,
+            "fuelCapacityKg": 3200,
+            "fuelFraction": 0.6573565830693084,
+            "fuelKg": 2103.541065821787,
+            "massKg": 10603.541065821788,
+            "afterburnerActive": false,
+            "afterburnerRemaining": 0,
+            "afterburnerCooldown": 0,
+            "afterburnerNeedsRelease": false,
+            "fuelFlowKgPerSecond": 2.3616052290633247,
+            "travelApproach": false,
+            "controlInput": {
+              "pitch": 0.0007700142370892124,
+              "roll": -0.012200209177646961,
+              "yaw": -0.0006971548101512549
+            },
+            "braking": false,
+            "speedAcceleration": -0.00376760528183695,
+            "stallSink": 1.192064104454766e-133,
+            "stallSpeed": 83.55149157422045,
+            "refueling": false,
+            "airbrakeDeployment": 0,
+            "envelopeLimited": false
+          }
+        ],
+        "missiles": [
+          {
+            "id": 48,
+            "type": "heat",
+            "arcadeSam": true,
+            "ownerId": "airfield-sam",
+            "team": 1,
+            "targetId": "host",
+            "pos": {
+              "x": 9454.807046110309,
+              "y": 776.6765925104289,
+              "z": 11074.167215955704
+            },
+            "dir": {
+              "x": -0.7461007427071046,
+              "y": 0.2788161457309198,
+              "z": -0.6046447209822158
+            },
+            "speed": 1124.25,
+            "age": 3.099999999999994,
+            "life": 14,
+            "decoyed": true,
+            "seekerLost": false,
+            "lostTime": 0,
+            "offBoresight": 0.051939134435149525,
+            "decoyPos": {
+              "x": 7794.519981021662,
+              "y": 1397.12208170175,
+              "z": 9728.660166092064
+            }
+          }
+        ],
+        "bullets": [],
+        "countermeasures": [
+          {
+            "id": 50,
+            "burstId": 50,
+            "type": "flare",
+            "ownerId": "host",
+            "pos": {
+              "x": 7874.507975993347,
+              "y": 1282.991372028088,
+              "z": 9769.234526612643
+            },
+            "vel": {
+              "x": 27.902788943611085,
+              "y": -57.11303825825485,
+              "z": 14.153846693225205
+            },
+            "age": 2.8666666666666614,
+            "life": 3.8
+          },
+          {
+            "id": 51,
+            "burstId": 50,
+            "type": "flare",
+            "ownerId": "host",
+            "pos": {
+              "x": 7868.569188979123,
+              "y": 1347.3548049638362,
+              "z": 9748.045594245043
+            },
+            "vel": {
+              "x": 25.831119054928422,
+              "y": -34.66067793183024,
+              "z": 6.762358658015728
+            },
+            "age": 2.8666666666666614,
+            "life": 3.8
+          },
+          {
+            "id": 52,
+            "burstId": 50,
+            "type": "flare",
+            "ownerId": "host",
+            "pos": {
+              "x": 7820.920008755889,
+              "y": 1283.547419250352,
+              "z": 9716.98849156763
+            },
+            "vel": {
+              "x": 9.209312000311911,
+              "y": -56.91906829699906,
+              "z": -4.0715143689885736
+            },
+            "age": 2.8666666666666614,
+            "life": 3.8
+          },
+          {
+            "id": 53,
+            "burstId": 50,
+            "type": "flare",
+            "ownerId": "host",
+            "pos": {
+              "x": 7785.085888995458,
+              "y": 1323.4179312559158,
+              "z": 9644.982580156844
+            },
+            "vel": {
+              "x": -3.2909623347222805,
+              "y": -43.010750155523496,
+              "z": -29.189855558797717
+            },
+            "age": 2.8666666666666614,
+            "life": 3.8
+          },
+          {
+            "id": 54,
+            "burstId": 50,
+            "type": "flare",
+            "ownerId": "host",
+            "pos": {
+              "x": 7765.3948500767765,
+              "y": 1271.047185770267,
+              "z": 9722.28833152059
+            },
+            "vel": {
+              "x": -10.159929399378598,
+              "y": -61.27961485981981,
+              "z": -2.2227329900488257
+            },
+            "age": 2.8666666666666614,
+            "life": 3.8
+          },
+          {
+            "id": 55,
+            "burstId": 50,
+            "type": "flare",
+            "ownerId": "host",
+            "pos": {
+              "x": 7793.183590755467,
+              "y": 1354.765983833341,
+              "z": 9782.8072402662
+            },
+            "vel": {
+              "x": -0.46618265099823475,
+              "y": -32.07538297735147,
+              "z": 18.8885142467916
+            },
+            "age": 2.8666666666666614,
+            "life": 3.8
+          }
+        ],
+        "bombs": [
+          {
+            "id": 58,
+            "ownerId": "host",
+            "pos": {
+              "x": 8566.33098134337,
+              "y": 1394.49708170175,
+              "z": 10563.480638537703
+            },
+            "vel": {
+              "x": 271.27080227085474,
+              "y": -15,
+              "z": 293.45602708867483
+            },
+            "age": 0.3333333333333333
+          }
+        ],
+        "effects": [],
+        "events": [
+          {
+            "id": 1,
+            "type": "start",
+            "text": "Strike package ready at the airport. Take off, reach the target, then escape.",
+            "t": 0
+          },
+          {
+            "id": 2,
+            "type": "takeoff",
+            "text": "Airborne. Join the fight.",
+            "t": 13.016666666666893,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 3,
+            "type": "takeoff",
+            "text": "Airborne. Join the fight.",
+            "t": 27.899999999999697,
+            "pilotId": "host"
+          },
+          {
+            "id": 5,
+            "type": "launch",
+            "text": "Fox one · radar missile away",
+            "t": 58.23333333333131,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 12,
+            "type": "counter",
+            "text": "Chaff out",
+            "t": 58.949999999997935,
+            "pilotId": "host"
+          },
+          {
+            "id": 13,
+            "type": "evade",
+            "text": "Radar missile defeated",
+            "t": 59.766666666664555,
+            "pilotId": "host"
+          },
+          {
+            "id": 20,
+            "type": "counter",
+            "text": "Chaff out",
+            "t": 60.14999999999787,
+            "pilotId": "host"
+          },
+          {
+            "id": 22,
+            "type": "launch",
+            "text": "Fox one · radar missile away",
+            "t": 82.63333333332993,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 29,
+            "type": "counter",
+            "text": "Chaff out",
+            "t": 84.04999999999652,
+            "pilotId": "host"
+          },
+          {
+            "id": 30,
+            "type": "evade",
+            "text": "Radar missile defeated",
+            "t": 84.78333333332981,
+            "pilotId": "host"
+          },
+          {
+            "id": 32,
+            "type": "launch",
+            "text": "Fox two · heat seeker away",
+            "t": 90.79999999999613,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 39,
+            "type": "counter",
+            "text": "Flares out",
+            "t": 92.24999999999605,
+            "pilotId": "host"
+          },
+          {
+            "id": 46,
+            "type": "counter",
+            "text": "Flares out",
+            "t": 93.44999999999598,
+            "pilotId": "host"
+          },
+          {
+            "id": 47,
+            "type": "evade",
+            "text": "Heat seeker defeated",
+            "t": 93.46666666666265,
+            "pilotId": "host"
+          },
+          {
+            "id": 49,
+            "type": "launch",
+            "text": "Airfield SAM inbound · deploy flares",
+            "t": 112.58333333332823,
+            "pilotId": "host",
+            "sam": true
+          },
+          {
+            "id": 56,
+            "type": "counter",
+            "text": "Flares out",
+            "t": 112.81666666666155,
+            "pilotId": "host"
+          },
+          {
+            "id": 57,
+            "type": "evade",
+            "text": "SAM defeated by bomber flares",
+            "t": 112.81666666666155,
+            "pilotId": "host"
+          },
+          {
+            "id": 59,
+            "type": "bomb",
+            "text": "Bomb released",
+            "t": 115.34999999999474,
+            "pilotId": "host"
+          }
+        ],
+        "serial": 59,
+        "targetHp": 100,
+        "bombed": false,
+        "routeIndex": 0,
+        "flightStage": "takeoff",
+        "approachIndex": 0,
+        "missionMessage": "",
+        "escaped": false,
+        "formations": [
+          {
+            "team": 0,
+            "origin": {
+              "x": 0,
+              "y": 450,
+              "z": -2450
+            },
+            "yaw": 0,
+            "spacing": 96,
+            "type": "vee",
+            "until": 4.5
+          },
+          {
+            "team": 1,
+            "origin": {
+              "x": 1800,
+              "y": 650,
+              "z": 300
+            },
+            "yaw": -1.5707963267948966,
+            "spacing": 48,
+            "type": "echelon",
+            "until": 4.5
+          }
+        ],
+        "strikeSam": {
+          "launches": 1,
+          "nextAt": 165.1830436096786
+        }
+      }
+    },
+    {
+      "wallSeconds": 153.802,
+      "state": {
+        "version": 2,
+        "startingFuel": 0.75,
+        "mode": "strike",
+        "missionId": "dogfight",
+        "combatMission": null,
+        "arenaId": "coast",
+        "routeId": "local",
+        "destinationId": "home",
+        "teamSize": 1,
+        "teamSizes": [
+          1,
+          1
+        ],
+        "skirmish": false,
+        "scores": [
+          0,
+          0
+        ],
+        "role": "attack",
+        "difficulty": "normal",
+        "rng": 3499576164,
+        "time": 117.86666666666126,
+        "tick": 7072,
+        "status": "playing",
+        "result": null,
+        "pilots": [
+          {
+            "normalLoad": 1,
+            "gLoad": 1.000000000000185,
+            "gVision": 0,
+            "contactLoad": 0,
+            "gWearTime": 0,
+            "airframeWear": 0,
+            "gWearActive": false,
+            "engineHealth": 1,
+            "controlHealth": 1,
+            "id": "host",
+            "team": 0,
+            "slot": 0,
+            "human": true,
+            "bomber": true,
+            "objectiveRole": null,
+            "personality": "aggressive",
+            "pos": {
+              "x": 9164.16529788685,
+              "y": 1397.12208170175,
+              "z": 11210.207435510314
+            },
+            "yaw": 0.7461334383972,
+            "pitch": 8.383328363777718e-32,
+            "roll": -1.082260888784073e-11,
+            "speed": 270.670146340052,
+            "throttle": 1,
+            "hp": 100,
+            "gunAmmo": 300,
+            "heat": 0,
+            "radar": 0,
+            "flares": 3,
+            "chaff": 3,
+            "bombs": 0,
+            "resupplyLatched": false,
+            "resupplyReadyAt": 0,
+            "resuppliedAt": null,
+            "lastDamage": null,
+            "gunCD": 0,
+            "gunShots": 0,
+            "heatCD": 0,
+            "radarCD": 0,
+            "flareCD": 0,
+            "chaffCD": 0,
+            "bombCD": 0.48333333333333184,
+            "lock": 0,
+            "targetId": null,
+            "dead": false,
+            "grounded": false,
+            "landed": false,
+            "runwayId": "home",
+            "throttleHeld": 0,
+            "throttleDirection": 0,
+            "aiTargetId": null,
+            "aiTargetUntil": 0,
+            "aiGunBurst": 0,
+            "aiGunRest": 0,
+            "aiFlarePending": false,
+            "aiExtendYaw": 0,
+            "aiTimer": 0,
+            "aiShot": 2,
+            "aiDefend": 0,
+            "aiBreak": 0,
+            "aiNextBreak": 7,
+            "rearm": 0,
+            "aiEvade": 0,
+            "spawnProtectedUntil": 0,
+            "collisionGraceUntil": 2.5,
+            "respawnAt": null,
+            "deaths": 0,
+            "kills": 0,
+            "trail": [],
+            "flightState": "airborne",
+            "homeBaseId": "home",
+            "gearDown": false,
+            "gearManual": false,
+            "airbrake": false,
+            "maneuverAssist": false,
+            "departureHold": false,
+            "departureActive": false,
+            "departureReadyAt": 0,
+            "repairing": false,
+            "fuelCapacityKg": 65000,
+            "fuelFraction": 0.6967983888888944,
+            "fuelKg": 45291.89527777814,
+            "massKg": 117291.89527777814,
+            "afterburnerActive": false,
+            "afterburnerRemaining": 0,
+            "afterburnerCooldown": 0,
+            "afterburnerNeedsRelease": false,
+            "fuelFlowKgPerSecond": 30,
+            "travelApproach": false,
+            "controlInput": {
+              "pitch": 0,
+              "roll": 0,
+              "yaw": 0
+            },
+            "braking": false,
+            "speedAcceleration": 1.617121694251864,
+            "stallSink": 2.75197981766816e-51,
+            "stallSpeed": 94.07107518018077,
+            "refueling": false,
+            "airbrakeDeployment": 0,
+            "envelopeLimited": false
+          },
+          {
+            "normalLoad": 1.0009829382614832,
+            "gLoad": 1.001034794570223,
+            "gVision": 0,
+            "contactLoad": 0,
+            "gWearTime": 0,
+            "airframeWear": 0,
+            "gWearActive": false,
+            "engineHealth": 1,
+            "controlHealth": 1,
+            "id": "bot1",
+            "team": 1,
+            "slot": 0,
+            "human": false,
+            "bomber": false,
+            "objectiveRole": null,
+            "personality": "cautious",
+            "pos": {
+              "x": 5389.022130861736,
+              "y": 1394.2558408912782,
+              "z": 7847.81995586271
+            },
+            "yaw": 0.8428335975500103,
+            "pitch": 0.0003615096308520499,
+            "roll": -0.009922752112296707,
+            "speed": 185.01139600298643,
+            "throttle": 0.5503370095903237,
+            "hp": 100,
+            "gunAmmo": 300,
+            "heat": 5,
+            "radar": 2,
+            "flares": 6,
+            "chaff": 6,
+            "bombs": 0,
+            "resupplyLatched": false,
+            "resupplyReadyAt": 0,
+            "resuppliedAt": null,
+            "lastDamage": null,
+            "gunCD": 0,
+            "gunShots": 0,
+            "heatCD": 0,
+            "radarCD": 0,
+            "flareCD": 0,
+            "chaffCD": 0,
+            "bombCD": 0,
+            "lock": 0,
+            "targetId": null,
+            "dead": false,
+            "grounded": false,
+            "landed": false,
+            "runwayId": "northpoint",
+            "throttleHeld": 0,
+            "throttleDirection": 0,
+            "aiTargetId": "host",
+            "aiTargetUntil": 28.2999999999999,
+            "aiGunBurst": 0,
+            "aiGunRest": 0,
+            "aiFlarePending": false,
+            "aiExtendYaw": -0.3090016045214643,
+            "aiTimer": 0,
+            "aiShot": 0,
+            "aiDefend": 0,
+            "aiBreak": 0,
+            "aiNextBreak": 0,
+            "rearm": 0,
+            "aiEvade": 0,
+            "spawnProtectedUntil": 0,
+            "collisionGraceUntil": 2.5,
+            "respawnAt": null,
+            "deaths": 0,
+            "kills": 0,
+            "trail": [],
+            "flightState": "airborne",
+            "homeBaseId": "northpoint",
+            "gearDown": false,
+            "gearManual": false,
+            "airbrake": false,
+            "maneuverAssist": false,
+            "departureHold": false,
+            "departureActive": false,
+            "departureReadyAt": 0,
+            "repairing": false,
+            "fuelCapacityKg": 3200,
+            "fuelFraction": 0.6557332285840698,
+            "fuelKg": 2098.3463314690234,
+            "massKg": 10598.346331469023,
+            "afterburnerActive": false,
+            "afterburnerRemaining": 0,
+            "afterburnerCooldown": 0,
+            "afterburnerNeedsRelease": false,
+            "fuelFlowKgPerSecond": 2.361078430689036,
+            "travelApproach": false,
+            "controlInput": {
+              "pitch": 0.0006723622286122032,
+              "roll": -0.009667671058738924,
+              "yaw": -0.0005524383462136528
+            },
+            "braking": false,
+            "speedAcceleration": -0.0062807732876990485,
+            "stallSink": 1.6216459064084185e-136,
+            "stallSpeed": 83.50042999081472,
+            "refueling": false,
+            "airbrakeDeployment": 0,
+            "envelopeLimited": false
+          }
+        ],
+        "missiles": [
+          {
+            "id": 48,
+            "type": "heat",
+            "arcadeSam": true,
+            "ownerId": "airfield-sam",
+            "team": 1,
+            "targetId": "host",
+            "pos": {
+              "x": 7432.994187014473,
+              "y": 1523.6989530587691,
+              "z": 9482.311591176094
+            },
+            "dir": {
+              "x": -0.8338484500422518,
+              "y": 0.2755164728679656,
+              "z": -0.47831729588269123
+            },
+            "speed": 1230,
+            "age": 5.2999999999999865,
+            "life": 14,
+            "decoyed": true,
+            "seekerLost": false,
+            "lostTime": 0,
+            "offBoresight": 0.051939134435149525,
+            "decoyPos": {
+              "x": 7794.519981021662,
+              "y": 1397.12208170175,
+              "z": 9728.660166092064
+            }
+          }
+        ],
+        "bullets": [],
+        "countermeasures": [],
+        "bombs": [
+          {
+            "id": 58,
+            "ownerId": "host",
+            "pos": {
+              "x": 9163.126746339232,
+              "y": 1251.7720817017498,
+              "z": 11209.083898132734
+            },
+            "vel": {
+              "x": 271.27080227085474,
+              "y": -114,
+              "z": 293.45602708867483
+            },
+            "age": 2.533333333333329
+          },
+          {
+            "id": 60,
+            "ownerId": "host",
+            "pos": {
+              "x": 9166.733961751712,
+              "y": 1343.6470817017498,
+              "z": 11212.986170966831
+            },
+            "vel": {
+              "x": 273.0351449460179,
+              "y": -69,
+              "z": 295.36468396820226
+            },
+            "age": 1.5333333333333328
+          },
+          {
+            "id": 62,
+            "ownerId": "host",
+            "pos": {
+              "x": 9168.514807238129,
+              "y": 1390.5220817017498,
+              "z": 11214.912659287884
+            },
+            "vel": {
+              "x": 274.7400682784673,
+              "y": -24,
+              "z": 297.2090408883346
+            },
+            "age": 0.5333333333333333
+          }
+        ],
+        "effects": [],
+        "events": [
+          {
+            "id": 1,
+            "type": "start",
+            "text": "Strike package ready at the airport. Take off, reach the target, then escape.",
+            "t": 0
+          },
+          {
+            "id": 2,
+            "type": "takeoff",
+            "text": "Airborne. Join the fight.",
+            "t": 13.016666666666893,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 3,
+            "type": "takeoff",
+            "text": "Airborne. Join the fight.",
+            "t": 27.899999999999697,
+            "pilotId": "host"
+          },
+          {
+            "id": 5,
+            "type": "launch",
+            "text": "Fox one · radar missile away",
+            "t": 58.23333333333131,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 12,
+            "type": "counter",
+            "text": "Chaff out",
+            "t": 58.949999999997935,
+            "pilotId": "host"
+          },
+          {
+            "id": 13,
+            "type": "evade",
+            "text": "Radar missile defeated",
+            "t": 59.766666666664555,
+            "pilotId": "host"
+          },
+          {
+            "id": 20,
+            "type": "counter",
+            "text": "Chaff out",
+            "t": 60.14999999999787,
+            "pilotId": "host"
+          },
+          {
+            "id": 22,
+            "type": "launch",
+            "text": "Fox one · radar missile away",
+            "t": 82.63333333332993,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 29,
+            "type": "counter",
+            "text": "Chaff out",
+            "t": 84.04999999999652,
+            "pilotId": "host"
+          },
+          {
+            "id": 30,
+            "type": "evade",
+            "text": "Radar missile defeated",
+            "t": 84.78333333332981,
+            "pilotId": "host"
+          },
+          {
+            "id": 32,
+            "type": "launch",
+            "text": "Fox two · heat seeker away",
+            "t": 90.79999999999613,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 39,
+            "type": "counter",
+            "text": "Flares out",
+            "t": 92.24999999999605,
+            "pilotId": "host"
+          },
+          {
+            "id": 46,
+            "type": "counter",
+            "text": "Flares out",
+            "t": 93.44999999999598,
+            "pilotId": "host"
+          },
+          {
+            "id": 47,
+            "type": "evade",
+            "text": "Heat seeker defeated",
+            "t": 93.46666666666265,
+            "pilotId": "host"
+          },
+          {
+            "id": 49,
+            "type": "launch",
+            "text": "Airfield SAM inbound · deploy flares",
+            "t": 112.58333333332823,
+            "pilotId": "host",
+            "sam": true
+          },
+          {
+            "id": 56,
+            "type": "counter",
+            "text": "Flares out",
+            "t": 112.81666666666155,
+            "pilotId": "host"
+          },
+          {
+            "id": 57,
+            "type": "evade",
+            "text": "SAM defeated by bomber flares",
+            "t": 112.81666666666155,
+            "pilotId": "host"
+          },
+          {
+            "id": 59,
+            "type": "bomb",
+            "text": "Bomb released",
+            "t": 115.34999999999474,
+            "pilotId": "host"
+          },
+          {
+            "id": 61,
+            "type": "bomb",
+            "text": "Bomb released",
+            "t": 116.34999999999468,
+            "pilotId": "host"
+          },
+          {
+            "id": 63,
+            "type": "bomb",
+            "text": "Bomb released",
+            "t": 117.34999999999462,
+            "pilotId": "host"
+          }
+        ],
+        "serial": 63,
+        "targetHp": 100,
+        "bombed": false,
+        "routeIndex": 0,
+        "flightStage": "takeoff",
+        "approachIndex": 0,
+        "missionMessage": "",
+        "escaped": false,
+        "formations": [
+          {
+            "team": 0,
+            "origin": {
+              "x": 0,
+              "y": 450,
+              "z": -2450
+            },
+            "yaw": 0,
+            "spacing": 96,
+            "type": "vee",
+            "until": 4.5
+          },
+          {
+            "team": 1,
+            "origin": {
+              "x": 1800,
+              "y": 650,
+              "z": 300
+            },
+            "yaw": -1.5707963267948966,
+            "spacing": 48,
+            "type": "echelon",
+            "until": 4.5
+          }
+        ],
+        "strikeSam": {
+          "launches": 1,
+          "nextAt": 165.1830436096786
+        }
+      }
+    },
+    {
+      "wallSeconds": 160.06,
+      "state": {
+        "version": 2,
+        "startingFuel": 0.75,
+        "mode": "strike",
+        "missionId": "dogfight",
+        "combatMission": null,
+        "arenaId": "coast",
+        "routeId": "local",
+        "destinationId": "home",
+        "teamSize": 1,
+        "teamSizes": [
+          1,
+          1
+        ],
+        "skirmish": false,
+        "scores": [
+          0,
+          0
+        ],
+        "role": "attack",
+        "difficulty": "normal",
+        "rng": 3499576164,
+        "time": 123.11666666666096,
+        "tick": 7387,
+        "status": "playing",
+        "result": null,
+        "pilots": [
+          {
+            "normalLoad": 2.5898639968173374,
+            "gLoad": 2.162947308190239,
+            "gVision": 0,
+            "contactLoad": 0,
+            "gWearTime": 0,
+            "airframeWear": 0,
+            "gWearActive": false,
+            "engineHealth": 1,
+            "controlHealth": 1,
+            "id": "host",
+            "team": 0,
+            "slot": 0,
+            "human": true,
+            "bomber": true,
+            "objectiveRole": null,
+            "personality": "aggressive",
+            "pos": {
+              "x": 10822.72219989287,
+              "y": 1397.12208170175,
+              "z": 12561.741159674428
+            },
+            "yaw": 1.007926064634479,
+            "pitch": 1.281435407255916e-34,
+            "roll": -0.543261915444289,
+            "speed": 276.4251678190844,
+            "throttle": 1,
+            "hp": 100,
+            "gunAmmo": 300,
+            "heat": 0,
+            "radar": 0,
+            "flares": 3,
+            "chaff": 3,
+            "bombs": 0,
+            "resupplyLatched": false,
+            "resupplyReadyAt": 0,
+            "resuppliedAt": null,
+            "lastDamage": null,
+            "gunCD": 0,
+            "gunShots": 0,
+            "heatCD": 0,
+            "radarCD": 0,
+            "flareCD": 0,
+            "chaffCD": 0,
+            "bombCD": 0,
+            "lock": 0,
+            "targetId": null,
+            "dead": false,
+            "grounded": false,
+            "landed": false,
+            "runwayId": "home",
+            "throttleHeld": 0,
+            "throttleDirection": 0,
+            "aiTargetId": null,
+            "aiTargetUntil": 0,
+            "aiGunBurst": 0,
+            "aiGunRest": 0,
+            "aiFlarePending": false,
+            "aiExtendYaw": 0,
+            "aiTimer": 0,
+            "aiShot": 2,
+            "aiDefend": 0,
+            "aiBreak": 0,
+            "aiNextBreak": 7,
+            "rearm": 0,
+            "aiEvade": 0,
+            "spawnProtectedUntil": 0,
+            "collisionGraceUntil": 2.5,
+            "respawnAt": null,
+            "deaths": 0,
+            "kills": 0,
+            "trail": [],
+            "flightState": "airborne",
+            "homeBaseId": "home",
+            "gearDown": false,
+            "gearManual": false,
+            "airbrake": false,
+            "maneuverAssist": false,
+            "departureHold": false,
+            "departureActive": false,
+            "departureReadyAt": 0,
+            "repairing": false,
+            "fuelCapacityKg": 65000,
+            "fuelFraction": 0.6943753119658175,
+            "fuelKg": 45134.39527777814,
+            "massKg": 117134.39527777814,
+            "afterburnerActive": false,
+            "afterburnerRemaining": 0,
+            "afterburnerCooldown": 0,
+            "afterburnerNeedsRelease": false,
+            "fuelFlowKgPerSecond": 30,
+            "travelApproach": false,
+            "controlInput": {
+              "pitch": 0,
+              "roll": -1,
+              "yaw": 0
+            },
+            "braking": false,
+            "speedAcceleration": 0.633454361557142,
+            "stallSink": 3.976556474221821e-58,
+            "stallSpeed": 151.2874158966024,
+            "refueling": false,
+            "airbrakeDeployment": 0,
+            "envelopeLimited": true
+          },
+          {
+            "normalLoad": 1.0032111261497314,
+            "gLoad": 1.0041547609731323,
+            "gVision": 0,
+            "contactLoad": 0,
+            "gWearTime": 0,
+            "airframeWear": 0,
+            "gWearActive": false,
+            "engineHealth": 1,
+            "controlHealth": 1,
+            "id": "bot1",
+            "team": 1,
+            "slot": 0,
+            "human": false,
+            "bomber": false,
+            "objectiveRole": null,
+            "personality": "cautious",
+            "pos": {
+              "x": 6370.538218222014,
+              "y": 1394.6664923133233,
+              "z": 8730.44927736873
+            },
+            "yaw": 0.8610146400652675,
+            "pitch": 0.00026793824950197004,
+            "roll": 0.015678038525391756,
+            "speed": 184.99369588016174,
+            "throttle": 0.5506209052213784,
+            "hp": 100,
+            "gunAmmo": 300,
+            "heat": 5,
+            "radar": 2,
+            "flares": 6,
+            "chaff": 6,
+            "bombs": 0,
+            "resupplyLatched": false,
+            "resupplyReadyAt": 0,
+            "resuppliedAt": null,
+            "lastDamage": null,
+            "gunCD": 0,
+            "gunShots": 0,
+            "heatCD": 0,
+            "radarCD": 0,
+            "flareCD": 0,
+            "chaffCD": 0,
+            "bombCD": 0,
+            "lock": 0,
+            "targetId": null,
+            "dead": false,
+            "grounded": false,
+            "landed": false,
+            "runwayId": "northpoint",
+            "throttleHeld": 0,
+            "throttleDirection": 0,
+            "aiTargetId": "host",
+            "aiTargetUntil": 28.2999999999999,
+            "aiGunBurst": 0,
+            "aiGunRest": 0,
+            "aiFlarePending": false,
+            "aiExtendYaw": -0.3090016045214643,
+            "aiTimer": 0,
+            "aiShot": 0,
+            "aiDefend": 0,
+            "aiBreak": 0,
+            "aiNextBreak": 0,
+            "rearm": 0,
+            "aiEvade": 0,
+            "spawnProtectedUntil": 0,
+            "collisionGraceUntil": 2.5,
+            "respawnAt": null,
+            "deaths": 0,
+            "kills": 0,
+            "trail": [],
+            "flightState": "airborne",
+            "homeBaseId": "northpoint",
+            "gearDown": false,
+            "gearManual": false,
+            "airbrake": false,
+            "maneuverAssist": false,
+            "departureHold": false,
+            "departureActive": false,
+            "departureReadyAt": 0,
+            "repairing": false,
+            "fuelCapacityKg": 3200,
+            "fuelFraction": 0.6518590191793819,
+            "fuelKg": 2085.9488613740223,
+            "massKg": 10585.948861374021,
+            "afterburnerActive": false,
+            "afterburnerRemaining": 0,
+            "afterburnerCooldown": 0,
+            "afterburnerNeedsRelease": false,
+            "fuelFlowKgPerSecond": 2.361986896708411,
+            "travelApproach": false,
+            "controlInput": {
+              "pitch": 0.0005002092307038877,
+              "roll": 0.012302865306292543,
+              "yaw": 0.0007030208746452881
+            },
+            "braking": false,
+            "speedAcceleration": 0.0008730901424769399,
+            "stallSink": 2.343246300944092e-143,
+            "stallSpeed": 83.54548128645314,
+            "refueling": false,
+            "airbrakeDeployment": 0,
+            "envelopeLimited": false
+          }
+        ],
+        "missiles": [
+          {
+            "id": 48,
+            "type": "heat",
+            "arcadeSam": true,
+            "ownerId": "airfield-sam",
+            "team": 1,
+            "targetId": "host",
+            "pos": {
+              "x": 3107.3946901662307,
+              "y": 1969.3508695838245,
+              "z": 12381.891956720194
+            },
+            "dir": {
+              "x": 0.08509856378494224,
+              "y": -0.1977051248231968,
+              "z": 0.9765607600453667
+            },
+            "speed": 1230,
+            "age": 10.550000000000104,
+            "life": 14,
+            "decoyed": true,
+            "seekerLost": false,
+            "lostTime": 0,
+            "offBoresight": 0.051939134435149525,
+            "decoyPos": {
+              "x": 7794.519981021662,
+              "y": 1397.12208170175,
+              "z": 9728.660166092064
+            }
+          }
+        ],
+        "bullets": [],
+        "countermeasures": [],
+        "bombs": [
+          {
+            "id": 60,
+            "ownerId": "host",
+            "pos": {
+              "x": 10600.168472718438,
+              "y": 359.27208170175,
+              "z": 12763.650761799789
+            },
+            "vel": {
+              "x": 273.0351449460179,
+              "y": -305.25,
+              "z": 295.36468396820226
+            },
+            "age": 6.783333333333315
+          },
+          {
+            "id": 62,
+            "ownerId": "host",
+            "pos": {
+              "x": 10610.900165699954,
+              "y": 642.3970817017499,
+              "z": 12775.260123951848
+            },
+            "vel": {
+              "x": 274.7400682784673,
+              "y": -260.25,
+              "z": 297.2090408883346
+            },
+            "age": 5.783333333333318
+          }
+        ],
+        "effects": [
+          {
+            "id": 65,
+            "type": "target",
+            "pos": {
+              "x": 10780,
+              "y": 74,
+              "z": 12550
+            },
+            "age": 0.05,
+            "life": 8
+          }
+        ],
+        "events": [
+          {
+            "id": 1,
+            "type": "start",
+            "text": "Strike package ready at the airport. Take off, reach the target, then escape.",
+            "t": 0
+          },
+          {
+            "id": 2,
+            "type": "takeoff",
+            "text": "Airborne. Join the fight.",
+            "t": 13.016666666666893,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 3,
+            "type": "takeoff",
+            "text": "Airborne. Join the fight.",
+            "t": 27.899999999999697,
+            "pilotId": "host"
+          },
+          {
+            "id": 5,
+            "type": "launch",
+            "text": "Fox one · radar missile away",
+            "t": 58.23333333333131,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 12,
+            "type": "counter",
+            "text": "Chaff out",
+            "t": 58.949999999997935,
+            "pilotId": "host"
+          },
+          {
+            "id": 13,
+            "type": "evade",
+            "text": "Radar missile defeated",
+            "t": 59.766666666664555,
+            "pilotId": "host"
+          },
+          {
+            "id": 20,
+            "type": "counter",
+            "text": "Chaff out",
+            "t": 60.14999999999787,
+            "pilotId": "host"
+          },
+          {
+            "id": 22,
+            "type": "launch",
+            "text": "Fox one · radar missile away",
+            "t": 82.63333333332993,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 29,
+            "type": "counter",
+            "text": "Chaff out",
+            "t": 84.04999999999652,
+            "pilotId": "host"
+          },
+          {
+            "id": 30,
+            "type": "evade",
+            "text": "Radar missile defeated",
+            "t": 84.78333333332981,
+            "pilotId": "host"
+          },
+          {
+            "id": 32,
+            "type": "launch",
+            "text": "Fox two · heat seeker away",
+            "t": 90.79999999999613,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 39,
+            "type": "counter",
+            "text": "Flares out",
+            "t": 92.24999999999605,
+            "pilotId": "host"
+          },
+          {
+            "id": 46,
+            "type": "counter",
+            "text": "Flares out",
+            "t": 93.44999999999598,
+            "pilotId": "host"
+          },
+          {
+            "id": 47,
+            "type": "evade",
+            "text": "Heat seeker defeated",
+            "t": 93.46666666666265,
+            "pilotId": "host"
+          },
+          {
+            "id": 49,
+            "type": "launch",
+            "text": "Airfield SAM inbound · deploy flares",
+            "t": 112.58333333332823,
+            "pilotId": "host",
+            "sam": true
+          },
+          {
+            "id": 56,
+            "type": "counter",
+            "text": "Flares out",
+            "t": 112.81666666666155,
+            "pilotId": "host"
+          },
+          {
+            "id": 57,
+            "type": "evade",
+            "text": "SAM defeated by bomber flares",
+            "t": 112.81666666666155,
+            "pilotId": "host"
+          },
+          {
+            "id": 59,
+            "type": "bomb",
+            "text": "Bomb released",
+            "t": 115.34999999999474,
+            "pilotId": "host"
+          },
+          {
+            "id": 61,
+            "type": "bomb",
+            "text": "Bomb released",
+            "t": 116.34999999999468,
+            "pilotId": "host"
+          },
+          {
+            "id": 63,
+            "type": "bomb",
+            "text": "Bomb released",
+            "t": 117.34999999999462,
+            "pilotId": "host"
+          },
+          {
+            "id": 64,
+            "type": "target",
+            "text": "Target destroyed. Turn toward ESCAPE.",
+            "t": 123.08333333332763
+          }
+        ],
+        "serial": 65,
+        "targetHp": 0,
+        "bombed": true,
+        "routeIndex": 0,
+        "flightStage": "takeoff",
+        "approachIndex": 0,
+        "missionMessage": "",
+        "escaped": false,
+        "formations": [
+          {
+            "team": 0,
+            "origin": {
+              "x": 0,
+              "y": 450,
+              "z": -2450
+            },
+            "yaw": 0,
+            "spacing": 96,
+            "type": "vee",
+            "until": 4.5
+          },
+          {
+            "team": 1,
+            "origin": {
+              "x": 1800,
+              "y": 650,
+              "z": 300
+            },
+            "yaw": -1.5707963267948966,
+            "spacing": 48,
+            "type": "echelon",
+            "until": 4.5
+          }
+        ],
+        "strikeSam": {
+          "launches": 1,
+          "nextAt": 165.1830436096786
+        }
+      }
+    },
+    {
+      "wallSeconds": 228.564,
+      "state": {
+        "version": 2,
+        "startingFuel": 0.75,
+        "mode": "strike",
+        "missionId": "dogfight",
+        "combatMission": null,
+        "arenaId": "coast",
+        "routeId": "local",
+        "destinationId": "home",
+        "teamSize": 1,
+        "teamSizes": [
+          1,
+          1
+        ],
+        "skirmish": false,
+        "scores": [
+          0,
+          0
+        ],
+        "role": "attack",
+        "difficulty": "normal",
+        "rng": 3499576164,
+        "time": 189.75000000004314,
+        "tick": 11385,
+        "status": "complete",
+        "result": {
+          "title": "Clean getaway",
+          "text": "The target was destroyed and the strike aircraft reached safety.",
+          "winner": 0
+        },
+        "pilots": [
+          {
+            "normalLoad": 1.0000000000123983,
+            "gLoad": 1.0000002878895455,
+            "gVision": 0,
+            "contactLoad": 0,
+            "gWearTime": 0,
+            "airframeWear": 0,
+            "gWearActive": false,
+            "engineHealth": 1,
+            "controlHealth": 1,
+            "id": "host",
+            "team": 0,
+            "slot": 0,
+            "human": true,
+            "bomber": true,
+            "objectiveRole": null,
+            "personality": "aggressive",
+            "pos": {
+              "x": 3170.804668755602,
+              "y": 1608.297197758027,
+              "z": -1216.5480682065163
+            },
+            "yaw": -2.1378194819686813,
+            "pitch": 4.137396277571111e-28,
+            "roll": 7.967546981498084e-7,
+            "speed": 304.2619409861825,
+            "throttle": 1,
+            "hp": 100,
+            "gunAmmo": 300,
+            "heat": 0,
+            "radar": 0,
+            "flares": 3,
+            "chaff": 3,
+            "bombs": 0,
+            "resupplyLatched": false,
+            "resupplyReadyAt": 0,
+            "resuppliedAt": null,
+            "lastDamage": null,
+            "gunCD": 0,
+            "gunShots": 0,
+            "heatCD": 0,
+            "radarCD": 0,
+            "flareCD": 0,
+            "chaffCD": 0,
+            "bombCD": 0,
+            "lock": 0,
+            "targetId": null,
+            "dead": false,
+            "grounded": false,
+            "landed": false,
+            "runwayId": "home",
+            "throttleHeld": 0,
+            "throttleDirection": 0,
+            "aiTargetId": null,
+            "aiTargetUntil": 0,
+            "aiGunBurst": 0,
+            "aiGunRest": 0,
+            "aiFlarePending": false,
+            "aiExtendYaw": 0,
+            "aiTimer": 0,
+            "aiShot": 2,
+            "aiDefend": 0,
+            "aiBreak": 0,
+            "aiNextBreak": 7,
+            "rearm": 0,
+            "aiEvade": 0,
+            "spawnProtectedUntil": 0,
+            "collisionGraceUntil": 2.5,
+            "respawnAt": null,
+            "deaths": 0,
+            "kills": 0,
+            "trail": [],
+            "flightState": "airborne",
+            "homeBaseId": "home",
+            "gearDown": false,
+            "gearManual": false,
+            "airbrake": false,
+            "maneuverAssist": false,
+            "departureHold": false,
+            "departureActive": false,
+            "departureReadyAt": 0,
+            "repairing": false,
+            "fuelCapacityKg": 65000,
+            "fuelFraction": 0.6636214658119713,
+            "fuelKg": 43135.39527777814,
+            "massKg": 115135.39527777814,
+            "afterburnerActive": false,
+            "afterburnerRemaining": 0,
+            "afterburnerCooldown": 0,
+            "afterburnerNeedsRelease": false,
+            "fuelFlowKgPerSecond": 30,
+            "travelApproach": false,
+            "controlInput": {
+              "pitch": 0,
+              "roll": 0,
+              "yaw": 0
+            },
+            "braking": false,
+            "speedAcceleration": 0.4008733727107483,
+            "stallSink": 6.081913262377386e-145,
+            "stallSpeed": 93.81937594516087,
+            "refueling": false,
+            "airbrakeDeployment": 0,
+            "envelopeLimited": false
+          },
+          {
+            "normalLoad": 0.9994791861682049,
+            "gLoad": 0.9994970550130822,
+            "gVision": 0,
+            "contactLoad": 0,
+            "gWearTime": 0,
+            "airframeWear": 0,
+            "gWearActive": false,
+            "engineHealth": 1,
+            "controlHealth": 1,
+            "id": "bot1",
+            "team": 1,
+            "slot": 0,
+            "human": false,
+            "bomber": false,
+            "objectiveRole": null,
+            "personality": "cautious",
+            "pos": {
+              "x": 8988.810259995984,
+              "y": 1585.4991435650713,
+              "z": 3574.7789027731637
+            },
+            "yaw": -2.259295560330335,
+            "pitch": 0.0019482759596577144,
+            "roll": 0.009214252955718994,
+            "speed": 185.0022101152127,
+            "throttle": 0.5506430853341852,
+            "hp": 100,
+            "gunAmmo": 300,
+            "heat": 5,
+            "radar": 2,
+            "flares": 6,
+            "chaff": 6,
+            "bombs": 0,
+            "resupplyLatched": false,
+            "resupplyReadyAt": 0,
+            "resuppliedAt": null,
+            "lastDamage": null,
+            "gunCD": 0,
+            "gunShots": 0,
+            "heatCD": 0,
+            "radarCD": 0,
+            "flareCD": 0,
+            "chaffCD": 0,
+            "bombCD": 0,
+            "lock": 0,
+            "targetId": null,
+            "dead": false,
+            "grounded": false,
+            "landed": false,
+            "runwayId": "northpoint",
+            "throttleHeld": 0,
+            "throttleDirection": 0,
+            "aiTargetId": "host",
+            "aiTargetUntil": 28.2999999999999,
+            "aiGunBurst": 0,
+            "aiGunRest": 0,
+            "aiFlarePending": false,
+            "aiExtendYaw": -0.3090016045214643,
+            "aiTimer": 0,
+            "aiShot": 0,
+            "aiDefend": 0,
+            "aiBreak": 0,
+            "aiNextBreak": 0,
+            "rearm": 0,
+            "aiEvade": 0,
+            "spawnProtectedUntil": 0,
+            "collisionGraceUntil": 2.5,
+            "respawnAt": null,
+            "deaths": 0,
+            "kills": 0,
+            "trail": [],
+            "flightState": "airborne",
+            "homeBaseId": "northpoint",
+            "gearDown": false,
+            "gearManual": false,
+            "airbrake": false,
+            "maneuverAssist": false,
+            "departureHold": false,
+            "departureActive": false,
+            "departureReadyAt": 0,
+            "repairing": false,
+            "fuelCapacityKg": 3200,
+            "fuelFraction": 0.60219021335535,
+            "fuelKg": 1927.0086827371197,
+            "massKg": 10427.00868273712,
+            "afterburnerActive": false,
+            "afterburnerRemaining": 0,
+            "afterburnerCooldown": 0,
+            "afterburnerNeedsRelease": false,
+            "fuelFlowKgPerSecond": 2.3620578730693924,
+            "travelApproach": false,
+            "controlInput": {
+              "pitch": 0.0036507534641045964,
+              "roll": 0.009025236764640133,
+              "yaw": 0.0005157278151222932
+            },
+            "braking": false,
+            "speedAcceleration": 0.0008103376359258618,
+            "stallSink": 3.583859765883888e-230,
+            "stallSpeed": 83.27825095605043,
+            "refueling": false,
+            "airbrakeDeployment": 0,
+            "envelopeLimited": false
+          }
+        ],
+        "missiles": [],
+        "bullets": [],
+        "countermeasures": [],
+        "bombs": [],
+        "effects": [],
+        "events": [
+          {
+            "id": 1,
+            "type": "start",
+            "text": "Strike package ready at the airport. Take off, reach the target, then escape.",
+            "t": 0
+          },
+          {
+            "id": 2,
+            "type": "takeoff",
+            "text": "Airborne. Join the fight.",
+            "t": 13.016666666666893,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 3,
+            "type": "takeoff",
+            "text": "Airborne. Join the fight.",
+            "t": 27.899999999999697,
+            "pilotId": "host"
+          },
+          {
+            "id": 5,
+            "type": "launch",
+            "text": "Fox one · radar missile away",
+            "t": 58.23333333333131,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 12,
+            "type": "counter",
+            "text": "Chaff out",
+            "t": 58.949999999997935,
+            "pilotId": "host"
+          },
+          {
+            "id": 13,
+            "type": "evade",
+            "text": "Radar missile defeated",
+            "t": 59.766666666664555,
+            "pilotId": "host"
+          },
+          {
+            "id": 20,
+            "type": "counter",
+            "text": "Chaff out",
+            "t": 60.14999999999787,
+            "pilotId": "host"
+          },
+          {
+            "id": 22,
+            "type": "launch",
+            "text": "Fox one · radar missile away",
+            "t": 82.63333333332993,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 29,
+            "type": "counter",
+            "text": "Chaff out",
+            "t": 84.04999999999652,
+            "pilotId": "host"
+          },
+          {
+            "id": 30,
+            "type": "evade",
+            "text": "Radar missile defeated",
+            "t": 84.78333333332981,
+            "pilotId": "host"
+          },
+          {
+            "id": 32,
+            "type": "launch",
+            "text": "Fox two · heat seeker away",
+            "t": 90.79999999999613,
+            "pilotId": "bot1"
+          },
+          {
+            "id": 39,
+            "type": "counter",
+            "text": "Flares out",
+            "t": 92.24999999999605,
+            "pilotId": "host"
+          },
+          {
+            "id": 46,
+            "type": "counter",
+            "text": "Flares out",
+            "t": 93.44999999999598,
+            "pilotId": "host"
+          },
+          {
+            "id": 47,
+            "type": "evade",
+            "text": "Heat seeker defeated",
+            "t": 93.46666666666265,
+            "pilotId": "host"
+          },
+          {
+            "id": 49,
+            "type": "launch",
+            "text": "Airfield SAM inbound · deploy flares",
+            "t": 112.58333333332823,
+            "pilotId": "host",
+            "sam": true
+          },
+          {
+            "id": 56,
+            "type": "counter",
+            "text": "Flares out",
+            "t": 112.81666666666155,
+            "pilotId": "host"
+          },
+          {
+            "id": 57,
+            "type": "evade",
+            "text": "SAM defeated by bomber flares",
+            "t": 112.81666666666155,
+            "pilotId": "host"
+          },
+          {
+            "id": 59,
+            "type": "bomb",
+            "text": "Bomb released",
+            "t": 115.34999999999474,
+            "pilotId": "host"
+          },
+          {
+            "id": 61,
+            "type": "bomb",
+            "text": "Bomb released",
+            "t": 116.34999999999468,
+            "pilotId": "host"
+          },
+          {
+            "id": 63,
+            "type": "bomb",
+            "text": "Bomb released",
+            "t": 117.34999999999462,
+            "pilotId": "host"
+          },
+          {
+            "id": 64,
+            "type": "target",
+            "text": "Target destroyed. Turn toward ESCAPE.",
+            "t": 123.08333333332763
+          },
+          {
+            "id": 66,
+            "type": "miss",
+            "text": "Bomb missed. Circle back for another pass.",
+            "t": 124.1166666666609
+          },
+          {
+            "id": 67,
+            "type": "miss",
+            "text": "Bomb missed. Circle back for another pass.",
+            "t": 125.19999999999418
+          }
+        ],
+        "serial": 67,
+        "targetHp": 0,
+        "bombed": true,
+        "routeIndex": 0,
+        "flightStage": "takeoff",
+        "approachIndex": 0,
+        "missionMessage": "",
+        "escaped": true,
+        "formations": [
+          {
+            "team": 0,
+            "origin": {
+              "x": 0,
+              "y": 450,
+              "z": -2450
+            },
+            "yaw": 0,
+            "spacing": 96,
+            "type": "vee",
+            "until": 4.5
+          },
+          {
+            "team": 1,
+            "origin": {
+              "x": 1800,
+              "y": 650,
+              "z": 300
+            },
+            "yaw": -1.5707963267948966,
+            "spacing": 48,
+            "type": "echelon",
+            "until": 4.5
+          }
+        ],
+        "strikeSam": {
+          "launches": 1,
+          "nextAt": 165.1830436096786
+        }
+      }
+    }
+  ],
+  "cockpit": true,
+  "sam": [
+    {
+      "tag": "48:false",
+      "time": 112.79999999999488,
+      "decoyed": false,
+      "warning": "HEAT MISSILECUT POWER · F FLARES · EVADE12 O'CLOCK · 4566 m · ~3.6s",
+      "flares": 4
+    },
+    {
+      "tag": "48:true",
+      "time": 113.29999999999485,
+      "decoyed": true,
+      "warning": "HEAT MISSILECUT POWER · F FLARES · EVADE12 O'CLOCK · 4566 m · ~3.6s",
+      "flares": 3
+    }
+  ],
+  "flight": [
+    {
+      "time": 1.566666666666666,
+      "pos": {
+        "x": -1800,
+        "y": 3,
+        "z": -3140
+      },
+      "hp": 100,
+      "speed": 0,
+      "grounded": true,
+      "flares": 6
+    },
+    {
+      "time": 10.266666666666756,
+      "pos": {
+        "x": -1800,
+        "y": 3,
+        "z": -3050.6621689705657
+      },
+      "hp": 100,
+      "speed": 26.494869971218687,
+      "grounded": true,
+      "flares": 6
+    },
+    {
+      "time": 20.33333333333346,
+      "pos": {
+        "x": -1800,
+        "y": 3,
+        "z": -2585.856779353404
+      },
+      "hp": 100,
+      "speed": 65.5871981746247,
+      "grounded": true,
+      "flares": 6
+    },
+    {
+      "time": 30.21666666666623,
+      "pos": {
+        "x": -1800,
+        "y": 28.822110771117288,
+        "z": -1784.5701030487548
+      },
+      "hp": 100,
+      "speed": 89.07801191669682,
+      "grounded": false,
+      "flares": 6
+    },
+    {
+      "time": 40.28333333333233,
+      "pos": {
+        "x": -1800,
+        "y": 459.6246083609575,
+        "z": -928.985876044655
+      },
+      "hp": 100,
+      "speed": 100.52532404235778,
+      "grounded": false,
+      "flares": 6
+    },
+    {
+      "time": 50.033333333331775,
+      "pos": {
+        "x": -1800,
+        "y": 956.5086575735237,
+        "z": -44.999387053245286
+      },
+      "hp": 100,
+      "speed": 106.95200172206718,
+      "grounded": false,
+      "flares": 6
+    },
+    {
+      "time": 60.1833333333312,
+      "pos": {
+        "x": -1800,
+        "y": 1452.3039117164292,
+        "z": 942.6237938145081
+      },
+      "hp": 100,
+      "speed": 115.22338535548536,
+      "grounded": false,
+      "flares": 6
+    },
+    {
+      "time": 70.13333333333064,
+      "pos": {
+        "x": -1184.5518640123921,
+        "y": 1405.5626474918633,
+        "z": 1924.9930094868785
+      },
+      "hp": 100,
+      "speed": 127.30117561793134,
+      "grounded": false,
+      "flares": 6
+    },
+    {
+      "time": 80.03333333333008,
+      "pos": {
+        "x": -7.4889752050130385,
+        "y": 1395.0280505285186,
+        "z": 2892.9979693690375
+      },
+      "hp": 100,
+      "speed": 159.02611601957224,
+      "grounded": false,
+      "flares": 6
+    },
+    {
+      "time": 90.04999999999617,
+      "pos": {
+        "x": 1656.6716430414017,
+        "y": 1397.1220816652406,
+        "z": 4627.675218384196
+      },
+      "hp": 100,
+      "speed": 200.54421937652046,
+      "grounded": false,
+      "flares": 6
+    },
+    {
+      "time": 100.29999999999559,
+      "pos": {
+        "x": 4159.896381660274,
+        "y": 1397.12208170175,
+        "z": 6805.451761264159
+      },
+      "hp": 100,
+      "speed": 233.1842431675845,
+      "grounded": false,
+      "flares": 4
+    },
+    {
+      "time": 110.29999999999502,
+      "pos": {
+        "x": 7077.018067070671,
+        "y": 1397.12208170175,
+        "z": 9064.281485567093
+      },
+      "hp": 100,
+      "speed": 257.4437454535944,
+      "grounded": false,
+      "flares": 4
+    },
+    {
+      "time": 120.31666666666112,
+      "pos": {
+        "x": 9858.448745632839,
+        "y": 1397.12208170175,
+        "z": 11931.160277814439
+      },
+      "hp": 100,
+      "speed": 273.77077911649667,
+      "grounded": false,
+      "flares": 3
+    },
+    {
+      "time": 130.11666666666235,
+      "pos": {
+        "x": 13160.753587625477,
+        "y": 1515.5577255221035,
+        "z": 14222.964596807205
+      },
+      "hp": 100,
+      "speed": 274.68240563838066,
+      "grounded": false,
+      "flares": 3
+    },
+    {
+      "time": 140.2000000000037,
+      "pos": {
+        "x": 16814.946849885553,
+        "y": 1750.4490104538982,
+        "z": 13058.089134553878
+      },
+      "hp": 100,
+      "speed": 271.8438099992763,
+      "grounded": false,
+      "flares": 3
+    },
+    {
+      "time": 150.21666666667835,
+      "pos": {
+        "x": 16914.264495824904,
+        "y": 1560.6942779336916,
+        "z": 9186.314257069796
+      },
+      "hp": 100,
+      "speed": 277.8552252118747,
+      "grounded": false,
+      "flares": 3
+    },
+    {
+      "time": 160.10000000001955,
+      "pos": {
+        "x": 13635.54353287932,
+        "y": 1608.2877352825647,
+        "z": 6726.402888528579
+      },
+      "hp": 100,
+      "speed": 283.2625076716287,
+      "grounded": false,
+      "flares": 3
+    },
+    {
+      "time": 170.23333333336095,
+      "pos": {
+        "x": 10119.829488543493,
+        "y": 1608.2971977578577,
+        "z": 4117.626175474044
+      },
+      "hp": 100,
+      "speed": 293.0881605971491,
+      "grounded": false,
+      "flares": 3
+    },
+    {
+      "time": 180.20000000003554,
+      "pos": {
+        "x": 6650.811477272303,
+        "y": 1608.297197758027,
+        "z": 1352.0144775059953
+      },
+      "hp": 100,
+      "speed": 299.97856666072323,
+      "grounded": false,
+      "flares": 3
+    }
+  ],
+  "takeoff": {
+    "time": 31.033333333332852,
+    "pos": {
+      "x": -1800,
+      "y": 57.60157880915894,
+      "z": -1718.2531467869724
+    },
+    "speed": 90.20812796470017
+  },
+  "lastRelease": {
+    "time": 115.33333333332807,
+    "objective": {
+      "x": 10780,
+      "y": 74,
+      "z": 12550
+    },
+    "impact": {
+      "x": 10573.562931264558,
+      "y": 45.623392688476315,
+      "z": 12734.869175048198
+    }
+  },
+  "end": {
+    "version": 2,
+    "startingFuel": 0.75,
+    "mode": "strike",
+    "missionId": "dogfight",
+    "combatMission": null,
+    "arenaId": "coast",
+    "routeId": "local",
+    "destinationId": "home",
+    "teamSize": 1,
+    "teamSizes": [
+      1,
+      1
+    ],
+    "skirmish": false,
+    "scores": [
+      0,
+      0
+    ],
+    "role": "attack",
+    "difficulty": "normal",
+    "rng": 3499576164,
+    "time": 189.75000000004314,
+    "tick": 11385,
+    "status": "complete",
+    "result": {
+      "title": "Clean getaway",
+      "text": "The target was destroyed and the strike aircraft reached safety.",
+      "winner": 0
+    },
+    "pilots": [
+      {
+        "normalLoad": 1.0000000000123983,
+        "gLoad": 1.0000002878895455,
+        "gVision": 0,
+        "contactLoad": 0,
+        "gWearTime": 0,
+        "airframeWear": 0,
+        "gWearActive": false,
+        "engineHealth": 1,
+        "controlHealth": 1,
+        "id": "host",
+        "team": 0,
+        "slot": 0,
+        "human": true,
+        "bomber": true,
+        "objectiveRole": null,
+        "personality": "aggressive",
+        "pos": {
+          "x": 3170.804668755602,
+          "y": 1608.297197758027,
+          "z": -1216.5480682065163
+        },
+        "yaw": -2.1378194819686813,
+        "pitch": 4.137396277571111e-28,
+        "roll": 7.967546981498084e-7,
+        "speed": 304.2619409861825,
+        "throttle": 1,
+        "hp": 100,
+        "gunAmmo": 300,
+        "heat": 0,
+        "radar": 0,
+        "flares": 3,
+        "chaff": 3,
+        "bombs": 0,
+        "resupplyLatched": false,
+        "resupplyReadyAt": 0,
+        "resuppliedAt": null,
+        "lastDamage": null,
+        "gunCD": 0,
+        "gunShots": 0,
+        "heatCD": 0,
+        "radarCD": 0,
+        "flareCD": 0,
+        "chaffCD": 0,
+        "bombCD": 0,
+        "lock": 0,
+        "targetId": null,
+        "dead": false,
+        "grounded": false,
+        "landed": false,
+        "runwayId": "home",
+        "throttleHeld": 0,
+        "throttleDirection": 0,
+        "aiTargetId": null,
+        "aiTargetUntil": 0,
+        "aiGunBurst": 0,
+        "aiGunRest": 0,
+        "aiFlarePending": false,
+        "aiExtendYaw": 0,
+        "aiTimer": 0,
+        "aiShot": 2,
+        "aiDefend": 0,
+        "aiBreak": 0,
+        "aiNextBreak": 7,
+        "rearm": 0,
+        "aiEvade": 0,
+        "spawnProtectedUntil": 0,
+        "collisionGraceUntil": 2.5,
+        "respawnAt": null,
+        "deaths": 0,
+        "kills": 0,
+        "trail": [],
+        "flightState": "airborne",
+        "homeBaseId": "home",
+        "gearDown": false,
+        "gearManual": false,
+        "airbrake": false,
+        "maneuverAssist": false,
+        "departureHold": false,
+        "departureActive": false,
+        "departureReadyAt": 0,
+        "repairing": false,
+        "fuelCapacityKg": 65000,
+        "fuelFraction": 0.6636214658119713,
+        "fuelKg": 43135.39527777814,
+        "massKg": 115135.39527777814,
+        "afterburnerActive": false,
+        "afterburnerRemaining": 0,
+        "afterburnerCooldown": 0,
+        "afterburnerNeedsRelease": false,
+        "fuelFlowKgPerSecond": 30,
+        "travelApproach": false,
+        "controlInput": {
+          "pitch": 0,
+          "roll": 0,
+          "yaw": 0
+        },
+        "braking": false,
+        "speedAcceleration": 0.4008733727107483,
+        "stallSink": 6.081913262377386e-145,
+        "stallSpeed": 93.81937594516087,
+        "refueling": false,
+        "airbrakeDeployment": 0,
+        "envelopeLimited": false
+      },
+      {
+        "normalLoad": 0.9994791861682049,
+        "gLoad": 0.9994970550130822,
+        "gVision": 0,
+        "contactLoad": 0,
+        "gWearTime": 0,
+        "airframeWear": 0,
+        "gWearActive": false,
+        "engineHealth": 1,
+        "controlHealth": 1,
+        "id": "bot1",
+        "team": 1,
+        "slot": 0,
+        "human": false,
+        "bomber": false,
+        "objectiveRole": null,
+        "personality": "cautious",
+        "pos": {
+          "x": 8988.810259995984,
+          "y": 1585.4991435650713,
+          "z": 3574.7789027731637
+        },
+        "yaw": -2.259295560330335,
+        "pitch": 0.0019482759596577144,
+        "roll": 0.009214252955718994,
+        "speed": 185.0022101152127,
+        "throttle": 0.5506430853341852,
+        "hp": 100,
+        "gunAmmo": 300,
+        "heat": 5,
+        "radar": 2,
+        "flares": 6,
+        "chaff": 6,
+        "bombs": 0,
+        "resupplyLatched": false,
+        "resupplyReadyAt": 0,
+        "resuppliedAt": null,
+        "lastDamage": null,
+        "gunCD": 0,
+        "gunShots": 0,
+        "heatCD": 0,
+        "radarCD": 0,
+        "flareCD": 0,
+        "chaffCD": 0,
+        "bombCD": 0,
+        "lock": 0,
+        "targetId": null,
+        "dead": false,
+        "grounded": false,
+        "landed": false,
+        "runwayId": "northpoint",
+        "throttleHeld": 0,
+        "throttleDirection": 0,
+        "aiTargetId": "host",
+        "aiTargetUntil": 28.2999999999999,
+        "aiGunBurst": 0,
+        "aiGunRest": 0,
+        "aiFlarePending": false,
+        "aiExtendYaw": -0.3090016045214643,
+        "aiTimer": 0,
+        "aiShot": 0,
+        "aiDefend": 0,
+        "aiBreak": 0,
+        "aiNextBreak": 0,
+        "rearm": 0,
+        "aiEvade": 0,
+        "spawnProtectedUntil": 0,
+        "collisionGraceUntil": 2.5,
+        "respawnAt": null,
+        "deaths": 0,
+        "kills": 0,
+        "trail": [],
+        "flightState": "airborne",
+        "homeBaseId": "northpoint",
+        "gearDown": false,
+        "gearManual": false,
+        "airbrake": false,
+        "maneuverAssist": false,
+        "departureHold": false,
+        "departureActive": false,
+        "departureReadyAt": 0,
+        "repairing": false,
+        "fuelCapacityKg": 3200,
+        "fuelFraction": 0.60219021335535,
+        "fuelKg": 1927.0086827371197,
+        "massKg": 10427.00868273712,
+        "afterburnerActive": false,
+        "afterburnerRemaining": 0,
+        "afterburnerCooldown": 0,
+        "afterburnerNeedsRelease": false,
+        "fuelFlowKgPerSecond": 2.3620578730693924,
+        "travelApproach": false,
+        "controlInput": {
+          "pitch": 0.0036507534641045964,
+          "roll": 0.009025236764640133,
+          "yaw": 0.0005157278151222932
+        },
+        "braking": false,
+        "speedAcceleration": 0.0008103376359258618,
+        "stallSink": 3.583859765883888e-230,
+        "stallSpeed": 83.27825095605043,
+        "refueling": false,
+        "airbrakeDeployment": 0,
+        "envelopeLimited": false
+      }
+    ],
+    "missiles": [],
+    "bullets": [],
+    "countermeasures": [],
+    "bombs": [],
+    "effects": [],
+    "events": [
+      {
+        "id": 1,
+        "type": "start",
+        "text": "Strike package ready at the airport. Take off, reach the target, then escape.",
+        "t": 0
+      },
+      {
+        "id": 2,
+        "type": "takeoff",
+        "text": "Airborne. Join the fight.",
+        "t": 13.016666666666893,
+        "pilotId": "bot1"
+      },
+      {
+        "id": 3,
+        "type": "takeoff",
+        "text": "Airborne. Join the fight.",
+        "t": 27.899999999999697,
+        "pilotId": "host"
+      },
+      {
+        "id": 5,
+        "type": "launch",
+        "text": "Fox one · radar missile away",
+        "t": 58.23333333333131,
+        "pilotId": "bot1"
+      },
+      {
+        "id": 12,
+        "type": "counter",
+        "text": "Chaff out",
+        "t": 58.949999999997935,
+        "pilotId": "host"
+      },
+      {
+        "id": 13,
+        "type": "evade",
+        "text": "Radar missile defeated",
+        "t": 59.766666666664555,
+        "pilotId": "host"
+      },
+      {
+        "id": 20,
+        "type": "counter",
+        "text": "Chaff out",
+        "t": 60.14999999999787,
+        "pilotId": "host"
+      },
+      {
+        "id": 22,
+        "type": "launch",
+        "text": "Fox one · radar missile away",
+        "t": 82.63333333332993,
+        "pilotId": "bot1"
+      },
+      {
+        "id": 29,
+        "type": "counter",
+        "text": "Chaff out",
+        "t": 84.04999999999652,
+        "pilotId": "host"
+      },
+      {
+        "id": 30,
+        "type": "evade",
+        "text": "Radar missile defeated",
+        "t": 84.78333333332981,
+        "pilotId": "host"
+      },
+      {
+        "id": 32,
+        "type": "launch",
+        "text": "Fox two · heat seeker away",
+        "t": 90.79999999999613,
+        "pilotId": "bot1"
+      },
+      {
+        "id": 39,
+        "type": "counter",
+        "text": "Flares out",
+        "t": 92.24999999999605,
+        "pilotId": "host"
+      },
+      {
+        "id": 46,
+        "type": "counter",
+        "text": "Flares out",
+        "t": 93.44999999999598,
+        "pilotId": "host"
+      },
+      {
+        "id": 47,
+        "type": "evade",
+        "text": "Heat seeker defeated",
+        "t": 93.46666666666265,
+        "pilotId": "host"
+      },
+      {
+        "id": 49,
+        "type": "launch",
+        "text": "Airfield SAM inbound · deploy flares",
+        "t": 112.58333333332823,
+        "pilotId": "host",
+        "sam": true
+      },
+      {
+        "id": 56,
+        "type": "counter",
+        "text": "Flares out",
+        "t": 112.81666666666155,
+        "pilotId": "host"
+      },
+      {
+        "id": 57,
+        "type": "evade",
+        "text": "SAM defeated by bomber flares",
+        "t": 112.81666666666155,
+        "pilotId": "host"
+      },
+      {
+        "id": 59,
+        "type": "bomb",
+        "text": "Bomb released",
+        "t": 115.34999999999474,
+        "pilotId": "host"
+      },
+      {
+        "id": 61,
+        "type": "bomb",
+        "text": "Bomb released",
+        "t": 116.34999999999468,
+        "pilotId": "host"
+      },
+      {
+        "id": 63,
+        "type": "bomb",
+        "text": "Bomb released",
+        "t": 117.34999999999462,
+        "pilotId": "host"
+      },
+      {
+        "id": 64,
+        "type": "target",
+        "text": "Target destroyed. Turn toward ESCAPE.",
+        "t": 123.08333333332763
+      },
+      {
+        "id": 66,
+        "type": "miss",
+        "text": "Bomb missed. Circle back for another pass.",
+        "t": 124.1166666666609
+      },
+      {
+        "id": 67,
+        "type": "miss",
+        "text": "Bomb missed. Circle back for another pass.",
+        "t": 125.19999999999418
+      }
+    ],
+    "serial": 67,
+    "targetHp": 0,
+    "bombed": true,
+    "routeIndex": 0,
+    "flightStage": "takeoff",
+    "approachIndex": 0,
+    "missionMessage": "",
+    "escaped": true,
+    "formations": [
+      {
+        "team": 0,
+        "origin": {
+          "x": 0,
+          "y": 450,
+          "z": -2450
+        },
+        "yaw": 0,
+        "spacing": 96,
+        "type": "vee",
+        "until": 4.5
+      },
+      {
+        "team": 1,
+        "origin": {
+          "x": 1800,
+          "y": 650,
+          "z": 300
+        },
+        "yaw": -1.5707963267948966,
+        "spacing": 48,
+        "type": "echelon",
+        "until": 4.5
+      }
+    ],
+    "strikeSam": {
+      "launches": 1,
+      "nextAt": 165.1830436096786
+    }
+  },
+  "wallSeconds": 229.958,
+  "pass": true
+}

@@ -66,7 +66,12 @@ export function advanceFlightEnergy(p,input={},dt){
  const parasite=a.parasite*pressure*mass,baseInduced=a.induced*lift*lift*Math.min(1,load*load)/Math.max(1,pressure)/mass;
  const extra=a.turnInduced*Math.max(0,load*load-1)/Math.max(a.stallSpeed*a.stallSpeed*.5,pressure)/mass;
  const turnDrag=a.turnDragLimit*extra/(a.turnDragLimit+extra);
- const gravity=-GRAVITY*Math.sin(Number(p.pitch)||0),airbrake=input.brake?28:0,gearDrag=p.gearDown?2.5*(speed/150)**2:0;
+ // Airbrake drag builds smoothly and eases near approach speed. Wheel brakes
+ // above deliberately retain their original stopping force.
+ const deployment=clamp(Number(p.airbrakeDeployment)||0,0,1);
+ p.airbrakeDeployment=deployment+((input.brake?1:0)-deployment)*(1-Math.exp(-seconds*2));
+ const airbrake=p.airbrakeDeployment*(12+4*clamp(speed/315,0,1)**2)*density;
+ const gravity=-GRAVITY*Math.sin(Number(p.pitch)||0),gearDrag=p.gearDown?2.5*(speed/150)**2:0;
  p.speed=clamp(speed+(thrust-parasite-baseInduced-turnDrag+gravity-airbrake-gearDrag)*seconds,0,maxSpeed);
  p.speedAcceleration=(p.speed-speed)/seconds;
  p.stallSpeed=a.stallSpeed*Math.sqrt(clamp(load,1,3)/(density*mass));

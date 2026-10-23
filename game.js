@@ -1,20 +1,21 @@
 import {loadBindings,canonicalKey,BINDINGS,keyLabel} from './keybindings.js';
 import {mountKeybindings} from './keybindings-ui.js';
-import {AIRFIELD_RESUPPLY,nearestAirfield} from './airfield-resupply.js?v=skybreak8-1023';
-import {COMBAT_MISSIONS_ENABLED,combatMissionId,combatMissionBlocked,combatMission,missionObjective} from './combat-missions.js?v=skybreak8-1023';
-import {ACTION_KEYS,NEUTRAL_INPUT,keyboardInput,rosterConfig} from './controls.js?v=skybreak8-1023';
-import {radarPoint,turnHint,compassHeading,gunMuzzle} from './view-axes.js?v=skybreak8-1023';
-import {Renderer} from './render.js?v=skybreak8-1023';
-import {createGame,configurePlayers,placePilotOnRunway,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,strikeTarget,strikeEscape,canBomb,respawnPilot,threatFor,worldVelocity} from './sim.js?v=skybreak8-1023';
-import {FlightAudio} from './audio.js?v=skybreak8-1023';
-import {drawCockpit} from './instruments.js?v=skybreak8-1023';
-import {combatCue,nearestThreat,waypointScreenPosition,gunLeadCue} from './guidance.js?v=skybreak8-1023';
-import {AIRFIELDS,ROUTES,routeDefinition,routeFor,destinationFor,approachFor,fieldPoint} from './missions.js?v=skybreak8-1023';
-import {mountNetworkUI} from './network.js?v=skybreak8-1023';
-import {createMultiplayerRouter} from './multiplayer-router.js?v=skybreak8-1023';
-import {mountServerUI} from './server-ui.js?v=skybreak8-1023';
-import {ARENAS} from './arenas.js?v=skybreak8-1023';
-import {surfaceHeight} from './world.js?v=skybreak8-1023';
+import {AIRFIELD_RESUPPLY,nearestAirfield} from './airfield-resupply.js?v=skybreak9-1023';
+import {COMBAT_MISSIONS_ENABLED,combatMissionId,combatMissionBlocked,combatMission,missionObjective} from './combat-missions.js?v=skybreak9-1023';
+import {ACTION_KEYS,NEUTRAL_INPUT,keyboardInput,rosterConfig} from './controls.js?v=skybreak9-1023';
+import {radarPoint,turnHint,compassHeading,gunMuzzle} from './view-axes.js?v=skybreak9-1023';
+import {Renderer} from './render.js?v=skybreak9-1023';
+import {createGame,configurePlayers,placePilotOnRunway,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,strikeTarget,strikeEscape,canBomb,respawnPilot,threatFor,worldVelocity} from './sim.js?v=skybreak9-1023';
+import {FlightAudio} from './audio.js?v=skybreak9-1023';
+import {drawBomberCockpit} from './bomber-instruments.js?v=skybreak9-1023';
+import {drawCockpit} from './instruments.js?v=skybreak9-1023';
+import {combatCue,nearestThreat,waypointScreenPosition,gunLeadCue} from './guidance.js?v=skybreak9-1023';
+import {AIRFIELDS,ROUTES,routeDefinition,routeFor,destinationFor,approachFor,fieldPoint} from './missions.js?v=skybreak9-1023';
+import {mountNetworkUI} from './network.js?v=skybreak9-1023';
+import {createMultiplayerRouter} from './multiplayer-router.js?v=skybreak9-1023';
+import {mountServerUI} from './server-ui.js?v=skybreak9-1023';
+import {ARENAS} from './arenas.js?v=skybreak9-1023';
+import {surfaceHeight} from './world.js?v=skybreak9-1023';
 const elements=new Map(),$=id=>{let node=elements.get(id);if(!node){node=document.getElementById(id);if(node)elements.set(id,node);}return node;},keys=new Set(),actionQueue=new Set();
 $('world').tabIndex=-1;
 let bindingStorage;try{bindingStorage=localStorage}catch{}
@@ -161,7 +162,7 @@ function hud(p){
   const direction=['N','NE','E','SE','S','SW','W','NW'][Math.round(compassHeading(p.yaw)/45)%8],compass=$('compass').querySelector('small');if(compass.textContent!==direction)compass.textContent=direction;
   hudText('team-count',game.mode==='freeflight'?destinationFor(game).shortName.toUpperCase():`${game.pilots.filter(x=>x.team===p.team&&!x.dead).length} VS ${game.pilots.filter(x=>x.team!==p.team&&!x.dead).length}`);
   const t=Math.floor(game.time);hudText('timer',`${Math.floor(t/60).toString().padStart(2,'0')}:${(t%60).toString().padStart(2,'0')}`);
-  objective(p);if(expandedInstruments)radar(p);if(view==='cockpit')drawCockpit($('cockpit-instruments'),p);
+  objective(p);if(expandedInstruments)radar(p);if(view==='cockpit'){$('cockpit').classList.toggle('bomber-cockpit',!!p.bomber);if(p.bomber)drawBomberCockpit($('bomber-instruments'),p);else drawCockpit($('cockpit-instruments'),p);}
   const cue=combatCue(game,p);$('bandit-cue').hidden=!cue;
   if(cue){hudText('bandit-key',cue.key);hudText('bandit-direction',cue.text);hudText('bandit-distance',`${cue.kind} · ${cue.distance}`);}
  }
