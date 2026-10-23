@@ -1,23 +1,23 @@
-import {TacticalMap,airportStatus,homeGuidance} from './tactical-map.js?v=skybreak13-1023';
-import {RadarTerrain} from './radar-terrain.js?v=skybreak13-1023';
-import {loadBindings,canonicalKey,BINDINGS,keyLabel} from './keybindings.js?v=skybreak13-1023';
-import {mountKeybindings} from './keybindings-ui.js?v=skybreak13-1023';
-import {AIRFIELD_RESUPPLY,nearestAirfield} from './airfield-resupply.js?v=skybreak13-1023';
-import {COMBAT_MISSIONS_ENABLED,combatMissionId,combatMissionBlocked,combatMission,missionObjective} from './combat-missions.js?v=skybreak13-1023';
-import {ActionQueue,ACTION_KEYS,NEUTRAL_INPUT,keyboardInput,rosterConfig} from './controls.js?v=skybreak13-1023';
-import {radarPoint,turnHint,compassHeading,gunMuzzle} from './view-axes.js?v=skybreak13-1023';
-import {Renderer} from './render.js?v=skybreak13-1023';
-import {createGame,configurePlayers,placePilotOnRunway,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,strikeTarget,strikeEscape,canBomb,respawnPilot,threatFor,worldVelocity} from './sim.js?v=skybreak13-1023';
-import {FlightAudio} from './audio.js?v=skybreak13-1023';
-import {drawBomberCockpit} from './bomber-instruments.js?v=skybreak13-1023';
-import {drawCockpit} from './instruments.js?v=skybreak13-1023';
-import {combatCue,nearestThreat,waypointScreenPosition,gunLeadCue} from './guidance.js?v=skybreak13-1023';
-import {AIRFIELDS,ROUTES,routeDefinition,routeFor,destinationFor,approachFor,fieldPoint} from './missions.js?v=skybreak13-1023';
-import {mountNetworkUI} from './network.js?v=skybreak13-1023';
-import {createMultiplayerRouter} from './multiplayer-router.js?v=skybreak13-1023';
-import {mountServerUI} from './server-ui.js?v=skybreak13-1023';
-import {ARENAS} from './arenas.js?v=skybreak13-1023';
-import {surfaceHeight} from './world.js?v=skybreak13-1023';
+import {TacticalMap,airportStatus,homeGuidance} from './tactical-map.js?v=skybreak14-1023';
+import {RadarTerrain} from './radar-terrain.js?v=skybreak14-1023';
+import {loadBindings,canonicalKey,BINDINGS,keyLabel} from './keybindings.js?v=skybreak14-1023';
+import {mountKeybindings} from './keybindings-ui.js?v=skybreak14-1023';
+import {AIRFIELD_RESUPPLY,nearestAirfield} from './airfield-resupply.js?v=skybreak14-1023';
+import {COMBAT_MISSIONS_ENABLED,combatMissionId,combatMissionBlocked,combatMission,missionObjective} from './combat-missions.js?v=skybreak14-1023';
+import {ActionQueue,ACTION_KEYS,NEUTRAL_INPUT,keyboardInput,rosterConfig} from './controls.js?v=skybreak14-1023';
+import {radarPoint,turnHint,compassHeading,gunMuzzle} from './view-axes.js?v=skybreak14-1023';
+import {Renderer} from './render.js?v=skybreak14-1023';
+import {createGame,configurePlayers,placePilotOnRunway,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,strikeTarget,strikeEscape,canBomb,respawnPilot,threatFor,worldVelocity} from './sim.js?v=skybreak14-1023';
+import {FlightAudio} from './audio.js?v=skybreak14-1023';
+import {drawBomberCockpit} from './bomber-instruments.js?v=skybreak14-1023';
+import {drawCockpit} from './instruments.js?v=skybreak14-1023';
+import {combatCue,nearestThreat,waypointScreenPosition,gunLeadCue} from './guidance.js?v=skybreak14-1023';
+import {AIRFIELDS,ROUTES,routeDefinition,routeFor,destinationFor,approachFor,fieldPoint} from './missions.js?v=skybreak14-1023';
+import {mountNetworkUI} from './network.js?v=skybreak14-1023';
+import {createMultiplayerRouter} from './multiplayer-router.js?v=skybreak14-1023';
+import {mountServerUI} from './server-ui.js?v=skybreak14-1023';
+import {ARENAS} from './arenas.js?v=skybreak14-1023';
+import {surfaceHeight} from './world.js?v=skybreak14-1023';
 const elements=new Map(),$=id=>{let node=elements.get(id);if(!node){node=document.getElementById(id);if(node)elements.set(id,node);}return node;},keys=new Set(),actionQueue=new ActionQueue();
 $('world').tabIndex=-1;
 let bindingStorage;try{bindingStorage=localStorage}catch{}
@@ -172,7 +172,7 @@ function hud(p){
   const direction=['N','NE','E','SE','S','SW','W','NW'][Math.round(compassHeading(p.yaw)/45)%8],compass=$('compass').querySelector('small');if(compass.textContent!==direction)compass.textContent=direction;
   hudText('team-count',game.mode==='freeflight'?destinationFor(game).shortName.toUpperCase():`${game.pilots.filter(x=>x.team===p.team&&!x.dead).length} VS ${game.pilots.filter(x=>x.team!==p.team&&!x.dead).length}`);
   const t=Math.floor(game.time);hudText('timer',`${Math.floor(t/60).toString().padStart(2,'0')}:${(t%60).toString().padStart(2,'0')}`);
-  objective(p);const reinforcement=$('enemy-respawn-note');reinforcement.hidden=!game.enemyRespawnSeconds;if(game.enemyRespawnSeconds){const pending=game.pilots.filter(q=>q.dead&&q.enemyRespawnEligible&&Number.isFinite(q.respawnAt)),left=pending.length?Math.max(0,Math.ceil(Math.min(...pending.map(q=>q.respawnAt))-game.time)):null,end=Math.max(0,Math.ceil(480-game.time)),clock=n=>`${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`;hudText('enemy-respawn-note',`${pending.length?left===0?'Enemy AI waiting for clear runway':`Enemy AI return in ${clock(left)} · ${pending.length} waiting`:`Enemy AI respawns: ${game.enemyRespawnSeconds/60} min`} · sortie ends ${clock(end)}`);}hudText('airport-guidance',`${homeGuidance(game,p)} · ${keyLabel(bindings.map[0])} map`);if($('tactical-map').open)drawMap(p);if(expandedInstruments)radar(p);if(view==='cockpit'){$('cockpit').classList.toggle('bomber-cockpit',!!p.bomber);if(p.bomber)drawBomberCockpit($('bomber-instruments'),p);else drawCockpit($('cockpit-instruments'),p);}
+  objective(p);const reinforcement=$('enemy-respawn-note');reinforcement.hidden=!game.enemyRespawnSeconds;if(game.enemyRespawnSeconds){const pending=game.pilots.filter(q=>q.dead&&q.enemyRespawnEligible&&Number.isFinite(q.respawnAt)),left=pending.length?Math.max(0,Math.ceil(Math.min(...pending.map(q=>q.respawnAt))-game.time)):null,end=Math.max(0,Math.ceil(480-game.time)),clock=n=>`${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`;hudText('enemy-respawn-note',`${pending.length?left===0?'Enemy AI waiting for clear runway':`Enemy AI return in ${clock(left)} · ${pending.length} waiting`:`Enemy AI respawns: ${game.enemyRespawnSeconds} sec`} · sortie ends ${clock(end)}`);}hudText('airport-guidance',`${homeGuidance(game,p)} · ${keyLabel(bindings.map[0])} map`);if($('tactical-map').open)drawMap(p);if(expandedInstruments)radar(p);if(view==='cockpit'){$('cockpit').classList.toggle('bomber-cockpit',!!p.bomber);if(p.bomber)drawBomberCockpit($('bomber-instruments'),p);else drawCockpit($('cockpit-instruments'),p);}
   const cue=combatCue(game,p);$('bandit-cue').hidden=!cue;
   if(cue){hudText('bandit-key',cue.key);hudText('bandit-direction',cue.text);hudText('bandit-distance',`${cue.kind} · ${cue.distance}`);}
  }

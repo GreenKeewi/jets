@@ -1,6 +1,6 @@
 // Dedicated-server protocol, independent of the peer-to-peer transport.
 export const SERVER_PROTOCOL = 'SKYBREAK-SERVER-1';
-export const SIM_BUILD = 'skybreak13-1023';
+export const SIM_BUILD = 'skybreak14-1023';
 export const AXES = ['pitch', 'roll', 'yaw', 'throttle'];
 export const HELD = ['fireGun', 'brake', 'autopilot'];
 export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb', 'toggleAirbrake', 'toggleGear', 'toggleManeuver'];

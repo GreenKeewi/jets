@@ -244,3 +244,7 @@ See [verification and screenshots](evidence/v1.0.12/README.md).
 The friend-room host can enable enemy AI respawns before a same-team co-op dogfight: off by default, or 2/3/5 minutes (3 minutes initially selected). Human respawns are unchanged. Opposing-human-team games and other modes retain their existing rules. Settings lock during a sortie and synchronize to guests and late joiners. Each eligible enemy returns once at its team's runway, waiting for a clear spawn position and using normal takeoff behavior. Friendly bots and disconnected human seats are not reinforcement slots.
 
 With reinforcements enabled, eliminating enemies starts their return timers instead of immediately winning. Losing the friendly squad still ends the match; the existing eight-minute sortie limit remains. The HUD displays the next return and remaining sortie time. Pause freezes simulation timers; a new sortie clears pending respawns. See [test evidence and limitations](evidence/v1.0.13/README.md).
+
+## v1.0.14 correction: seconds, not minutes
+
+Enemy AI reinforcements now offer Off / 15 / 30 / 60 seconds, with 30 seconds selected when first enabled. Legacy 120/180/300-second host/config values normalize to 30 seconds; Off stays Off. v1.0.13 did not persist this setting in browser storage, so there is no saved localStorage preference to migrate. Room settings remain session-scoped. Human respawns and other match rules are unchanged. [Verification](evidence/v1.0.14/README.md).

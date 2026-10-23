@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createGame,configurePlayers,step,respawnPilot,snapshot,applySnapshot,AIRFIELDS,fieldPoint} from '../sim.js';
 
 function fixture(options={}){
- const g=createGame({teamSizes:[2,2],enemyRespawnSeconds:180,coopTeam:0,...options});
+ const g=createGame({teamSizes:[2,2],enemyRespawnSeconds:30,coopTeam:0,...options});
  configurePlayers(g,['host','friend'],{host:g.coopTeam??0,friend:g.coopTeam??0});
  return g;
 }
@@ -11,16 +11,16 @@ function crash(g,p){Object.assign(p,{grounded:false,departureActive:false,pos:{x
 function killEnemies(g){for(const p of g.pilots.filter(p=>p.team!==g.coopTeam))crash(g,p);}
 
 test('respawn settings only enable supported two-team co-op dogfights',()=>{
- for(const options of [{mode:'strike'},{mode:'freeflight'},{skirmish:true},{coopTeam:null},{coopTeam:2},{enemyRespawnSeconds:1},{enemyRespawnSeconds:'180'},{teamSizes:[2,2,2]}])assert.equal(fixture(options).enemyRespawnSeconds,0);
- for(const delay of [120,180,300])assert.equal(fixture({enemyRespawnSeconds:delay}).enemyRespawnSeconds,delay);
+ for(const options of [{mode:'strike'},{mode:'freeflight'},{skirmish:true},{coopTeam:null},{coopTeam:2},{enemyRespawnSeconds:1},{enemyRespawnSeconds:'30'},{teamSizes:[2,2,2]}])assert.equal(fixture(options).enemyRespawnSeconds,0);
+ for(const delay of [15,30,60])assert.equal(fixture({enemyRespawnSeconds:delay}).enemyRespawnSeconds,delay);
 });
 test('enemy deaths schedule exactly once, preserve elimination until reinforcement, and snapshot timers',()=>{
  const g=fixture();killEnemies(g);assert.equal(g.status,'playing');
  const p=g.pilots.find(p=>p.team===1),timer=p.respawnAt;
- assert.equal(timer,180+g.events.find(e=>e.type==='kill'&&e.pilotId===p.id).t);
+ assert.equal(timer,30+g.events.find(e=>e.type==='kill'&&e.pilotId===p.id).t);
  step(g);assert.equal(p.respawnAt,timer);assert.equal(p.deaths,1);
  const guest=createGame();assert.equal(applySnapshot(guest,snapshot(g)),true);
- assert.equal(guest.enemyRespawnSeconds,180);assert.equal(guest.coopTeam,0);assert.equal(guest.pilots.find(q=>q.id===p.id).respawnAt,timer);
+ assert.equal(guest.enemyRespawnSeconds,30);assert.equal(guest.coopTeam,0);assert.equal(guest.pilots.find(q=>q.id===p.id).respawnAt,timer);
 });
 test('timer follows simulation seconds at 20, 30, 60 and 144 fps, returning once on airport ground',()=>{
  for(const fps of [20,30,60,144]){
@@ -58,4 +58,9 @@ test('disabled retains elimination; co-op loss, deadline and restart terminate p
  const end=fixture();killEnemies(end);end.time=480;step(end);assert.equal(end.status,'complete');assert.ok(end.pilots.filter(p=>p.team===1).every(p=>p.dead));
  const reverse=fixture({coopTeam:1});for(const p of reverse.pilots.filter(p=>p.team===1))crash(reverse,p);assert.equal(reverse.result.winner,0);assert.equal(reverse.result.title,'Squadron defeated');
  const restart=fixture();assert.equal(restart.time,0);assert.ok(restart.pilots.every(p=>!p.dead&&p.respawnAt===null));
+});
+
+test('legacy minute configs migrate to 30 seconds; Off remains Off',()=>{
+ for(const legacy of [120,180,300])assert.equal(fixture({enemyRespawnSeconds:legacy}).enemyRespawnSeconds,30);
+ assert.equal(fixture({enemyRespawnSeconds:0}).enemyRespawnSeconds,0);
 });

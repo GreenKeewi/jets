@@ -4,12 +4,12 @@ import {assignTeam,fillTeams,validAssignments} from './lobby-teams.js';
 // Protocol: ordered reliable control/actions; unordered zero-retransmit axes/snapshots.
 export const PROTOCOL = 'JETS8';
 // Room handshake compatibility changes only when the transport/game protocol changes.
-export const ROOM_BUILD = 'skybreak13-1023';
+export const ROOM_BUILD = 'skybreak14-1023';
 // Asset versions stay separate so fresh invites load the current page without
 // rejecting an already connected player using compatible gameplay packets.
 export const CLIENT_BUILD = new URL(import.meta.url).searchParams.get('v') || 'rooms3-1019';
 export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb', 'toggleAirbrake', 'toggleGear', 'toggleManeuver'];
-export { mountNetworkUI } from './network-ui.js?v=skybreak13-1023';
+export { mountNetworkUI } from './network-ui.js?v=skybreak14-1023';
 // PeerJS 1.5.5 registers its pass-through serializer as 'raw' (not 'none').
 const ROOM_SERIALIZATION = 'raw';
 const ROOM_ICE = { iceServers: [{ urls: 'stun:stun.cloudflare.com:3478' }] };
@@ -152,7 +152,7 @@ export function createInputGuard(clock = now) {
   };
 }
 
-const validEnemyRespawn = value => [0,120,180,300].includes(value);
+const validEnemyRespawn = value => [0,15,30,60].includes(value);
 function validConfig(config) {
   if (!plain(config) || config.enemyRespawnSeconds !== undefined && !validEnemyRespawn(config.enemyRespawnSeconds) || config.coopTeam !== undefined && ![0,1].includes(config.coopTeam)) return false;
   if (config.enemyRespawnSeconds && (config.mode !== 'dogfight' || ![0,1].includes(config.coopTeam) || !plain(config.playerTeams) || config.playerTeams.host !== config.coopTeam || Object.values(config.playerTeams).some(team => team !== config.coopTeam))) return false;
@@ -557,7 +557,7 @@ export function createNetwork(callbacks = {}) {
     },
     getPlayerIds: playerIds,
     getEnemyRespawn:()=>enemyRespawnSeconds,
-    setEnemyRespawn(seconds){if(role!=='host'||teamsLocked||!validEnemyRespawn(seconds))return false;enemyRespawnSeconds=seconds;broadcastRoster();emit();return true;},
+    setEnemyRespawn(seconds){seconds=[120,180,300].includes(seconds)?30:seconds;if(role!=='host'||teamsLocked||!validEnemyRespawn(seconds))return false;enemyRespawnSeconds=seconds;broadcastRoster();emit();return true;},
     getTeams:()=>Object.fromEntries(playerIds().map(id=>[id,teams[id]])),
     setTeam(id,team){if(teamsLocked)return false;if(role==='host'){if(!assignTeam(teams,playerIds(),id,team))return false;broadcastRoster();emit();return true;}if(role==='guest'&&id===localId)return send(connections.get('host'),'control',{t:'team',team});return false;},
     sampleSnapshot(time = now(), delay = 100) { return interpolateSnapshots(snapshots, time - delay); },

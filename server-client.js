@@ -1,7 +1,7 @@
 // Optional authoritative multiplayer transport. No endpoints are active by default.
 // Populate only with verified, deployed endpoints. A label alone is not a server region.
-import {SERVER_PROTOCOL, SIM_BUILD, validateInput, ACTIONS, AXES, HELD} from './server/protocol.js?v=skybreak13-1023';
-import {interpolateSnapshots} from './network.js?v=skybreak13-1023';
+import {SERVER_PROTOCOL, SIM_BUILD, validateInput, ACTIONS, AXES, HELD} from './server/protocol.js?v=skybreak14-1023';
+import {interpolateSnapshots} from './network.js?v=skybreak14-1023';
 export const SERVER_ENDPOINTS = Object.freeze([]);
 
 export function normalizeEndpoints(endpoints) {

@@ -1,4 +1,4 @@
-import {BINDINGS,defaultBindings,keyLabel,rebind,saveBindings} from './keybindings.js?v=skybreak13-1023';
+import {BINDINGS,defaultBindings,keyLabel,rebind,saveBindings} from './keybindings.js?v=skybreak14-1023';
 export function mountKeybindings({bindings,storage,onChange,onOpen}){
  const dialog=document.getElementById('keybindings-dialog'),list=document.getElementById('keybindings-list'),status=document.getElementById('keybindings-status');let pending=null;
  function render(){list.replaceChildren();for(const [id,label] of BINDINGS){const row=document.createElement('div'),text=document.createElement('span'),button=document.createElement('button');text.textContent=label;button.type='button';button.className='secondary-button';button.textContent=bindings[id].map(keyLabel).join(' / ');button.setAttribute('aria-label',`${label}: ${button.textContent}. Change key`);button.dataset.binding=id;button.onclick=()=>{pending=id;status.textContent=`Press a new key for ${label}. Escape cancels.`;button.textContent='Press a key…';};row.append(text,button);list.append(row);}}

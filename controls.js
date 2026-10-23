@@ -9,10 +9,11 @@ export function keyboardInput(keys,pulses=new Set()){
  fireGun:keys.has('Space')||pulses.has('fireGun'),fireHeat:pulses.has('fireHeat'),fireRadar:pulses.has('fireRadar'),flare:pulses.has('flare'),chaff:pulses.has('chaff'),bomb:keys.has('KeyB')||pulses.has('bomb'),toggleAirbrake:pulses.has('toggleAirbrake'),toggleGear:pulses.has('toggleGear'),toggleManeuver:pulses.has('toggleManeuver')};
 }
 export function rosterConfig(config,playerIds=[],requestedTeams){
+ config={...config,enemyRespawnSeconds:[120,180,300].includes(config.enemyRespawnSeconds)?30:config.enemyRespawnSeconds};
  const count=Math.min(6,Math.max(1,playerIds.length)),requested=Math.min(3,Math.max(1,Math.floor(config.teamSize)||1));
  const ids=playerIds.slice(0,6),playerTeams=fillTeams(validAssignments(requestedTeams,ids)?{...requestedTeams}:{},ids),capacity=Math.max(1,...[0,1].map(team=>Object.values(playerTeams).filter(t=>t===team).length));
  const coopTeam=ids.length && ids.every(id=>playerTeams[id]===playerTeams[ids[0]]) ? playerTeams[ids[0]] : undefined;
- const enemyRespawnSeconds=config.mode==='dogfight' && coopTeam!==undefined && [120,180,300].includes(config.enemyRespawnSeconds) ? config.enemyRespawnSeconds : 0;
+ const enemyRespawnSeconds=config.mode==='dogfight' && coopTeam!==undefined && [15,30,60].includes(config.enemyRespawnSeconds) ? config.enemyRespawnSeconds : 0;
  const {coopTeam:previousCoopTeam,...base}=config;
  return{...base,playerTeams,enemyRespawnSeconds,...(enemyRespawnSeconds?{coopTeam}:{}),teamSize:config.mode==='freeflight'?1:Math.max(requested,capacity,Math.ceil(count/2))};
 }
