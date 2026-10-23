@@ -15,6 +15,11 @@ try{
  // Native guest power input reaches the host-owned pilot and replicated state.
  await guest.evaluate(()=>{document.body.tabIndex=-1;document.body.focus()});await page.keyboard.down('ArrowUp');await page.waitForTimeout(1400);await page.keyboard.up('ArrowUp');await page.waitForFunction(()=>__skybreak.state.pilots.find(p=>p.id==='p1').throttle>.2);
  report.host=await page.evaluate(()=>({pilots:__skybreak.state.pilots.map(p=>({id:p.id,team:p.team,human:p.human,throttle:p.throttle})),time:__skybreak.state.time}));await page.screenshot({path:OUT+'/coop-flight.png'});
+ // Rapid native guest countermeasures must survive transport and snapshot replication.
+ const stocks=await guest.evaluate(()=>{const q=__skybreak.state.pilots.find(p=>p.id==='p1');return{flares:q.flares,chaff:q.chaff}});
+ for(let i=0;i<3;i++)await page.keyboard.press('KeyF');for(let i=0;i<2;i++)await page.keyboard.press('KeyC');
+ for(const frame of [page,guest])await frame.waitForFunction(({flares,chaff})=>{const q=__skybreak.state.pilots.find(p=>p.id==='p1');return q.flares===flares-3&&q.chaff===chaff-2},stocks);
+ report.countermeasures={before:stocks,after:await guest.evaluate(()=>{const q=__skybreak.state.pilots.find(p=>p.id==='p1');return{flares:q.flares,chaff:q.chaff}})};
  // Host-controlled terminal fixture; guest must receive the same winning team/UI.
  await page.evaluate(()=>{const s=__skybreak.state;for(const p of s.pilots.filter(p=>p.team===1)){p.dead=true;p.hp=0;}__skybreak.setState(s)});
  await page.waitForFunction(()=>__skybreak.state.status==='complete');await guest.waitForFunction(()=>__skybreak.state.status==='complete');report.hostResult=await page.evaluate(()=>__skybreak.state.result);report.guestResult=await guest.evaluate(()=>__skybreak.state.result);assert.deepEqual(report.hostResult,report.guestResult);assert.equal(report.hostResult.winner,0);assert.equal(await guest.locator('#result-tag').textContent(),'MISSION SUCCESS');await page.screenshot({path:OUT+'/coop-victory.png'});

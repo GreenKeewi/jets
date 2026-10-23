@@ -1,5 +1,5 @@
-import {collisionRadius} from './aircraft-collision.js?v=skybreak10-1023';
-import {AIRFIELDS,fieldPoint,fieldCoordinates,fieldUnder} from './missions.js?v=skybreak10-1023';
+import {collisionRadius} from './aircraft-collision.js?v=skybreak11-1023';
+import {AIRFIELDS,fieldPoint,fieldCoordinates,fieldUnder} from './missions.js?v=skybreak11-1023';
 
 // Home-base runway operations. Gear is mandatory for a qualifying touchdown.
 export const AIRPORT=Object.freeze({takeoffSpeed:80,landingSpeed:115,repairSpeed:8,repairPower:.2,repairRate:8,repairDelay:3,queueDistance:240});

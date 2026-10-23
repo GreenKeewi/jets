@@ -1,0 +1,44 @@
+
+> build
+> wrangler deploy --dry-run --outdir dist
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy for fetch requests.[0m
+
+
+
+ ⛅️ wrangler 4.151.3
+────────────────────
+Total Upload: 118.74 KiB / gzip: 33.13 KiB
+Your Worker has access to the following bindings:
+Binding                                                   Resource                  
+env.SKY (SkyRoom)                                         Durable Object            
+env.REGION ("enam")                                       Environment Variable      
+env.ALLOWED_ORIGINS ("https://greenkeewi.github.io")      Environment Variable      
+
+--dry-run: exiting now.
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+http://127.0.0.1:8787/
+{
+  "ok": true,
+  "transport": "Cloudflare Workers local runtime",
+  "clients": 6,
+  "roomId": "aabb56a7-3fc8-483f-a7b4-94763840f84b",
+  "serverTicks": 121,
+  "simulationSeconds": 2.016666666666664,
+  "snapshotBytes": 11192,
+  "negotiatedExtensions": "permessage-deflate",
+  "checks": [
+    "CORS allowlist",
+    "six shared unique pilots",
+    "all six welcome snapshots runway grounded",
+    "seventh player rejected",
+    "server-owned simulation",
+    "finite state",
+    "identity spoof rejection",
+    "malformed packet close"
+  ]
+}

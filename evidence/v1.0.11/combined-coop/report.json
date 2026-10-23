@@ -1,0 +1,60 @@
+{
+  "method": "Two actual rendered game documents, lobby UI team choices, host-owned RAF simulation and snapshot replication. Deterministic RTC data-channel fixture because native non-proxied WebRTC UDP is unavailable in this cloud. Separate real WebSocket tests cover dedicated transport. Terminal victory is a controlled fixture, not a full combat sortie.",
+  "errors": [],
+  "nativeRtc": {
+    "created": false,
+    "name": "NoLocalCandidatesError",
+    "message": "This browser did not provide any LAN connection candidates. Browser privacy settings, a managed school/work policy or a disabled network interface may block direct WebRTC. Solo play still works. There is no relay fallback."
+  },
+  "host": {
+    "pilots": [
+      {
+        "id": "host",
+        "team": 0,
+        "human": true,
+        "throttle": 0
+      },
+      {
+        "id": "p1",
+        "team": 0,
+        "human": true,
+        "throttle": 0.5166666666666665
+      },
+      {
+        "id": "bot2",
+        "team": 1,
+        "human": false,
+        "throttle": 0.5700000000000005
+      },
+      {
+        "id": "bot3",
+        "team": 1,
+        "human": false,
+        "throttle": 0.5700000000000005
+      }
+    ],
+    "time": 1.4999999999999996
+  },
+  "countermeasures": {
+    "before": {
+      "flares": 60,
+      "chaff": 60
+    },
+    "after": {
+      "flares": 57,
+      "chaff": 58
+    }
+  },
+  "hostResult": {
+    "title": "Air superiority",
+    "text": "The skies are yours. Every opposing aircraft is down.",
+    "winner": 0
+  },
+  "guestResult": {
+    "title": "Air superiority",
+    "text": "The skies are yours. Every opposing aircraft is down.",
+    "winner": 0
+  },
+  "switchAfterReturn": true,
+  "pass": true
+}
