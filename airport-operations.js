@@ -1,5 +1,5 @@
-import {collisionRadius} from './aircraft-collision.js?v=skybreak6-1022';
-import {AIRFIELDS,fieldPoint,fieldCoordinates,fieldUnder} from './missions.js?v=skybreak6-1022';
+import {collisionRadius} from './aircraft-collision.js?v=skybreak7-1023';
+import {AIRFIELDS,fieldPoint,fieldCoordinates,fieldUnder} from './missions.js?v=skybreak7-1023';
 
 // Home-base runway operations. Gear is mandatory for a qualifying touchdown.
 export const AIRPORT=Object.freeze({takeoffSpeed:80,landingSpeed:115,repairSpeed:8,repairPower:.2,repairRate:8,repairDelay:3,queueDistance:240});
@@ -13,7 +13,7 @@ export function groundSpawn(g,p,slot=p.slot||0){
  const field=g.mode==='freeflight'?AIRFIELDS.home:airportForTeam(g,p.team);
  // Each squad uses its own airport. The front aircraft departs first; the
  // following aircraft physically waits until its forward runway is clear.
- return{pos:fieldPoint(field,0,-field.halfLength+110+slot*165,3),yaw:field.heading,pitch:0,roll:0,speed:0,throttle:0,grounded:true,landed:false,flightState:'parked',homeBaseId:field.id,gearDown:true,airbrake:false,maneuverAssist:false,runwayId:field.id,departureHold:false,departureActive:g.mode!=='freeflight',departureReadyAt:g.time,repairing:false};
+ return{pos:fieldPoint(field,0,-field.halfLength+110+slot*165,3),yaw:field.heading,pitch:0,roll:0,speed:0,throttle:0,grounded:true,landed:false,flightState:'parked',homeBaseId:field.id,gearDown:true,gearManual:false,airbrake:false,maneuverAssist:false,runwayId:field.id,departureHold:false,departureActive:g.mode!=='freeflight',departureReadyAt:g.time,repairing:false};
 }
 export function departureBlocked(g,p){
  if(!p.grounded||p.landed)return false;
@@ -55,10 +55,9 @@ export function repairAtAirport(g,p,dt){
  if(p.hp<100||(p.engineHealth??1)<1||(p.controlHealth??1)<1){p.hp=Math.min(100,p.hp+AIRPORT.repairRate*dt);p.engineHealth=Math.min(1,(p.engineHealth??1)+.08*dt);p.controlHealth=Math.min(1,(p.controlHealth??1)+.08*dt);p.repairing=true;}
 }
 
-// Normal mode manages systems; K mode leaves them in the pilot's hands.
+// Normal mode assists gear until the pilot manually overrides it.
 export function automaticSystems(p){
- if(!p.human||p.maneuverAssist)return;
- p.airbrake=false;
+ if(!p.human||p.maneuverAssist||p.gearManual)return;
  const home=AIRFIELDS[p.homeBaseId],near=home&&Math.hypot(p.pos.x-home.x,p.pos.z-home.z)<2800;
  const height=p.pos.y-(home?.elevation||0);
  p.gearDown=!!(p.grounded||(near&&height<25&&p.pitch>=0)||(near&&height<220&&p.speed<155&&p.pitch<.06&&!p.departureActive));

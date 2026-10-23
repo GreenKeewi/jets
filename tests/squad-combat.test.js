@@ -151,9 +151,12 @@ test('missile turns are bounded per frame and cannot instantaneously snap onto a
  const {g,p,m}=missileFixture();p.pos.x=400;const before={...m.dir};step(g,{},.05);const turned=Math.acos(Math.max(-1,Math.min(1,before.x*m.dir.x+before.y*m.dir.y+before.z*m.dir.z)));assert(turned<=MISSILE.heat.turnRate*.05+1e-8);assert(turned>0);
 });
 
-test('an assisted high-energy break evades a missile that hits the identical straight-flying aircraft',()=>{
- const straight=missileFixture(),evade=missileFixture();straight.p.maneuverAssist=true;evade.p.maneuverAssist=true;run(straight.g,8);run(evade.g,8,{host:{pitch:1}});
- assert.equal(straight.p.hp,52);assert.equal(evade.p.hp,100);assert(evade.g.events.some(e=>e.type==='evade'&&e.text.includes('lost')));assert.equal(evade.p.flares,6);
+test('a close rear missile remains dangerous during an envelope-limited break',()=>{
+ const straight=missileFixture(),evade=missileFixture();straight.p.maneuverAssist=true;evade.p.maneuverAssist=true;run(straight.g,8);
+ let peak=0;run(evade.g,8,()=>{peak=Math.max(peak,evade.p.normalLoad);return{host:{pitch:1}};});
+ // The old fixture escaped only by exceeding plausible loading. A 600 m rear
+ // threat must not guarantee survival through an impossible high-G snap turn.
+ assert.equal(straight.p.hp,52);assert.equal(evade.p.hp,52);assert(peak<=9.1);assert.equal(evade.p.flares,6);
 });
 
 test('a warning allows a matching flare attempt; heat seekers ignore chaff and do not guarantee decoys',()=>{

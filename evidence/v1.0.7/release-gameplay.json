@@ -1,0 +1,16 @@
+{
+  "method": "Native keyboard and normal browser animation frames after explicit airborne fixture; no stepping",
+  "start": {
+    "time": 1.5333333333333328,
+    "throttle": 1.1,
+    "fuel": 2391.3733333333294
+  },
+  "end": {
+    "time": 18.550000000000228,
+    "throttle": 1.1,
+    "fuel": 2255.24000000012,
+    "afterburner": true
+  },
+  "gearAndAirbrakeBothModes": true,
+  "errors": []
+}

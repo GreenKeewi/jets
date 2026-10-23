@@ -166,3 +166,7 @@ body:not(.graphics-ready) #menu .menu-scene-label{display:none}
 
 /* Release label uses package.json as its single version source. */
 #menu .menu-version{flex:0 0 auto;margin-left:auto;white-space:nowrap;font:11px monospace;color:#b7c6ca;letter-spacing:.3px}
+
+.keybindings-dialog{width:min(680px,94vw);max-height:88vh;overflow:auto}.keybindings-dialog h2{font-size:30px}#keybindings-status{min-height:3em;font-size:13px}#keybindings-list{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;margin:20px 0}#keybindings-list>div{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px}#keybindings-list button{margin:0;min-width:80px;padding:9px 12px;font-size:11px}.comfort-option{display:flex;align-items:center;gap:10px;font-size:13px}.comfort-effects #hit-flash{display:none!important}.comfort-effects *{animation:none!important;transition:none!important}@media(max-width:560px){#keybindings-list{grid-template-columns:1fr}}
+
+#keybindings-status{position:sticky;top:-24px;z-index:2;background:#132f39;padding:12px 0;box-shadow:0 8px 12px #132f39;margin:0}#keybindings-list button:focus-visible{outline:3px solid #ffe090;outline-offset:3px}

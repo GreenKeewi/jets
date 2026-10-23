@@ -1,6 +1,6 @@
-import {flightForward,gunMuzzle} from './view-axes.js?v=skybreak6-1022';
-import {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak6-1022';
-import {sweptSphereHit} from './aircraft-collision.js?v=skybreak6-1022';
+import {flightForward,gunMuzzle} from './view-axes.js?v=skybreak7-1023';
+import {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak7-1023';
+import {sweptSphereHit} from './aircraft-collision.js?v=skybreak7-1023';
 export const GUN={capacity:300,interval:.1,speed:850,life:1.35,damage:10,maxRounds:96,tracerLength:42};
 export const gunWorldSpeed=p=>GUN.speed*TRAVEL.maxMultiplier+worldSpeed(p);
 // Same straight, constant-speed rounds as the simulation; no aim correction.

@@ -1,0 +1,6 @@
+/* Eye-level panel above the pilot's lap; controls and legs remain visible below. */
+#cockpit .canopy{display:none}
+#cockpit .cockpit-dashboard{bottom:29%;left:26%;right:26%;height:94px;padding:8px 12px;border-radius:16px 16px 5px 5px;border-width:5px;background:linear-gradient(#2c4147,#14252c);box-shadow:0 -7px 0 #101d24}
+@media(max-width:850px){#cockpit .cockpit-dashboard{left:23%;right:23%;height:82px;padding:5px}}
+@media(max-width:560px){#cockpit .cockpit-dashboard{left:8%;right:8%;height:74px;bottom:29%}}
+#hud.cockpit-view #toast{bottom:45%}

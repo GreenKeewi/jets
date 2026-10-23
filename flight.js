@@ -1,6 +1,6 @@
 // SI units: metres, seconds, kilograms. Mach uses a fixed 343 m/s reference.
 // This is an energy-based game model, not an aircraft certification simulator.
-export const FLIGHT=Object.freeze({soundSpeed:343,maxFighterSpeed:686,cruiseSpeed:315,maxBomberSpeed:309,bomberCruiseSpeed:245,afterburnerDuration:15,afterburnerCooldown:10});
+export const FLIGHT=Object.freeze({soundSpeed:343,maxFighterSpeed:686,cruiseSpeed:315,maxBomberSpeed:309,bomberCruiseSpeed:245,afterburnerThreshold:1.1,maxThrottle:1.1});
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const GRAVITY=9.81;
 const FIGHTER=Object.freeze({dryMass:8500,fuelCapacity:3200,parasite:.0001,induced:3000,turnInduced:11000,maxThrust:18,burnerThrust:36,groundThrust:8.5,stallSpeed:78,turnDragLimit:24});
@@ -11,49 +11,37 @@ const engineFactor=p=>.3+.7*clamp(Number.isFinite(p.engineHealth)?p.engineHealth
 function interpolate(power,points){for(let i=1;i<points.length;i++)if(power<=points[i][0]){const[a,lo]=points[i-1],[b,hi]=points[i];return lo+(hi-lo)*(power-a)/(b-a);}return points.at(-1)[1];}
 // A UI/planning reference curve only; actual speed is never servoed to this value.
 export function fighterTargetSpeed(throttle,{freeflight=false}={}){
- const power=clamp(Number(throttle)||0,0,1);
- return interpolate(power,freeflight?[[0,0],[.7,147],[.78,315],[.84,350],[1,686]]:[[0,0],[.55,115.5],[.72,280],[.78,315],[.84,350],[1,686]]);
+ const power=clamp(Number(throttle)||0,0,1.1);
+ return interpolate(power,freeflight?[[0,0],[.7,147],[.78,315],[.82,420],[1,420],[1.1,686]]:[[0,0],[.55,115.5],[.72,280],[.78,315],[.82,420],[1,420],[1.1,686]]);
 }
 export function initializeFuel(p,fraction=1){
  const a=frame(p);p.fuelCapacityKg=a.fuelCapacity;p.fuelFraction=clamp(Number.isFinite(fraction)?fraction:1,0,1);p.fuelKg=p.fuelCapacityKg*p.fuelFraction;p.massKg=a.dryMass+p.fuelKg;
- p.afterburnerActive=false;p.afterburnerRemaining=FLIGHT.afterburnerDuration;p.afterburnerCooldown=0;p.afterburnerNeedsRelease=false;p.fuelFlowKgPerSecond=0;return p;
+ p.afterburnerActive=false;p.afterburnerRemaining=0;p.afterburnerCooldown=0;p.afterburnerNeedsRelease=false;p.fuelFlowKgPerSecond=0;return p;
 }
 function ensureFuel(p){
  if(!Number.isFinite(p.fuelKg))initializeFuel(p,Number.isFinite(p.fuelFraction)?p.fuelFraction:1);
  const a=frame(p);p.fuelCapacityKg=a.fuelCapacity;p.fuelKg=clamp(p.fuelKg,0,a.fuelCapacity);p.fuelFraction=p.fuelKg/a.fuelCapacity;p.massKg=a.dryMass+p.fuelKg;
- if(!Number.isFinite(p.afterburnerRemaining))p.afterburnerRemaining=FLIGHT.afterburnerDuration;
+ p.afterburnerRemaining=0;
  if(!Number.isFinite(p.afterburnerCooldown))p.afterburnerCooldown=0;
 }
 // Reference mass is half fuel. Fuel affects both acceleration and turn authority.
 export function fuelMassRatio(p){const a=frame(p),fuel=Number.isFinite(p.fuelKg)?clamp(p.fuelKg,0,a.fuelCapacity):a.fuelCapacity*clamp(p.fuelFraction??1,0,1);return(a.dryMass+a.fuelCapacity*.5)/(a.dryMass+fuel);}
 export function turnAuthority(speed,p={}){return Math.min(1,(280/Math.max(280,speed))**1.5)*fuelMassRatio(p)*controlFactor(p);}
 export function pitchRateLimit(p){
- const speed=Math.max(90,Number(p.speed)||0),load=p.bomber?3.5:9.5;
- const normal=Math.min(.9,GRAVITY*load/speed)*fuelMassRatio(p)*controlFactor(p);
- // K assist deliberately enables arcade post-stall maneuvers, never extra thrust.
- return p.maneuverAssist&&!p.bomber?Math.max(normal,.95*fuelMassRatio(p)*controlFactor(p)):normal;
+ const speed=Math.max(90,Number(p.speed)||0),load=p.bomber?2.5:8;
+ return Math.min(.9,GRAVITY*load/speed)*Math.min(1,fuelMassRatio(p))*controlFactor(p);
 }
 export function advanceFuel(p,dt){
- ensureFuel(p);const seconds=clamp(Number(dt)||0,0,.1),throttle=clamp(Number(p.throttle)||0,0,1);
- const wasCooling=p.afterburnerCooldown>0;
- p.afterburnerCooldown=Math.max(0,p.afterburnerCooldown-seconds);
- if(throttle<=.82)p.afterburnerNeedsRelease=false;
- if(wasCooling&&p.afterburnerCooldown===0)p.afterburnerRemaining=FLIGHT.afterburnerDuration;
- const requested=!p.bomber&&throttle>.82&&p.fuelKg>0&&!p.dead;
- const allowed=requested&&!wasCooling&&p.afterburnerCooldown===0&&!p.afterburnerNeedsRelease&&p.afterburnerRemaining>0;
- const burnSeconds=allowed?Math.min(seconds,p.afterburnerRemaining):0;
- // Scaled gameplay consumption, NOT real F-16/B-2 specifications. A full fighter
- // tank lasts ~15 minutes at dry cruise; burner consumes roughly 5x dry max.
- const dryRate=p.bomber?8+22*throttle:.6+3.2*throttle;
- const extraRate=allowed?15.2:0;
- p.fuelFlowKgPerSecond=p.dead||p.fuelKg<=0?0:dryRate+extraRate*(seconds>0?burnSeconds/seconds:0);
+ ensureFuel(p);const seconds=clamp(Number(dt)||0,0,.1),throttle=clamp(Number(p.throttle)||0,0,1.1);
+ const allowed=!p.bomber&&throttle>=FLIGHT.afterburnerThreshold-1e-9&&p.fuelKg>0&&!p.dead;
+ // Game balance: 3.8 kg/s dry maximum, 8 kg/s with burner (~6.7 minutes
+ // from a full fighter tank). No timer or cooldown, only the fuel supply.
+ const dryRate=p.bomber?8+22*Math.min(1,throttle):.6+3.2*Math.min(1,throttle);
+ p.fuelFlowKgPerSecond=p.dead||p.fuelKg<=0?0:dryRate+(allowed?4.2:0);
  p.fuelKg=Math.max(0,p.fuelKg-p.fuelFlowKgPerSecond*seconds);
- p.afterburnerRemaining=Math.max(0,p.afterburnerRemaining-burnSeconds);
- p.afterburnerActive=allowed&&p.fuelKg>0&&p.afterburnerRemaining>1e-8;
- if(allowed&&p.afterburnerRemaining<=1e-8){p.afterburnerRemaining=0;p.afterburnerActive=false;p.afterburnerCooldown=FLIGHT.afterburnerCooldown;p.afterburnerNeedsRelease=true;}
- // A brief throttle lift does not reset the 15-second budget. Depleted burner
- // must cool AND see a throttle release before it can be commanded again.
- ensureFuel(p);return seconds>0&&p.fuelKg>0?burnSeconds/seconds:0;
+ p.afterburnerActive=allowed&&p.fuelKg>0;
+ p.afterburnerRemaining=0;p.afterburnerCooldown=0;p.afterburnerNeedsRelease=false;
+ ensureFuel(p);return p.afterburnerActive?1:0;
 }
 // Call after attitude and normal-load updates, before position integration.
 export function advanceFlightEnergy(p,input={},dt){

@@ -81,7 +81,7 @@ After access and the Free plan are verified:
 
 1. Rebuild from the final game revision and run all backend tests.
 2. Deploy `server/cloudflare/wrangler.jsonc` using the approved account. The migration creates only the `SkyRoom` SQLite Durable Object class. The binding name is `SKY`.
-3. Verify the returned public `/health` response: protocol `SKYBREAK-SERVER-1`, build `skybreak2-1022`, region label `enam`, capacity six.
+3. Verify the returned public `/health` response: protocol `SKYBREAK-SERVER-1`, build `skybreak7-1023`, region label `enam`, capacity six.
 4. Run a short authorized public smoke test and inspect failures/quotas. Recheck empty-room cleanup afterward.
 5. Add only that verified origin to `SERVER_ENDPOINTS` to activate the already-integrated game UI and transport. Do not advertise the button as available while the endpoint is absent.
 6. Test two independent browser contexts through the deployed frontend and measure ping. Physical separate-network/mobile testing is a separate coverage item.

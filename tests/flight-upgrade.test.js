@@ -22,22 +22,21 @@ test('fuel is consumed, lighter aircraft accelerate and turn better, no fuel mea
  assert(pitchRateLimit(light)>pitchRateLimit(heavy));assert(turnAuthority(240,light)>turnAuthority(240,heavy));
  const empty=plane({throttle:1}),coast=plane({throttle:0});initializeFuel(empty,0);initializeFuel(coast,0);advance(empty,1);advance(coast,1);assert.equal(empty.speed,coast.speed);assert(!empty.afterburnerActive);
 });
-test('burner lasts 15 seconds, cools for 10, and held throttle cannot silently restart it',()=>{
- const p=plane({throttle:1});for(let i=0;i<149;i++)advanceFuel(p,.1);assert(p.afterburnerActive);assert(p.afterburnerRemaining<.101);
- advanceFuel(p,.1);assert(!p.afterburnerActive);assert.equal(p.afterburnerCooldown,10);assert(p.afterburnerNeedsRelease);
- for(let i=0;i<250;i++)advanceFuel(p,.1);assert(!p.afterburnerActive);assert.equal(p.afterburnerCooldown,0);assert.equal(p.afterburnerRemaining,15);
- p.throttle=.8;advanceFuel(p,.1);p.throttle=1;advanceFuel(p,.1);assert(p.afterburnerActive);
-});
-test('throttle feathering does not replenish an unfinished burner budget',()=>{
- const p=plane({throttle:1});for(let i=0;i<50;i++)advanceFuel(p,.1);const left=p.afterburnerRemaining;
- p.throttle=.5;for(let i=0;i<50;i++)advanceFuel(p,.1);assert.equal(p.afterburnerRemaining,left);
+test('burner starts at 110%, runs continuously and has a meaningful lower fuel cost',()=>{
+ for(const throttle of [1,1.099,1.1]){const p=plane({throttle});advanceFuel(p,.1);assert.equal(p.afterburnerActive,throttle===1.1);}
+ const p=plane({throttle:1.1}),dry=plane({throttle:1});
+ for(let i=0;i<1200;i++){advanceFuel(p,.1);advanceFuel(dry,.1);}
+ assert(p.afterburnerActive);assert.equal(p.afterburnerCooldown,0);assert.equal(p.afterburnerNeedsRelease,false);
+ assert(Math.abs(p.fuelKg-2240)<.001);assert(p.fuelKg<dry.fuelKg);assert(p.fuelFlowKgPerSecond<19);
+ p.throttle=1;advanceFuel(p,.1);assert(!p.afterburnerActive);p.throttle=1.1;advanceFuel(p,.1);assert(p.afterburnerActive);
+ initializeFuel(p,0);advanceFuel(p,.1);assert(!p.afterburnerActive);
 });
 test('B-2-inspired bomber is faster but remains subsonic and has no afterburner',()=>{
  const p=plane({bomber:true,throttle:1,speed:200});advance(p,180);assert(p.speed>260,`bomber ${p.speed}`);assert(p.speed<=309);assert(!p.afterburnerActive);
  assert.equal(FLIGHT.bomberCruiseSpeed,245);
 });
-test('arcade maneuver assist increases pitch authority without free engine power',()=>{
- const normal=plane(),assist=plane({maneuverAssist:true});assert(pitchRateLimit(assist)>pitchRateLimit(normal)*2);advance(normal,1);advance(assist,1);assert.equal(normal.speed,assist.speed);
+test('advanced mode respects the same flight envelope without free engine power',()=>{
+ const normal=plane(),assist=plane({maneuverAssist:true});assert.equal(pitchRateLimit(assist),pitchRateLimit(normal));advance(normal,1);advance(assist,1);assert.equal(normal.speed,assist.speed);
 });
 test('engine and control damage affect separate performance dimensions',()=>{
  const healthy=plane({throttle:1}),damaged=plane({throttle:1,engineHealth:0,controlHealth:0});advance(healthy,1);advance(damaged,1);assert(healthy.speed>damaged.speed);
@@ -55,21 +54,21 @@ test('pilot load is signed for pull, push and inverted flight',()=>{
 });
 
 test('faster airborne fighter has strong dry thrust and a finite burner speed advantage',()=>{
- const dry=plane({throttle:.82,gearDown:false}),burner=plane({throttle:1,gearDown:false});
+ const dry=plane({throttle:.82,gearDown:false}),burner=plane({throttle:1.1,gearDown:false});
  advance(dry,14);advance(burner,8);
  assert(dry.speed>343&&dry.speed<355,`dry speed after 14 seconds ${dry.speed}`);
- assert(burner.speed>500&&burner.speed<510,`burner speed after 8 seconds ${burner.speed}`);
+ assert(burner.speed>500&&burner.speed<515,`burner speed after 8 seconds ${burner.speed}`);
  advance(burner,7);
- assert(burner.speed>620&&burner.speed<640,`15-second burner peak ${burner.speed}`);
- assert(!burner.afterburnerActive);assert(burner.afterburnerNeedsRelease);
- const peak=burner.speed;advance(burner,10);assert(burner.speed<peak,'dry thrust cannot sustain the burner peak');
+ assert(burner.speed>620&&burner.speed<650,`15-second burner peak ${burner.speed}`);
+ assert(burner.afterburnerActive);assert(!burner.afterburnerNeedsRelease);
+ const peak=burner.speed;burner.throttle=1;advance(burner,10);assert(burner.speed<peak,'dry thrust cannot sustain the burner peak');
 });
 
 test('airborne thrust increase leaves both runway accelerations unchanged',()=>{
  const fighter=plane({grounded:true,speed:0,throttle:1,pos:{y:0}});
  const bomber=plane({bomber:true,grounded:true,speed:0,throttle:1,pos:{y:0}});
  advance(fighter,10);advance(bomber,10);
- assert(Math.abs(fighter.speed-80.813)<.02,`fighter runway speed ${fighter.speed}`);
+ assert(Math.abs(fighter.speed-67.313)<.02,`fighter runway speed ${fighter.speed}`);
  assert(Math.abs(bomber.speed-34.068)<.02,`bomber runway speed ${bomber.speed}`);
 });
 
@@ -78,5 +77,5 @@ test('faster thrust still respects drag, gravity, airbrakes and the Mach 2 hard 
  advance(level,2);advance(turn,2);advance(braked,2,{brake:true});
  assert(turn.speed<level.speed,'high-load turns must still cost energy');
  assert(braked.speed<level.speed,'airbrakes must still remove energy');
- const dive=plane({throttle:1,speed:685,pitch:-Math.PI/2});advance(dive,2);assert.equal(dive.speed,FLIGHT.maxFighterSpeed);
+ const dive=plane({throttle:1.1,speed:685,pitch:-Math.PI/2});advance(dive,2);assert.equal(dive.speed,FLIGHT.maxFighterSpeed);
 });

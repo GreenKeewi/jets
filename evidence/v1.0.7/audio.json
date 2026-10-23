@@ -1,0 +1,56 @@
+{
+  "method": "Chromium OfflineAudioContext rendered PCM and running live AudioContext/analyser, no human listening",
+  "mixes": {
+    "dry": {
+      "peak": 0.08185849338769913,
+      "rms": 0.02063596016952371,
+      "finite": true,
+      "scheduledVoices": 0,
+      "voices": 0
+    },
+    "cockpit": {
+      "peak": 0.059779830276966095,
+      "rms": 0.019566022961674593,
+      "finite": true,
+      "scheduledVoices": 0,
+      "voices": 0
+    },
+    "burner": {
+      "peak": 0.16286326944828033,
+      "rms": 0.03333083589610611,
+      "finite": true,
+      "scheduledVoices": 0,
+      "voices": 0
+    },
+    "muted": {
+      "peak": 0,
+      "rms": 0,
+      "finite": true,
+      "scheduledVoices": 0,
+      "voices": 0
+    },
+    "dead": {
+      "peak": 0,
+      "rms": 0,
+      "finite": true,
+      "scheduledVoices": 0,
+      "voices": 0
+    },
+    "events": {
+      "peak": 0.0901469811797142,
+      "rms": 0.02098023149616844,
+      "finite": true,
+      "scheduledVoices": 13,
+      "voices": 0
+    },
+    "gun": {
+      "initialBursts": 0,
+      "newBursts": 1
+    },
+    "live": {
+      "state": "running",
+      "peak": 0.04609521105885506,
+      "finite": true
+    }
+  }
+}

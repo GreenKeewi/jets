@@ -1,5 +1,5 @@
-import {AIRFIELDS,fieldCoordinates} from './missions.js?v=skybreak6-1022';
-import {valleyTerrain} from './arenas.js?v=skybreak6-1022';
+import {AIRFIELDS,fieldCoordinates} from './missions.js?v=skybreak7-1023';
+import {valleyTerrain} from './arenas.js?v=skybreak7-1023';
 export const SEA_LEVEL=-5;
 // Original coastal region plus five distant islands, all inside a 72 × 72 km sea.
 // These definitions drive both shore meshes and the actual collision heightfield.

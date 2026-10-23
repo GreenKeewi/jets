@@ -1,9 +1,9 @@
-import {worldVelocity as velocity} from './arcade-travel.js?v=skybreak6-1022';
+import {worldVelocity as velocity} from './arcade-travel.js?v=skybreak7-1023';
 // Original procedural jet, wind and radio cues; no downloaded audio or media permissions.
 const clamp=(value,low,high)=>Math.max(low,Math.min(high,Number.isFinite(value)?value:0));
 const NEARBY_VOICES=4,NEARBY_RANGE=2800,TRANSIENT_LIMIT=16;
 export function flightSound(p,inside=false){
- const health=clamp(p.engineHealth??1,0,1),running=!(Number.isFinite(p.fuelKg)&&p.fuelKg<=0),thrust=clamp(p.throttle,0,1)*health*(running?1:0),mach=clamp(Number.isFinite(p.mach)?p.mach:(p.speed||0)/343,0,3),burner=!p.bomber&&p.afterburnerActive?1:0,buffet=p.grounded?0:Math.max(0,1-Math.abs(mach-1)/.12),fastAir=clamp((mach-.55)/.45,0,1),drag=(p.airbrake?.045:0)+(p.gearDown?.025:0),load=clamp((Math.abs(p.gLoad||1)-3)/6,0,1);
+ const health=clamp(p.engineHealth??1,0,1),running=!p.dead&&health>0&&!(Number.isFinite(p.fuelKg)&&p.fuelKg<=0),thrust=clamp(p.throttle,0,1)*health*(running?1:0),mach=clamp(Number.isFinite(p.mach)?p.mach:(p.speed||0)/343,0,3),burner=running&&!p.bomber&&p.afterburnerActive?1:0,buffet=p.grounded?0:Math.max(0,1-Math.abs(mach-1)/.12),fastAir=clamp((mach-.55)/.45,0,1),drag=(p.airbrake?.045:0)+(p.gearDown?.025:0),load=clamp((Math.abs(p.gLoad||1)-3)/6,0,1);
  return{jet:((running?.035:0)+thrust*.23+burner*.16+buffet*.025)*(inside?.57:1),jetFrequency:(inside?280:450)+thrust*(inside?950:1850)+burner*520,jetQ:.9-burner*.4,
   wind:clamp(Math.pow(mach,1.4)*.145+fastAir*fastAir*(3-2*fastAir)*.105+drag*clamp(mach*2,0,1),0,.5)*(inside?.45:1),windFrequency:(inside?850:1800)+mach*(inside?1200:1800),
   engineFrequency:(p.bomber?28:35)+thrust*55+burner*14+mach*4,engine:((running?.009:0)+thrust*.032+burner*.024)*(inside?1.35:1),engineCutoff:(inside?120:170)+thrust*80,
@@ -30,7 +30,7 @@ export function nearbyJetSound(p,q,inside=false){
   frequency:(460+thrust*1250+burner*350)*doppler*(inside?.65:1)*(forward<0?.78:1),engineFrequency:(q.bomber?54:76)+thrust*82,burner};
 }
 export class FlightAudio{
- constructor(){this.enabled=true;this.ctx=null;this.active=false;this.lastThreat=-Infinity;this.lastGunShots=0;this.voices=new Set();this.nearby=[];this.wasAudible=false;this.lastCaution=-Infinity;this.cautionType=null;this.previousSystems=null}
+ constructor(){this.enabled=true;this.ctx=null;this.active=false;this.lastThreat=-Infinity;this.lastGunShots=0;this.lastPilotId=null;this.voices=new Set();this.nearby=[];this.wasAudible=false;this.lastCaution=-Infinity;this.cautionType=null;this.previousSystems=null}
  init(){
   if(this.ctx){this.ctx.resume().catch(()=>{});return}const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
   this.ctx=new Audio();const a=this.ctx;this.master=a.createGain();this.master.gain.value=0;const compressor=a.createDynamicsCompressor();compressor.threshold.value=-18;compressor.knee.value=14;compressor.ratio.value=4;compressor.attack.value=.004;compressor.release.value=.17;this.master.connect(compressor).connect(a.destination);
@@ -57,7 +57,7 @@ export class FlightAudio{
  update(p,active,threat,view='chase',pilots=[]){
   if(!this.ctx||!p)return;active=!!active&&!document.hidden&&!p.dead;const a=this.ctx,t=a.currentTime,audible=active&&this.enabled;this.active=active;
   if(!audible&&this.wasAudible)this.stopTransients();this.wasAudible=audible;
-  const shots=p.gunShots||0;if(audible&&shots>this.lastGunShots)this.burst(1500,220,.065,view==='cockpit'?.08:.13);this.lastGunShots=shots;const sound=flightSound(p,view==='cockpit');
+  const shots=p.gunShots||0;if(audible&&this.lastPilotId===p.id&&shots>this.lastGunShots)this.burst(1500,220,.065,view==='cockpit'?.08:.13);this.lastGunShots=shots;this.lastPilotId=p.id;const sound=flightSound(p,view==='cockpit');
   this.master.gain.setTargetAtTime(audible?.42:0,t,.025);this.jetGain.gain.setTargetAtTime(active?sound.jet:0,t,.2);this.jetFilter.frequency.setTargetAtTime(sound.jetFrequency,t,.22);this.jetFilter.Q.setTargetAtTime(sound.jetQ,t,.22);
   this.windGain.gain.setTargetAtTime(active?sound.wind:0,t,.18);this.windFilter.frequency.setTargetAtTime(sound.windFrequency,t,.25);this.engine.frequency.setTargetAtTime(sound.engineFrequency,t,.3);this.engineGain.gain.setTargetAtTime(active?sound.engine:0,t,.25);this.engineFilter.frequency.setTargetAtTime(sound.engineCutoff,t,.25);
   this.turbine.frequency.setTargetAtTime(sound.turbineFrequency,t,.4);this.turbineGain.gain.setTargetAtTime(active?sound.turbine:0,t,.3);

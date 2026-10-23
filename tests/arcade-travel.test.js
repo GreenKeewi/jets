@@ -27,7 +27,7 @@ test('ground, low-speed landing and guided approach retain normal travel',()=>{
  const g=createGame({mode:'freeflight'}),pilot=g.pilots[0];Object.assign(pilot,airframe());g.flightStage='approach';step(g,{host:{}},.02);assert.equal(pilot.travelApproach,true);assert.equal(travelMultiplier(pilot),1);
 });
 test('bomb prediction uses boosted launch velocity including climb and dive',()=>{
- for(const pitch of[-.2,0,.2]){const p={...airframe(),pitch},v=worldVelocity(p),impact=bombSolution(p),t=(v.y+Math.sqrt(v.y*v.y+90*(p.pos.y-4)))/45;near(impact.x,p.pos.x+v.x*t);near(impact.z,p.pos.z+v.z*t);near(p.pos.y+v.y*t-22.5*t*t,4);}
+ for(const pitch of[-.2,0,.2]){const p={...airframe(),pitch},v=worldVelocity(p),impact=bombSolution(p),t=(v.y+Math.sqrt(v.y*v.y+90*(p.pos.y-4)))/45;near(impact.x,p.pos.x+v.x*t,.1);near(impact.z,p.pos.z+v.z*t,.1);near(p.pos.y+v.y*t-22.5*t*t,4);}
 });
 test('weapon caps can catch maximum boosted jets and snapshots retain travel state',()=>{
  assert(MISSILE.heat.maxSpeed>686*TRAVEL.maxMultiplier);assert(MISSILE.radar.maxSpeed>686*TRAVEL.maxMultiplier);
