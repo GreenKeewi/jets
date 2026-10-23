@@ -218,3 +218,9 @@ Nearby world-fixed sea foam and land detail, closer peripheral airflow streaks, 
 The full native-keyboard Strike & Escape validation now covers runway departure, SAM warning and flare defeat, a real bomb impact and the successful escape end state. The test pilot uses telemetry to choose native key presses, without position writes or simulation stepping. See [complete-sortie evidence](evidence/v1.0.9/strike-keyboard/README.md).
 
 Northpoint now occupies a separate island, 17.90 km from HOME with a 3.90 km continuous water crossing along the direct route. The depot, SAMs, AI and escape markers use the moved airport. Northern Valley is a 22.84 km mountain corridor with eight linked bends and a 1.2 km floor; AI follows the bends and manages speed. Airbrake drag builds gradually to 12–16 m/s² at sea level, down from an abrupt 28, while wheel braking is unchanged.
+
+## v1.0.10 radar terrain and bomber balance
+
+Extra instruments (I) now show faint actual terrain/coastlines and runway strokes beneath radar contacts. The heading-up map shares contact coordinates, has a 3.5 km outer range and circular clipping, and caches a small local terrain raster across movement and heading changes. No external map service is used.
+
+B-2-inspired bombers are harder to acquire: 2.8 km maximum acquisition range and half-speed lock accumulation, compared with the fighter's existing 4.2 km/full rate. This is fictional game balance, not real stealth performance. AI bombers climb toward 2,900 m and descend for the attack; player altitude remains manually controlled. See [balance details](bomber-balance.md) and [release evidence](evidence/v1.0.10/README.md).

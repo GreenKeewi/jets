@@ -1,4 +1,4 @@
-import {worldVelocity as velocity} from './arcade-travel.js?v=skybreak9-1023';
+import {worldVelocity as velocity} from './arcade-travel.js?v=skybreak10-1023';
 // Original procedural jet, wind and radio cues; no downloaded audio or media permissions.
 const clamp=(value,low,high)=>Math.max(low,Math.min(high,Number.isFinite(value)?value:0));
 const NEARBY_VOICES=4,NEARBY_RANGE=2800,TRANSIENT_LIMIT=16;

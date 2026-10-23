@@ -1,0 +1,47 @@
+{
+  "pass": true,
+  "method": "Geographic state fixtures, native I/V and normal browser animation; no human playtest claim",
+  "reports": [
+    {
+      "name": "coast",
+      "box": {
+        "x": 1095,
+        "y": 596,
+        "width": 155,
+        "height": 155
+      },
+      "faintPixels": 18541
+    },
+    {
+      "name": "coast-turn",
+      "box": {
+        "x": 1095,
+        "y": 596,
+        "width": 155,
+        "height": 155
+      },
+      "faintPixels": 23164
+    },
+    {
+      "name": "island",
+      "box": {
+        "x": 497,
+        "y": 632,
+        "width": 125,
+        "height": 125
+      },
+      "faintPixels": 23412
+    },
+    {
+      "name": "valley",
+      "box": {
+        "x": 260,
+        "y": 645,
+        "width": 112,
+        "height": 112
+      },
+      "faintPixels": 19545
+    }
+  ],
+  "errors": []
+}

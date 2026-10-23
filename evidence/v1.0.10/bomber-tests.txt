@@ -1,0 +1,29 @@
+✔ bomber acquisition is shorter and twice as slow, still launchable at 30Hz (31.126834ms)
+✔ bomber acquisition is shorter and twice as slow, still launchable at 60Hz (20.100522ms)
+✔ bomber acquisition is shorter and twice as slow, still launchable at 144Hz (28.976671ms)
+✔ lock cannot transfer from a fighter to a bomber or survive leaving its range (5.676735ms)
+✔ higher AI cruise descends for bombing and climbs again for escape (0.667162ms)
+✔ player bomber climbs above AI cruise without forced pitch at 30Hz (12.411726ms)
+✔ player bomber climbs above AI cruise without forced pitch at 60Hz (22.681788ms)
+✔ player bomber climbs above AI cruise without forced pitch at 144Hz (37.620337ms)
+✔ AI bomber flies from home, hits the target and escapes at 60 Hz (890.017122ms)
+✔ AI bomber flies from home, hits the target and escapes at 30 Hz (365.558673ms)
+✔ AI bomber flies from northpoint, hits the target and escapes at 60 Hz (704.654921ms)
+✔ AI bomber flies from northpoint, hits the target and escapes at 30 Hz (299.718924ms)
+✔ AI bomber flies from westhaven, hits the target and escapes at 60 Hz (537.212674ms)
+✔ AI bomber flies from westhaven, hits the target and escapes at 30 Hz (246.890012ms)
+✔ strike depot lies beyond the enemy runway: attack (5.468914ms)
+✔ strike depot lies beyond the enemy runway: defend (0.868239ms)
+✔ airfield SAMs are sparse, mission-only and target airborne bombers (165.847462ms)
+✔ bomber flares always defeat cinematic SAM before impact at 30 Hz (12.017044ms)
+✔ bomber flares always defeat cinematic SAM before impact at 60 Hz (7.628836ms)
+✔ bomber flares always defeat cinematic SAM before impact at 120 Hz (10.504016ms)
+✔ bomb solution intersects elevated terrain using boosted launch velocity (18.702966ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3194.43968

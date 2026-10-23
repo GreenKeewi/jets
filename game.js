@@ -1,21 +1,22 @@
+import {RadarTerrain} from './radar-terrain.js?v=skybreak10-1023';
 import {loadBindings,canonicalKey,BINDINGS,keyLabel} from './keybindings.js';
 import {mountKeybindings} from './keybindings-ui.js';
-import {AIRFIELD_RESUPPLY,nearestAirfield} from './airfield-resupply.js?v=skybreak9-1023';
-import {COMBAT_MISSIONS_ENABLED,combatMissionId,combatMissionBlocked,combatMission,missionObjective} from './combat-missions.js?v=skybreak9-1023';
-import {ACTION_KEYS,NEUTRAL_INPUT,keyboardInput,rosterConfig} from './controls.js?v=skybreak9-1023';
-import {radarPoint,turnHint,compassHeading,gunMuzzle} from './view-axes.js?v=skybreak9-1023';
-import {Renderer} from './render.js?v=skybreak9-1023';
-import {createGame,configurePlayers,placePilotOnRunway,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,strikeTarget,strikeEscape,canBomb,respawnPilot,threatFor,worldVelocity} from './sim.js?v=skybreak9-1023';
-import {FlightAudio} from './audio.js?v=skybreak9-1023';
-import {drawBomberCockpit} from './bomber-instruments.js?v=skybreak9-1023';
-import {drawCockpit} from './instruments.js?v=skybreak9-1023';
-import {combatCue,nearestThreat,waypointScreenPosition,gunLeadCue} from './guidance.js?v=skybreak9-1023';
-import {AIRFIELDS,ROUTES,routeDefinition,routeFor,destinationFor,approachFor,fieldPoint} from './missions.js?v=skybreak9-1023';
-import {mountNetworkUI} from './network.js?v=skybreak9-1023';
-import {createMultiplayerRouter} from './multiplayer-router.js?v=skybreak9-1023';
-import {mountServerUI} from './server-ui.js?v=skybreak9-1023';
-import {ARENAS} from './arenas.js?v=skybreak9-1023';
-import {surfaceHeight} from './world.js?v=skybreak9-1023';
+import {AIRFIELD_RESUPPLY,nearestAirfield} from './airfield-resupply.js?v=skybreak10-1023';
+import {COMBAT_MISSIONS_ENABLED,combatMissionId,combatMissionBlocked,combatMission,missionObjective} from './combat-missions.js?v=skybreak10-1023';
+import {ACTION_KEYS,NEUTRAL_INPUT,keyboardInput,rosterConfig} from './controls.js?v=skybreak10-1023';
+import {radarPoint,turnHint,compassHeading,gunMuzzle} from './view-axes.js?v=skybreak10-1023';
+import {Renderer} from './render.js?v=skybreak10-1023';
+import {createGame,configurePlayers,placePilotOnRunway,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,strikeTarget,strikeEscape,canBomb,respawnPilot,threatFor,worldVelocity} from './sim.js?v=skybreak10-1023';
+import {FlightAudio} from './audio.js?v=skybreak10-1023';
+import {drawBomberCockpit} from './bomber-instruments.js?v=skybreak10-1023';
+import {drawCockpit} from './instruments.js?v=skybreak10-1023';
+import {combatCue,nearestThreat,waypointScreenPosition,gunLeadCue} from './guidance.js?v=skybreak10-1023';
+import {AIRFIELDS,ROUTES,routeDefinition,routeFor,destinationFor,approachFor,fieldPoint} from './missions.js?v=skybreak10-1023';
+import {mountNetworkUI} from './network.js?v=skybreak10-1023';
+import {createMultiplayerRouter} from './multiplayer-router.js?v=skybreak10-1023';
+import {mountServerUI} from './server-ui.js?v=skybreak10-1023';
+import {ARENAS} from './arenas.js?v=skybreak10-1023';
+import {surfaceHeight} from './world.js?v=skybreak10-1023';
 const elements=new Map(),$=id=>{let node=elements.get(id);if(!node){node=document.getElementById(id);if(node)elements.set(id,node);}return node;},keys=new Set(),actionQueue=new Set();
 $('world').tabIndex=-1;
 let bindingStorage;try{bindingStorage=localStorage}catch{}
@@ -89,9 +90,10 @@ function objective(p){let title,detail,tag;const mission=missionObjective(game,p
  }
  hudText('objective-tag',tag);hudText('objective-text',title);hudText('objective-detail',detail);
 }
+const radarTerrain=new RadarTerrain();
 function radar(p){
- const c=$('radar').getContext('2d'),mid=95;c.clearRect(0,0,190,190);c.strokeStyle='#daf3d528';c.lineWidth=1;
- for(const r of [30,60,88]){c.beginPath();c.arc(mid,mid,r,0,Math.PI*2);c.stroke()}c.beginPath();c.moveTo(mid,5);c.lineTo(mid,185);c.moveTo(5,mid);c.lineTo(185,mid);c.stroke();c.fillStyle='#e0f5d8';c.font='8px Arial';c.textAlign='center';c.fillText('FWD',mid,14);
+ const c=$('radar').getContext('2d'),mid=95;c.clearRect(0,0,190,190);radarTerrain.draw(c,p);c.strokeStyle='#daf3d528';c.lineWidth=1;
+ for(const r of [30,60,88]){c.beginPath();c.arc(mid,mid,r,0,Math.PI*2);c.stroke()}c.beginPath();c.moveTo(mid,5);c.lineTo(mid,185);c.moveTo(5,mid);c.lineTo(185,mid);c.stroke();c.fillStyle='#e0f5d8';c.font='8px Arial';c.textAlign='center';c.fillText('FWD',mid,14);c.fillText('3.5 km',mid,182);
  c.save();c.translate(mid,mid);c.strokeStyle='#b5e8cf33';c.beginPath();c.moveTo(0,0);c.lineTo(-50,-80);c.lineTo(50,-80);c.closePath();c.stroke();
  for(const q of game.pilots){if(q.id===p.id||q.dead)continue;const {x,y}=radarPoint(p,q.pos);c.fillStyle=q.team===p.team?'#b2f3cf':q.team===2?'#c1a0ff':'#ffb48b';c.beginPath();c.arc(x,y,q.bomber?5:3,0,Math.PI*2);c.fill()}
  if(game.mode==='strike'){const dest=game.bombed?strikeEscape(game):strikeTarget(game),{x,y}=radarPoint(p,dest,.025,80);c.strokeStyle=game.bombed?'#b2f3cf':'#ffb48b';c.strokeRect(x-5,y-5,10,10)}

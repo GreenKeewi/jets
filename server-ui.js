@@ -1,4 +1,4 @@
-import {SERVER_ENDPOINTS,normalizeEndpoints,probeRegions,selectRegion} from './server-client.js?v=skybreak9-1023';
+import {SERVER_ENDPOINTS,normalizeEndpoints,probeRegions,selectRegion} from './server-client.js?v=skybreak10-1023';
 
 // Unconfigured builds expose no live-server join control and make no requests.
 export function mountServerUI(container,network,{endpoints=SERVER_ENDPOINTS,canConnect=()=>true,arena=()=> 'coast',probe=probeRegions}={}) {

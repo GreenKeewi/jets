@@ -1,23 +1,23 @@
-import {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak9-1023';
-export {placePilotOnRunway} from './airport-operations.js?v=skybreak9-1023';
+import {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak10-1023';
+export {placePilotOnRunway} from './airport-operations.js?v=skybreak10-1023';
 import {advanceAttitude} from './attitude.js';
-import {AIRPORT,automaticSystems,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak9-1023';
-import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak9-1023';
-import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak9-1023';
-import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak9-1023';
-import {tryHeatFlare} from './heat-seeker.js?v=skybreak9-1023';
-import {freshPilotG,pilotGInput,updatePilotG,advanceAirframeWear,sanitizePilotG,physicalVelocity,signedPilotLoad,limitFlightEnvelope} from './pilot-g.js?v=skybreak9-1023';
-import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak9-1023';
-import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak9-1023';
-import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak9-1023';
-export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak9-1023';
-import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak9-1023';
-export {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak9-1023';
-export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak9-1023';
-import {surfaceHeight} from './world.js?v=skybreak9-1023';
-import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak9-1023';
-import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak9-1023';
-export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak9-1023';
+import {AIRPORT,automaticSystems,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak10-1023';
+import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak10-1023';
+import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak10-1023';
+import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak10-1023';
+import {tryHeatFlare} from './heat-seeker.js?v=skybreak10-1023';
+import {freshPilotG,pilotGInput,updatePilotG,advanceAirframeWear,sanitizePilotG,physicalVelocity,signedPilotLoad,limitFlightEnvelope} from './pilot-g.js?v=skybreak10-1023';
+import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak10-1023';
+import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak10-1023';
+import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak10-1023';
+export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak10-1023';
+import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak10-1023';
+export {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak10-1023';
+export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak10-1023';
+import {surfaceHeight} from './world.js?v=skybreak10-1023';
+import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak10-1023';
+import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak10-1023';
+export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak10-1023';
 // Flight and combat rules are renderer-independent so missions can be replayed deterministically.
 export const RUNWAY=AIRFIELDS.home;
 export const ROUTE=ROUTES.local.gates;
@@ -246,12 +246,12 @@ function ai(g,p,dt){
  if(g.arenaId==='valley'&&!inValley(p.pos,-100)){const rendezvous=valleyPoint(500,0,550),route=steer(p,rendezvous);route.throttle=p.throttle<.82?.5:0;return terrainAvoidance({...g,arenaId:'coast'},p,route);}
  const form=g.mode!=='freeflight'?formationInput(g,p):null;if(form)return terrainAvoidance(g,p,form);
  if(g.mode==='strike'&&p.bomber){
-  target={...(g.bombed?strikeEscape(g):{...strikeTarget(g),y:strikeTarget(g).y+430})};
+  target=bomberCruiseTarget(g,p);
   // The heavy airframe needs a longer terrain horizon than a dogfighting jet.
   // Climb before the coastal ridge, then settle onto the actual target line.
-  const range=horizontal(p.pos,target);if(!g.bombed&&range<4500)target.y=Math.max(target.y,p.pos.y);const dx=(target.x-p.pos.x)/Math.max(1,range),dz=(target.z-p.pos.z)/Math.max(1,range);
+  const range=horizontal(p.pos,target);const dx=(target.x-p.pos.x)/Math.max(1,range),dz=(target.z-p.pos.z)/Math.max(1,range);
   for(let ahead=0;ahead<=Math.min(range,6500);ahead+=250)target.y=Math.max(target.y,surfaceHeight(p.pos.x+dx*ahead,p.pos.z+dz*ahead)+500);
-  if(target.y>p.pos.y+150&&range>2200){target.x=p.pos.x+dx*2200;target.z=p.pos.z+dz*2200;}
+  if(Math.abs(target.y-p.pos.y)>150&&range>2200){target.x=p.pos.x+dx*2200;target.z=p.pos.z+dz*2200;}
  }
  else{
   enemy=pursuitTarget(g,p);if(!enemy)return terrainAvoidance(g,p,{roll:0,pitch:0,yaw:0,throttle:0});
@@ -327,11 +327,19 @@ function avoidAircraft(g,p,i){
  return i;
 }
 export function steer(p,target){const heading=angle(desiredHeading(p,target)-p.yaw),d=horizontal(p.pos,target),pitch=Math.atan2(target.y-p.pos.y,Math.max(100,d));return{roll:clamp(heading*2.1,-1,1),pitch:clamp((pitch-p.pitch)*3.8,-1,1),yaw:clamp(heading*0.12,-0.3,0.3),throttle:0}}
+// Arcade low-observable advantage, not invisibility or a real radar model.
+export const BOMBER_SIGNATURE=Object.freeze({acquisitionRange:2800,lockRate:.5,cruiseAltitude:2900});
+export function bomberCruiseTarget(g,p){
+ const target={...(g.bombed?strikeEscape(g):strikeTarget(g))};
+ const range=horizontal(p.pos,target);
+ target.y=g.bombed?BOMBER_SIGNATURE.cruiseAltitude:Math.max(target.y+430,BOMBER_SIGNATURE.cruiseAltitude*clamp((range-4500)/7000,0,1));
+ return target;
+}
 function selectTarget(g,p){
  let best=null,score=Infinity,current=null,currentScore=Infinity;const f=forward(p);
  for(const q of g.pilots){if(q.dead||q.team===p.team||g.time<(q.spawnProtectedUntil||0))continue;
   const d=dist(p.pos,q.pos),dot=((q.pos.x-p.pos.x)*f.x+(q.pos.y-p.pos.y)*f.y+(q.pos.z-p.pos.z)*f.z)/Math.max(1,d),a=Math.acos(clamp(dot,-1,1));
-  if(d>=4200||a>=.58)continue;const candidate=d*(a+.2);
+  if(d>=(q.bomber?BOMBER_SIGNATURE.acquisitionRange:4200)||a>=.58)continue;const candidate=d*(a+.2);
   if(q.id===p.targetId){current=q;currentScore=candidate;}if(candidate<score){best=q;score=candidate;}
  }
  // The same acquisition cone/range still applies. Switch only for a clearly
@@ -418,7 +426,7 @@ function updatePilot(g,p,input,dt){
  if(p.dead||p.objectiveRole==='transport')return;
  if(i.fireGun&&g.time>=(p.spawnProtectedUntil||0))fireGunRound(g,p);
  if(g.mode!=='freeflight'){
- const q=selectTarget(g,p);if(q&&!p.grounded&&!missileImmune(q)&&q.id===p.targetId)p.lock=Math.min(3,p.lock+dt);else{p.targetId=q?.id||null;p.lock=q&&!p.grounded&&!missileImmune(q)?dt:0}
+ const q=selectTarget(g,p),lockStep=dt*(q?.bomber?BOMBER_SIGNATURE.lockRate:1);if(q&&!p.grounded&&!missileImmune(q)&&q.id===p.targetId)p.lock=Math.min(3,p.lock+lockStep);else{p.targetId=q?.id||null;p.lock=q&&!p.grounded&&!missileImmune(q)?lockStep:0}
  if(!p.bomber&&i.fireHeat)launch(g,p,'heat');if(!p.bomber&&i.fireRadar)launch(g,p,'radar');if(i.flare)counter(g,p,'flare');if(i.chaff)counter(g,p,'chaff');
  if(i.bomb&&p.bomber&&p.bombs>0&&p.bombCD<=0){p.bombs--;p.bombCD=1;g.bombs.push({id:++g.serial,ownerId:p.id,pos:{...p.pos},vel:worldVelocity(p),age:0});emit(g,'bomb','Bomb released',{pilotId:p.id})}
  }
