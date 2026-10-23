@@ -1,23 +1,23 @@
-import {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak12-1023';
-export {placePilotOnRunway} from './airport-operations.js?v=skybreak12-1023';
+import {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak13-1023';
+export {placePilotOnRunway} from './airport-operations.js?v=skybreak13-1023';
 import {advanceAttitude} from './attitude.js';
-import {AIRPORT,automaticSystems,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak12-1023';
-import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak12-1023';
-import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak12-1023';
-import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak12-1023';
-import {tryHeatFlare,tryRadarChaff} from './heat-seeker.js?v=skybreak12-1023';
-import {freshPilotG,pilotGInput,updatePilotG,advanceAirframeWear,sanitizePilotG,physicalVelocity,signedPilotLoad,limitFlightEnvelope} from './pilot-g.js?v=skybreak12-1023';
-import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak12-1023';
-import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak12-1023';
-import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak12-1023';
-export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak12-1023';
-import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak12-1023';
-export {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak12-1023';
-export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak12-1023';
-import {surfaceHeight} from './world.js?v=skybreak12-1023';
-import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak12-1023';
-import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak12-1023';
-export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak12-1023';
+import {AIRPORT,automaticSystems,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak13-1023';
+import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak13-1023';
+import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak13-1023';
+import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak13-1023';
+import {tryHeatFlare,tryRadarChaff} from './heat-seeker.js?v=skybreak13-1023';
+import {freshPilotG,pilotGInput,updatePilotG,advanceAirframeWear,sanitizePilotG,physicalVelocity,signedPilotLoad,limitFlightEnvelope} from './pilot-g.js?v=skybreak13-1023';
+import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak13-1023';
+import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak13-1023';
+import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak13-1023';
+export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak13-1023';
+import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak13-1023';
+export {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak13-1023';
+export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak13-1023';
+import {surfaceHeight} from './world.js?v=skybreak13-1023';
+import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak13-1023';
+import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak13-1023';
+export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak13-1023';
 // Flight and combat rules are renderer-independent so missions can be replayed deterministically.
 export const RUNWAY=AIRFIELDS.home;
 export const ROUTE=ROUTES.local.gates;
@@ -100,7 +100,7 @@ function spawnPilot(g,i,team,slot=0){
  const departure=groundSpawn(g,{team,slot},slot),pos=departure.pos;
  return initializeFuel({...freshPilotG(),engineHealth:1,controlHealth:1,id:i===0?'host':`bot${i}`,team,slot,human:i===0,bomber,objectiveRole:transport?'transport':null,personality:transport?'transport':g.teamSizes[team]-(g.combatMission?.transportTeam===team?1:0)>=2&&slot<2?'paired':((g.rng+team+slot)%2?'aggressive':'cautious'),pos,yaw:free?0:formation.yaw,pitch:0,roll:0,speed:free?0:g.combatMission?transport?155:215:strike?(team===attacker?110:185):FLIGHT.cruiseSpeed,throttle:free?0:transport?.92:g.combatMission?.69:strike&&!bomber?(team===attacker?.55:.635):.78,hp:100,...fullWeaponStores({bomber,objectiveRole:transport?'transport':null}),...freshAirfieldResupply(pos),lastDamage:null,gunCD:0,gunShots:0,heatCD:0,radarCD:0,flareCD:0,chaffCD:0,bombCD:0,lock:0,targetId:null,dead:false,grounded:free,landed:false,runwayId:'home',throttleHeld:0,throttleDirection:0,aiTargetId:null,aiTargetUntil:0,aiGunBurst:0,aiGunRest:0,aiFlarePending:false,aiExtendYaw:0,aiTimer:0,aiShot:2+i*.6,aiDefend:0,aiBreak:0,aiNextBreak:7+i*1.9,rearm:0,aiEvade:0,spawnProtectedUntil:0,collisionGraceUntil:g.time+COMBAT_LIMITS.spawnGrace,respawnAt:null,deaths:0,kills:0,trail:[],...departure},g.startingFuel);
 }
-export function createGame({mode='dogfight',teamSize=1,teamSizes,skirmish=false,role='attack',seed=64821,difficulty='normal',routeId='local',arenaId='coast',missionId='dogfight',startingFuel=.75}={}){
+export function createGame({mode='dogfight',teamSize=1,teamSizes,skirmish=false,role='attack',seed=64821,difficulty='normal',routeId='local',arenaId='coast',missionId='dogfight',startingFuel=.75,enemyRespawnSeconds=0,coopTeam=null}={}){
  if(!['dogfight','strike','freeflight'].includes(mode))mode='dogfight';
  if(!Object.hasOwn(ROUTES,routeId))routeId='local';
  if(mode!=='dogfight'||!Object.hasOwn(ARENAS,arenaId))arenaId='coast';
@@ -109,9 +109,12 @@ export function createGame({mode='dogfight',teamSize=1,teamSizes,skirmish=false,
  const sizes=normalizedTeams(mode,teamSize,tactical?undefined:teamSizes);
  if(transportTeam!==null)sizes[transportTeam]++;
  if(missionId==='ambush')sizes[1]=Math.max(2,sizes[1]);
- const g={version:2,startingFuel:clamp(Number(startingFuel)||.75,.25,1),mode,missionId,combatMission:tactical?{transportTeam,route:transportTeam===null?[]:missionRoute(arenaId),routeIndex:1,deadline:missionId==='ambush'?90:150}:null,arenaId,routeId,destinationId:ROUTES[routeId].destination,teamSize:sizes[0],teamSizes:sizes,skirmish:mode==='dogfight'&&!tactical&&skirmish===true,scores:sizes.map(()=>0),role:role==='defend'?'defend':'attack',difficulty:difficulty==='ace'?'ace':'normal',rng:seed>>>0,time:0,tick:0,status:'playing',result:null,pilots:[],missiles:[],bullets:[],countermeasures:[],bombs:[],effects:[],events:[],serial:0,targetHp:100,bombed:false,routeIndex:0,flightStage:'takeoff',approachIndex:0,missionMessage:'',escaped:false};
+ const reinforcementMode=mode==='dogfight'&&!tactical&&!skirmish&&sizes.length===2&&(coopTeam===0||coopTeam===1)&&[120,180,300].includes(enemyRespawnSeconds);
+ const g={enemyRespawnSeconds:reinforcementMode?enemyRespawnSeconds:0,coopTeam:reinforcementMode?coopTeam:null,version:2,startingFuel:clamp(Number(startingFuel)||.75,.25,1),mode,missionId,combatMission:tactical?{transportTeam,route:transportTeam===null?[]:missionRoute(arenaId),routeIndex:1,deadline:missionId==='ambush'?90:150}:null,arenaId,routeId,destinationId:ROUTES[routeId].destination,teamSize:sizes[0],teamSizes:sizes,skirmish:mode==='dogfight'&&!tactical&&skirmish===true,scores:sizes.map(()=>0),role:role==='defend'?'defend':'attack',difficulty:difficulty==='ace'?'ace':'normal',rng:seed>>>0,time:0,tick:0,status:'playing',result:null,pilots:[],missiles:[],bullets:[],countermeasures:[],bombs:[],effects:[],events:[],serial:0,targetHp:100,bombed:false,routeIndex:0,flightStage:'takeoff',approachIndex:0,missionMessage:'',escaped:false};
  g.formations=createFormations(g);
  for(let team=0;team<sizes.length;team++)for(let slot=0;slot<sizes[team];slot++)g.pilots.push(spawnPilot(g,g.pilots.length,team,slot));
+ // Eligibility belongs to an original enemy AI seat, never to a disconnected human.
+ for(const p of g.pilots)p.enemyRespawnEligible=reinforcementMode&&p.team!==coopTeam;
  emit(g,'start',tactical?COMBAT_MISSIONS[missionId].description:mode==='freeflight'?'Clear for takeoff. Add power, then gently climb.':mode==='strike'?(g.role==='attack'?'Strike package ready at the airport. Take off, reach the target, then escape.':'Intercept the bomber before it escapes.'):'Airport departure. Add power; above 155 knots hold W to lift off. Gear is automatic; K enables advanced manual controls. Land and stop at your HOME runway to repair; fly within 250 m of HOME to rearm.');
  return g;
 }
@@ -125,22 +128,23 @@ export function configurePlayers(g,ids=['host'],teams){
  for(let slot=0;slot<Math.max(...g.teamSizes);slot++)for(let team=0;team<g.teamSizes.length;team++){
   const p=g.pilots.find(p=>p.team===team&&p.slot===slot&&!p.objectiveRole);if(p)seats.push(p);
  }
- for(let i=0;i<Math.min(ids.length,seats.length);i++){const assigned=teams?.[ids[i]],seat=(assigned===0||assigned===1)?seats.find(p=>!p.human&&p.team===assigned):seats.find(p=>!p.human);if(seat){seat.id=ids[i];seat.human=true}}
+ for(let i=0;i<Math.min(ids.length,seats.length);i++){const assigned=teams?.[ids[i]],seat=(assigned===0||assigned===1)?seats.find(p=>!p.human&&p.team===assigned):seats.find(p=>!p.human);if(seat){seat.id=ids[i];seat.human=true;seat.enemyRespawnEligible=false}}
 }
 function emit(g,type,text,extra={}){g.events.push({id:++g.serial,type,text,t:g.time,...extra});if(g.events.length>24)g.events.shift()}
 function recordDamage(g,p,weapon,sourceId,amount,origin){
  if(weapon!=='terrain'&&weapon!=='collision'){p.engineHealth=clamp((p.engineHealth??1)-amount*.004,0,1);p.controlHealth=clamp((p.controlHealth??1)-amount*.006,0,1);}
  p.lastDamage={id:++g.serial,weapon,sourceId,amount,t:g.time,bearing:origin?angle(desiredHeading(p,origin)-p.yaw):null};
 }
+function enemyReinforcement(g,p){return g.enemyRespawnSeconds>0&&g.mode==='dogfight'&&!g.skirmish&&!g.combatMission&&(g.coopTeam===0||g.coopTeam===1)&&p?.enemyRespawnEligible===true&&!p.human&&p.team!==g.coopTeam;}
 function kill(g,p,source){if(p.dead)return;if(source==='terrain'||source==='collision')recordDamage(g,p,source,null,p.hp,null);p.hp=0;p.dead=true;p.deaths=(p.deaths||0)+1;p.lock=0;p.targetId=null;
- p.respawnAt=g.skirmish?g.time+(p.human?COMBAT_LIMITS.playerRespawnSeconds:COMBAT_LIMITS.botRespawnSeconds):null;
+ p.respawnAt=g.skirmish?g.time+(p.human?COMBAT_LIMITS.playerRespawnSeconds:COMBAT_LIMITS.botRespawnSeconds):enemyReinforcement(g,p)?g.time+g.enemyRespawnSeconds:null;
  const killer=g.pilots.find(q=>q.id===source&&q.team!==p.team);if(killer){killer.kills=(killer.kills||0)+1;g.scores[killer.team]=(g.scores[killer.team]||0)+1;}
  g.effects.push({id:++g.serial,type:'explosion',pos:{...p.pos},age:0,life:2.3});emit(g,'kill',`${p.human?'Pilot':p.bomber?'Bomber':'Bandit'} down`,{pilotId:p.id,source});}
 // Rejoin the same running match. The UI remains responsible for the human's choice.
 export function respawnPilot(g,id){
  const p=g.pilots.find(p=>p.id===id);
- if(!g.skirmish||g.mode!=='dogfight'||g.status!=='playing'||!p?.dead||g.time<(p.respawnAt??Infinity))return false;
- const fresh=spawnPilot(g,g.pilots.indexOf(p),p.team,p.slot),identity={id:p.id,human:p.human,kills:p.kills||0,deaths:p.deaths||0};
+ if((!g.skirmish&&(!enemyReinforcement(g,p)||g.time>=480))||g.mode!=='dogfight'||g.status!=='playing'||!p?.dead||g.time<(p.respawnAt??Infinity))return false;
+ const fresh=spawnPilot(g,g.pilots.indexOf(p),p.team,p.slot),identity={id:p.id,human:p.human,enemyRespawnEligible:p.enemyRespawnEligible,kills:p.kills||0,deaths:p.deaths||0};
  const field=AIRFIELDS[fresh.runwayId];let safe=null;
  for(let attempt=0;attempt<12;attempt++){
   const candidate=fieldPoint(field,0,-field.halfLength+100+attempt*105,3);
@@ -547,11 +551,12 @@ function mission(g,dt){
  }
  if(g.mode==='strike'){const bomber=g.pilots.find(p=>p.bomber);if(bomber?.dead){g.status='complete';g.result={title:bomber.team===0?'Strike intercepted':'Interceptor victory',text:'The bomber was stopped before reaching its escape zone.',winner:1-bomber.team};return}if(g.bombed&&bomber&&horizontal(bomber.pos,strikeEscape(g))<strikeEscape(g).radius&&bomber.pos.y>100){g.escaped=true;g.status='complete';g.result={title:bomber.team===0?'Clean getaway':'Bomber escaped',text:'The target was destroyed and the strike aircraft reached safety.',winner:bomber.team};return}}
  const alive=g.teamSizes.map((_,team)=>g.pilots.some(p=>!p.dead&&p.team===team)),survivors=alive.map((up,team)=>up?team:null).filter(team=>team!==null);
- if(g.mode==='dogfight'&&!g.skirmish&&survivors.length<=1){const winner=survivors[0]??(g.teamSizes.length===2?1:null);g.status='complete';g.result={title:winner===0?'Air superiority':winner===null?'No aircraft remaining':'Squadron defeated',text:winner===0?'The skies are yours. Every opposing aircraft is down.':winner===null?'Both formations were lost. Launch another sortie.':'Your squadron has been intercepted. Try another sortie.',winner}}
+ const waitingForEnemy=alive[g.coopTeam]&&g.pilots.some(p=>p.dead&&enemyReinforcement(g,p)&&Number.isFinite(p.respawnAt));
+ if(g.mode==='dogfight'&&!g.skirmish&&survivors.length<=1&&!waitingForEnemy){const winner=g.enemyRespawnSeconds>0&&!alive[g.coopTeam]?1-g.coopTeam:survivors[0]??(g.teamSizes.length===2?1:null),friendlyWinner=winner===(g.enemyRespawnSeconds>0?g.coopTeam:0);g.status='complete';g.result={title:friendlyWinner?'Air superiority':winner===null?'No aircraft remaining':'Squadron defeated',text:friendlyWinner?'The skies are yours. Every opposing aircraft is down.':winner===null?'Both formations were lost. Launch another sortie.':'Your squadron has been intercepted. Try another sortie.',winner}}
  if(g.skirmish&&g.time>=COMBAT_LIMITS.matchSeconds){const high=Math.max(...g.scores),winners=g.scores.map((score,team)=>score===high?team:null).filter(team=>team!==null);g.status='complete';g.result={title:'Skirmish complete',text:`Squad scores: ${g.scores.join(' / ')}. Return to base.`,winner:winners.length===1?winners[0]:null};return}
  if(g.time>480){g.status='complete';g.result={title:'Sortie complete',text:'Fuel reserve reached. The squadron is returning to base.',winner:null}}
 }
-export function step(g,inputs={},dt=1/60){if(g.status!=='playing')return;dt=clamp(dt,0,.05);g.time+=dt;g.tick++;for(const p of g.pilots)if(p.dead&&!p.human&&g.skirmish&&g.time>=(p.respawnAt??Infinity))respawnPilot(g,p.id);const previous=new Map(g.pilots.filter(p=>!p.dead).map(p=>[p.id,{...p.pos}]));for(const p of g.pilots)if(!p.dead)updatePilot(g,p,p.human?(inputs[p.id]||{}):ai(g,p,dt),dt);updateAircraftCollisions(g,previous);updateStrikeAirDefence(g);updateMissiles(g,dt,previous);advanceGunRounds(g,dt,{previous,ground:surfaceHeight,canHit:p=>g.time>=(p.spawnProtectedUntil||0),onHit:(round,target)=>{recordDamage(g,target,'gun',round.ownerId,GUN.damage,round.pos);emit(g,'gun-hit','Machine gun hit',{pilotId:round.ownerId,targetId:target.id});},onKill:(target,owner)=>kill(g,target,owner)});
+export function step(g,inputs={},dt=1/60){if(g.status!=='playing')return;dt=clamp(dt,0,.05);g.time+=dt;g.tick++;for(const p of g.pilots){if(p.human)p.enemyRespawnEligible=false;if(p.dead&&!p.human&&(g.skirmish||enemyReinforcement(g,p))&&g.time>=(p.respawnAt??Infinity))respawnPilot(g,p.id);}const previous=new Map(g.pilots.filter(p=>!p.dead).map(p=>[p.id,{...p.pos}]));for(const p of g.pilots)if(!p.dead)updatePilot(g,p,p.human?(inputs[p.id]||{}):ai(g,p,dt),dt);updateAircraftCollisions(g,previous);updateStrikeAirDefence(g);updateMissiles(g,dt,previous);advanceGunRounds(g,dt,{previous,ground:surfaceHeight,canHit:p=>g.time>=(p.spawnProtectedUntil||0),onHit:(round,target)=>{recordDamage(g,target,'gun',round.ownerId,GUN.damage,round.pos);emit(g,'gun-hit','Machine gun hit',{pilotId:round.ownerId,targetId:target.id});},onKill:(target,owner)=>kill(g,target,owner)});
  for(const c of g.countermeasures){c.age+=dt;c.pos.x+=c.vel.x*dt;c.pos.y+=c.vel.y*dt;c.pos.z+=c.vel.z*dt;c.vel.y-=12*dt}g.countermeasures=g.countermeasures.filter(c=>c.age<c.life);
  for(const b of g.bombs){b.age+=dt;b.vel.y-=45*dt;b.pos.x+=b.vel.x*dt;b.pos.y+=b.vel.y*dt;b.pos.z+=b.vel.z*dt;if(b.pos.y<=Math.max(4,surfaceHeight(b.pos.x,b.pos.z))){if(horizontal(b.pos,strikeTarget(g))<330&&!g.bombed){g.targetHp=0;g.bombed=true;emit(g,'target','Target destroyed. Turn toward ESCAPE.');g.effects.push({id:++g.serial,type:'target',pos:{...strikeTarget(g)},age:0,life:8})}else emit(g,'miss','Bomb missed. Circle back for another pass.');b.pos.y=-999}}g.bombs=g.bombs.filter(b=>b.pos.y>-100);
  // Service surviving aircraft after this tick's damage; never revive a loss.

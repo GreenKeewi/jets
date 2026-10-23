@@ -1,5 +1,5 @@
-import {createNetwork} from './network.js?v=skybreak12-1023';
-import {createServerClient} from './server-client.js?v=skybreak12-1023';
+import {createNetwork} from './network.js?v=skybreak13-1023';
+import {createServerClient} from './server-client.js?v=skybreak13-1023';
 
 // Exactly one simulation transport owns the game at a time. Friend-room UI retains
 // its original API, while dedicated matches reuse the existing guest render path.
@@ -39,7 +39,7 @@ export function createMultiplayerRouter(callbacks = {}, {createPeer = createNetw
     disconnect() { operation++; peers[active].disconnect(); active = 'peer'; notify(); },
     selectPeer,
   };
-  for (const key of ['getPlayerIds','getTeams','consumeInputs','broadcastControl','broadcastSnapshot','sampleSnapshot','submitInput','requestRespawn']) {
+  for (const key of ['getPlayerIds','getTeams','getEnemyRespawn','setEnemyRespawn','consumeInputs','broadcastControl','broadcastSnapshot','sampleSnapshot','submitInput','requestRespawn']) {
     api[key] = (...args) => peers[active][key]?.(...args);
   }
   return api;

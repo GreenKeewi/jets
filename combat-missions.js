@@ -1,5 +1,5 @@
 // Combat objectives share the host's ordinary dogfight simulation and controls.
-import {valleyPoint} from './arenas.js?v=skybreak12-1023';
+import {valleyPoint} from './arenas.js?v=skybreak13-1023';
 // Release switch: set true and bump dependent asset versions to restore these modes.
 // This is intentionally not configurable through URLs, storage or network packets.
 export const COMBAT_MISSIONS_ENABLED=false;

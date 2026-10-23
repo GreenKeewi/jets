@@ -238,3 +238,9 @@ M opens the live tactical map; M or Escape closes it. N now toggles sound, and V
 The map shows actual terrain, your position/heading, team-relative airport labels, mission objectives and known contacts. H marks your only HOME service airport; F marks other friendly airports, X hostile airports, and — unassigned airports. Other airports do not provide landing service or restock. Land at HOME with gear down, stop and reduce power to repair/refuel. Enter within 250 m of HOME pavement to restock weapons/countermeasures; exit beyond 350 m before another pass, with the existing 12-second cooldown. The map does not pause the simulation; flight inputs are released while it is open.
 
 See [verification and screenshots](evidence/v1.0.12/README.md).
+
+## v1.0.13 optional enemy AI reinforcements
+
+The friend-room host can enable enemy AI respawns before a same-team co-op dogfight: off by default, or 2/3/5 minutes (3 minutes initially selected). Human respawns are unchanged. Opposing-human-team games and other modes retain their existing rules. Settings lock during a sortie and synchronize to guests and late joiners. Each eligible enemy returns once at its team's runway, waiting for a clear spawn position and using normal takeoff behavior. Friendly bots and disconnected human seats are not reinforcement slots.
+
+With reinforcements enabled, eliminating enemies starts their return timers instead of immediately winning. Losing the friendly squad still ends the match; the existing eight-minute sortie limit remains. The HUD displays the next return and remaining sortie time. Pause freezes simulation timers; a new sortie clears pending respawns. See [test evidence and limitations](evidence/v1.0.13/README.md).

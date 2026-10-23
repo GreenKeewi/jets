@@ -1,5 +1,5 @@
-import {surfaceHeight} from './world.js?v=skybreak12-1023';
-import {heatFlareChance,HEAT_SEEKER} from './heat-seeker.js?v=skybreak12-1023';
+import {surfaceHeight} from './world.js?v=skybreak13-1023';
+import {heatFlareChance,HEAT_SEEKER} from './heat-seeker.js?v=skybreak13-1023';
 
 // Shared with the visible sky disk. The sun is a direction, not a world point.
 const sunLength=Math.hypot(-.62,.28,-.73);

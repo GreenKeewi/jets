@@ -1,0 +1,9 @@
+# v1.0.13 verification
+
+- Full game tests: **266 passed**, zero failures (`unit-tests.txt`). Includes host-only settings, roster/config validation, guest spoof rejection, late joins/rejoin, fixed teams, 20/30/60/144 fps timer boundaries, blocked runway retries, exactly-once spawn, correct airport/team ownership, human exclusion, disabled victory, defeat, deadline and restart reset.
+- Backend regression tests: **15 passed**, zero failures (`backend-tests.txt`). No backend deployment or infrastructure change.
+- `tests/enemy-respawn-browser.cjs`: two rendered documents, host UI enables default 3 minutes, guest receives read-only setting, actual simulation death logic from controlled crash positions, synchronized countdown, accelerated deadline, both enemy aircraft restored grounded at Northpoint with departure active, new sortie resets timers. No page errors. Report: `browser/report.json`.
+- Existing `tests/coop-browser.cjs` also passed with respawns off: guest keyboard throttle and countermeasure input, matching elimination victory, return and team switching. Report: `disabled-browser/report.json`.
+- Inspected `browser/host-settings.png`, `browser/host-settings-narrow.png` (390×844), and `browser/countdown.png`: setting and HUD readable. Guest inset is a test-only iframe.
+
+Browser transport uses the deterministic RTC fixture: native WebRTC reported `NoLocalCandidatesError` under managed browser policy. No policy bypass, live Internet multiplayer claim, full combat sortie claim, or wall-clock three-minute wait. Timers are separately tested at four simulation frame rates. Public dedicated backend remains unconfigured; no credentials created. Screenshots use reduced render resolution for cloud software graphics. Public deployment is checked separately against the release commit and served files.

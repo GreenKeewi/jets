@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#102c37"><title>Skybreak Jets</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><meta name="description" content="An original 3D island jet game. Dogfight, strike a target, or fly a peaceful runway route. Create a room and invite friends for data-only WebRTC multiplayer."><link rel="stylesheet" href="style.css?v=skybreak12-1023"><link rel="stylesheet" href="cockpit.css?v=skybreak12-1023"><link rel="preload" as="image" href="assets/cloud-volume-1.webp?v=valleyenergy1-1019"><link rel="preload" as="image" href="assets/cloud-volume-2.webp?v=valleyenergy1-1019"><link rel="preload" as="image" href="assets/cloud-volume-3.webp?v=valleyenergy1-1019"><link rel="stylesheet" href="tactical-map.css?v=skybreak12-1023"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#102c37"><title>Skybreak Jets</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><meta name="description" content="An original 3D island jet game. Dogfight, strike a target, or fly a peaceful runway route. Create a room and invite friends for data-only WebRTC multiplayer."><link rel="stylesheet" href="style.css?v=skybreak13-1023"><link rel="stylesheet" href="cockpit.css?v=skybreak13-1023"><link rel="preload" as="image" href="assets/cloud-volume-1.webp?v=valleyenergy1-1019"><link rel="preload" as="image" href="assets/cloud-volume-2.webp?v=valleyenergy1-1019"><link rel="preload" as="image" href="assets/cloud-volume-3.webp?v=valleyenergy1-1019"><link rel="stylesheet" href="tactical-map.css?v=skybreak13-1023"></head>
 <body>
 <canvas id="world" aria-label="3D flight view"></canvas>
 <div id="loading" role="status"><span class="loading-mark">✦</span><strong>Preparing the island</strong><span>Loading Skybreak…</span></div>
@@ -36,7 +36,7 @@
  <div id="g-vision" hidden aria-hidden="true"></div>
  <div id="g-warning" hidden role="status" aria-live="polite"></div>
  <header class="flight-top"><div class="flight-brand">SKYBREAK JETS <span id="mission-kind">DOGFIGHT</span></div><div class="flight-nav"><button id="map-open">Map</button><a href="https://greenkeewi.github.io/games/">All games</a><button id="help-button">Controls <kbd>H</kbd></button><button id="pause-button">Pause <kbd>Esc</kbd></button></div></header>
- <div class="objective"><span id="objective-tag">SORTIE 01</span><strong id="objective-text">Clear the skies</strong><span id="objective-detail"></span><span id="airport-guidance"></span><div id="route-progress" class="route-progress"></div></div>
+ <div class="objective"><span id="objective-tag">SORTIE 01</span><strong id="objective-text">Clear the skies</strong><span id="objective-detail"></span><span id="airport-guidance"></span><span id="enemy-respawn-note" hidden></span><div id="route-progress" class="route-progress"></div></div>
  <div id="compass"><span id="heading">000</span><small>N</small></div>
  <div id="flight-envelope"><span>MACH <b id="mach">0.00</b></span><small id="speed-regime">CRUISE</small><small id="thrust-note">78% POWER · ↑ ↓</small><small id="g-load">1.0 G</small><small id="vertical-speed">LEVEL FLIGHT</small><small id="terrain-clearance" hidden></small></div>
  <div id="aircraft-status" aria-label="Aircraft systems"><span>FUEL <b id="fuel-value">75%</b></span><span>ENGINE <b id="burner-value">MIL</b></span><span><kbd>X</kbd> AIRBRAKE <b id="airbrake-state">OFF</b></span><span><kbd>G</kbd> GEAR <b id="gear-state">DOWN</b></span><span><kbd>K</kbd> MANEUVER <b id="maneuver-state">STANDARD</b></span></div>
@@ -74,7 +74,7 @@
  <p>[F] Other friendly · [X] Hostile · [—] Unassigned: <strong>no landing service or restock.</strong></p>
  <h3>Symbols</h3><p>▲ You + heading<br>● Friendly contact<br>◆ Known hostile contact<br>◎ Mission objective</p><p>Hostiles appear only within radar range or when selected as your target. This is not an all-seeing enemy map.</p></section></div>
 </dialog>
-<script type="module" src="version-ui.js?v=skybreak12-1023"></script>
-<script type="module" src="game.js?v=skybreak12-1023"></script>
+<script type="module" src="version-ui.js?v=skybreak13-1023"></script>
+<script type="module" src="game.js?v=skybreak13-1023"></script>
 </body></html>
 
