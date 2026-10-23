@@ -49,7 +49,7 @@ test('six simultaneous flare/chaff volleys stay within wire budget without chang
   const inputs=Object.fromEntries(ids.map(id=>[id,{flare:true,chaff:true,fireHeat:true,fireRadar:true}]));
   for(let i=0;i<295;i++)step(game,inputs,1/60);
   const state=snapshot(game),packet={t:'snapshot',q:0,value:state},before=JSON.stringify(packet);
-  assert.ok(before.length>60000,'reproduces the original six-pilot packet overflow');
+  assert.ok(state.countermeasures.length<=240,'rapid releases retain bounded active particles');
   const encoded=serializePacket(packet);assert.ok(encoded);assert.ok(new TextEncoder().encode(encoded).byteLength<=60000);
   assert.equal(JSON.stringify(packet),before,'serialization must not alter host state');
   const decoded=JSON.parse(encoded);assert.deepEqual(decoded.value.pilots.map(p=>p.id),state.pilots.map(p=>p.id));
@@ -57,4 +57,10 @@ test('six simultaneous flare/chaff volleys stay within wire budget without chang
   assert.ok(Math.abs(decoded.value.pilots[0].pos.y-state.pilots[0].pos.y)<.0001);
   const massive={...packet,value:{...state,countermeasures:Array(2000).fill(state.countermeasures[0])}};
   const bounded=serializePacket(massive);assert.ok(bounded);assert.ok(new TextEncoder().encode(bounded).byteLength<=60000);
+});
+
+test('twelve rapid counter streams preserve inventory and missile outcomes within packet budget',()=>{
+ const game=createGame({teamSizes:[4,4,4],skirmish:true}),inputs={};
+ for(const [i,p]of game.pilots.entries()){Object.assign(p,{human:true,grounded:false,departureActive:false,pos:{x:i*2500,y:3000,z:0},speed:200});inputs[p.id]={flare:true,chaff:true};}
+ for(let n=0;n<30;n++){step(game,inputs,1/60);const state=snapshot(game),packet=serializePacket({t:'snapshot',q:n,value:state});assert(packet);assert(Buffer.byteLength(packet)<=60000);const copy=JSON.parse(packet).value;assert.deepEqual(copy.pilots.map(p=>[p.id,p.flares,p.chaff,p.hp]),state.pilots.map(p=>[p.id,p.flares,p.chaff,p.hp]));assert.equal(copy.missiles.length,state.missiles.length);assert(game.countermeasures.length<=240);}
 });

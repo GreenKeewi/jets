@@ -1,0 +1,13 @@
+{
+  "pass": true,
+  "method": "Native F/C rapid/held keys, V camera, actual rebinding UI with conflict and reload persistence; explicit airborne fixture",
+  "rapid": {
+    "flares": 49,
+    "chaff": 56
+  },
+  "rebound": {
+    "flares": 57,
+    "chaff": 59
+  },
+  "errors": []
+}

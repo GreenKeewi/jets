@@ -16,7 +16,7 @@ test('A/D and horizontal arrows turn to the matching screen side at every cardin
 test('Up/Down change only power, W/S pitch, and Q/E never become axes or held missile fire',()=>{
  assert.equal(keyboardInput(new Set(['ArrowUp'])).throttle,1);assert.equal(keyboardInput(new Set(['ArrowUp'])).pitch,0);assert.equal(keyboardInput(new Set(['ArrowDown'])).throttle,-1);assert.equal(keyboardInput(new Set(['KeyW'])).pitch,1);assert.equal(keyboardInput(new Set(['KeyS'])).pitch,-1);
  for(const key of ['KeyQ','KeyE']){const held=keyboardInput(new Set([key]));assert.equal(held.roll,0);assert.equal(held.yaw,0);assert.equal(held.throttle,0);assert.equal(held.fireHeat,false);assert.equal(held.fireRadar,false);}
- assert.equal(keyboardInput(new Set(),new Set(['fireHeat'])).fireHeat,true);assert.equal(keyboardInput(new Set(),new Set(['fireRadar'])).fireRadar,true);assert.equal(keyboardInput(new Set(['Space'])).fireGun,true);assert.equal(keyboardInput(new Set(['KeyF','KeyC','KeyB'])).flare,true);
+ assert.equal(keyboardInput(new Set(),new Set(['fireHeat'])).fireHeat,true);assert.equal(keyboardInput(new Set(),new Set(['fireRadar'])).fireRadar,true);assert.equal(keyboardInput(new Set(['Space'])).fireGun,true);assert.equal(keyboardInput(new Set(['KeyF','KeyC','KeyB'])).flare,false);
 });
 test('camera up, heading, radar and turn hints share pilot-relative left/right at cardinal headings',()=>{
  for(const yaw of [0,Math.PI/2,Math.PI,-Math.PI/2])for(const pitch of [-.3,0,.3]){

@@ -45,6 +45,7 @@ export function selectRegion(probes, {pool = 'regional', region = 'auto', arenaI
 }
 
 export function createServerClient(callbacks = {}, {WebSocketImpl = globalThis.WebSocket, clock = () => performance.now()} = {}) {
+  let pendingBursts={flare:0,chaff:0};
   let inputTimer = null, pendingInput = null, lastInput = -Infinity, lastSentInput = null;
   let ws = null, sequence = 0, epoch = 0, frames = [], latencyMs = null, pingTimer = null, pendingPing = null, connectionTimer = null;
   let state = {role:'offline',transport:'server',localId:null,sessionId:null,connected:false,connecting:false,peers:[],diagnostic:'Dedicated servers are not configured.'};
@@ -52,7 +53,7 @@ export function createServerClient(callbacks = {}, {WebSocketImpl = globalThis.W
   const emit = () => { const current = {...state,latencyMs}; callbacks.onState?.(current); for (const fn of listeners) fn(current); };
   const send = packet => { if (ws?.readyState !== 1 || ws.bufferedAmount > 65536) return false; ws.send(JSON.stringify(packet)); return true; };
   function disconnect(reason = 'Disconnected from server.') {
-    epoch++; clearTimeout(inputTimer); inputTimer = null; pendingInput = null; lastInput = -Infinity; lastSentInput = null; clearInterval(pingTimer); clearTimeout(connectionTimer); pingTimer = null; connectionTimer = null; pendingPing = null;
+    epoch++; clearTimeout(inputTimer); inputTimer = null; pendingInput = null; pendingBursts={flare:0,chaff:0}; lastInput = -Infinity; lastSentInput = null; clearInterval(pingTimer); clearTimeout(connectionTimer); pingTimer = null; connectionTimer = null; pendingPing = null;
     const previous = ws; ws = null; previous?.close(1000,'Leaving match'); frames = [];
     state = {...state,role:'offline',localId:null,sessionId:null,connected:false,connecting:false,peers:[],diagnostic:reason}; emit();
   }
@@ -103,14 +104,22 @@ export function createServerClient(callbacks = {}, {WebSocketImpl = globalThis.W
     },
     submitInput(input) {
       const value = validateInput(input); if (!state.connected || !value) return false;
+      for (const key of ['flare','chaff']) if(value[key])pendingBursts[key]=Math.min(240,pendingBursts[key]+1);
       for (const key of ACTIONS) value[key] ||= !!pendingInput?.[key];
       const changed = !lastSentInput || [...AXES,...HELD].some(key => value[key] !== lastSentInput[key]) || ACTIONS.some(key => value[key]);
       // Suppress redundant controls, but refresh held controls within the server's
       // 250ms expiry. No timer repeats stale controls if the caller stops updating.
       if (!pendingInput && !changed && clock()-lastInput < 100) return true;
       pendingInput = value;
-      const flush = () => { inputTimer = null; if (!state.connected || !pendingInput) return; const input = pendingInput; pendingInput = null; lastInput = clock(); lastSentInput = {...input}; send({t:'input',q:sequence++,input}); };
-      if (clock()-lastInput >= 50) { clearTimeout(inputTimer); flush(); }
+      const flush = () => {
+        inputTimer = null; if (!state.connected || !pendingInput) return;
+        const input=pendingInput;pendingInput=null;lastInput=clock();
+        do { for(const key of ['flare','chaff']) { input[key]=pendingBursts[key]>0;if(input[key])pendingBursts[key]--; }
+          lastSentInput={...input};send({t:'input',q:sequence++,input:{...input}});
+          for(const key of ACTIONS)input[key]=false;
+        } while(pendingBursts.flare||pendingBursts.chaff);
+      };
+      if (pendingBursts.flare||pendingBursts.chaff||clock()-lastInput >= 50) { clearTimeout(inputTimer); flush(); }
       else if (!inputTimer) inputTimer = setTimeout(flush,Math.max(1,50-(clock()-lastInput)));
       return true;
     },

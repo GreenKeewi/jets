@@ -39,12 +39,12 @@ export function createInputBuffer() {
       tokens = Math.min(100, tokens + Math.max(0, now - tokenAt) * .09); tokenAt = now;
       if (tokens < 1) return false; tokens--; sequence = packet.q; at = now;
       held = next;
-      for (const key of ACTIONS) if (next[key] && now - (last[key] ?? -Infinity) >= 150) { pending[key] = true; last[key] = now; }
+      for (const key of ACTIONS) if (next[key] && now - (last[key] ?? -Infinity) >= (['flare','chaff'].includes(key)?0:150)) { pending[key] = ['flare','chaff'].includes(key)?Math.min(240,(Number(pending[key])||0)+1):true; last[key] = now; }
       return true;
     },
     take(now) {
       const value = now - at <= 250 ? {...held} : neutralInput();
-      for (const key of ACTIONS) { value[key] = now - at <= 250 && pending[key]; pending[key] = false; }
+      for (const key of ACTIONS) { const burst=['flare','chaff'].includes(key),fresh=burst?now-(last[key]??-Infinity)<=5000:now-at<=250;value[key]=fresh&&!!pending[key];pending[key]=burst&&fresh?Math.max(0,Number(pending[key])-1):false; }
       return value;
     },
   };

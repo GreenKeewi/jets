@@ -143,3 +143,12 @@ test('two real WebSocket clients join same-team coop, share AI state and synchro
   for(const p of room.game.pilots.filter(p=>p.team===1)){p.hp=0;p.dead=true;}const ended=async ws=>{for(let i=0;i<10;i++){const s=await nextMessage(ws,'snapshot');if(s.value.status==='complete')return s.value;}throw Error('No synchronized completion');};const [ea,eb]=await Promise.all([ended(a.ws),ended(b.ws)]);assert.equal(ea.result.winner,0);assert.deepEqual(ea.result,eb.result);
  }finally{a?.ws.close();b?.ws.close();await app.close();}
 });
+test('two real server clients preserve rapid counter presses and replicated separate inventory',async()=>{
+ const app=createGameServer({region:'enam',origins:[origin]}),address=await app.listen(0,'127.0.0.1');
+ class BrowserSocket extends WebSocket{constructor(url){super(url,{origin});}}
+ const a=createServerClient({},{WebSocketImpl:BrowserSocket}),b=createServerClient({},{WebSocketImpl:BrowserSocket});
+ try{const endpoint={id:'enam',url:`http://127.0.0.1:${address.port}`};await a.connect(endpoint,{pool:'global'});await b.connect(endpoint,{pool:'global'});
+ for(let n=0;n<10;n++){assert(a.submitInput({flare:true}));assert(b.submitInput({chaff:true}));}
+ await delay(600);const s=a.sampleSnapshot(),pa=s.pilots.find(p=>p.id===a.state.localId),pb=s.pilots.find(p=>p.id===b.state.localId);assert.deepEqual([pa.flares,pa.chaff],[50,60]);assert.deepEqual([pb.flares,pb.chaff],[60,50]);const other=b.sampleSnapshot();assert.equal(other.pilots.find(p=>p.id===a.state.localId).flares,50);
+ }finally{a.disconnect();b.disconnect();await app.close();}
+});

@@ -38,7 +38,7 @@ export function roomInviteLink(code, href = globalThis.location?.href) {
 const HELD = ['fireGun'];
 const GUN_INPUT_EXPIRY = 250;
 const AXES = ['pitch', 'roll', 'yaw', 'throttle'];
-const COOLDOWN = { fireHeat: 250, fireRadar: 400, flare: 200, chaff: 200, bomb: 300, toggleAirbrake: 150, toggleGear: 150, toggleManeuver: 150 };
+const COOLDOWN = { fireHeat: 250, fireRadar: 400, flare: 0, chaff: 0, bomb: 300, toggleAirbrake: 150, toggleGear: 150, toggleManeuver: 150 };
 const MAX_PACKET = 60000;
 const HIGH_WATER = 131072;
 const neutral = () => Object.fromEntries([...AXES.map(k => [k, 0]), ...[...ACTIONS, ...HELD].map(k => [k, false]), ['brake', false], ['autopilot',false]]);
@@ -131,14 +131,14 @@ function requireLocalCandidates(pc) {
 // Pure per-connection guard: identity is supplied by the connection, never by a packet.
 export function createInputGuard(clock = now) {
   const sequences = { axes: -1, actions: -1 };
-  const buckets = { axes: { tokens: 90, at: clock() }, actions: { tokens: 20, at: clock() } };
+  const buckets = { axes: { tokens: 90, at: clock() }, actions: { tokens: 120, at: clock() } };
   const lastAction = Object.fromEntries(ACTIONS.map(k => [k, -Infinity]));
   return (packet, channel) => {
     if (!plain(packet) || !['axes', 'actions'].includes(channel) || packet.t !== channel || !validSeq(packet.q) || packet.q <= sequences[channel]) return null;
     if (Object.keys(packet).some(k => !['t', 'q', 'input', 'g'].includes(k)) || packet.g !== undefined && !validSeq(packet.g)) return null;
     const input = validateInput(packet.input);
     if (!input) return null;
-    const t = clock(), b = buckets[channel], rate = channel === 'axes' ? 90 : 20;
+    const t = clock(), b = buckets[channel], rate = channel === 'axes' ? 90 : 120;
     b.tokens = Math.min(rate, b.tokens + Math.max(0, t - b.at) * rate / 1000); b.at = t;
     if (b.tokens < 1) return null;
     b.tokens--; sequences[channel] = packet.q;
@@ -256,7 +256,7 @@ export function createNetwork(callbacks = {}) {
       if (!input) { stats.rejected++; return; }
       const prior = inputs.get(p.id) || { axes: neutral(), actions: {}, axesAt: -Infinity };
       if (kind === 'axes') { prior.axes = { ...input }; prior.axesAt = now(); }
-      for (const k of ACTIONS) { if (input[k]) prior.actions[k] = now(); prior.axes[k] = false; }
+      for (const k of ACTIONS) { if (input[k]) { if (k === 'flare' || k === 'chaff') { const queue=Array.isArray(prior.actions[k])?prior.actions[k]:[];if(queue.length<240)queue.push(now());prior.actions[k]=queue; } else prior.actions[k] = now(); } prior.axes[k] = false; }
       inputs.set(p.id, prior);
       callbacks.onInput?.(p.id, input, { channel: kind });
       return;
@@ -523,8 +523,7 @@ export function createNetwork(callbacks = {}) {
         result[id] = now() - value.axesAt > 750 ? neutral() : { ...value.axes };
         // A lost release packet must not leave the gun firing until axes expiry.
         if (now() - value.axesAt > GUN_INPUT_EXPIRY) result[id].fireGun = false;
-        for (const k of ACTIONS) result[id][k] = typeof value.actions[k] === 'number' && now() - value.actions[k] <= 750;
-        value.actions = {};
+        for (const k of ACTIONS) { const pending=value.actions[k];if(Array.isArray(pending)){while(pending.length&&now()-pending[0]>5000)pending.shift();result[id][k]=pending.length>0;if(pending.length)pending.shift();}else{result[id][k]=typeof pending==='number'&&now()-pending<=750;delete value.actions[k];} }
       }
       return result;
     },

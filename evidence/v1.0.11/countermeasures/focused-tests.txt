@@ -1,0 +1,35 @@
+✔ held counters never repeat; every queued discrete press survives frame drain (2.530727ms)
+✔ rapid releases have no cooldown, finite separate stores, bounded visuals and snapshot inventory (86.719088ms)
+✔ home restock replenishes each aircraft-specific counter inventory (2.036972ms)
+✔ fresh bursts increase cumulative opportunities with diminishing per-burst odds, not immunity (1.292134ms)
+✔ server buffer and peer guard accept rapid counters without merging or replaying pulses (4.915972ms)
+✔ AI consumes one pending defensive burst rather than holding the dispenser every frame (26.516587ms)
+✔ a fresh sortie clears previous guest controls and queued action pulses (17.765214ms)
+✔ reliable action traffic cannot keep stale realtime axes active (3.273373ms)
+✔ a buffer-full exception during reliable queue flush preserves the command for retry (2.77967ms)
+✔ late events from a removed connection cannot recreate its input state (3.131496ms)
+✔ old in-flight axes and weapon actions cannot affect a new sortie (2.824028ms)
+✔ old world snapshots cannot roll a guest back after a new sortie begins (2.293795ms)
+✔ pause/resume drops pending inputs and rejects even current-generation input while paused (3.419488ms)
+✔ a direct reliable send buffer exception queues and retries the command exactly once (0.915595ms)
+✔ a peer that never drains reliable control is removed before its queue can grow without bound (2.592513ms)
+✔ normal and ace difficulty are carried in authoritative start settings and invalid values are rejected (2.253113ms)
+✔ only supported host-selected routes reach guests and late-join settings (2.356593ms)
+✔ jittered guest held gun matches the authoritative local cadence without duplicate pulses (27.866355ms)
+✔ gun release is immediate on arrival and lost updates expire within 250 ms independently of reliable actions (1.441485ms)
+✔ a reordered old held-gun packet cannot override a newer release (1.099453ms)
+✔ rapid reliable flare and chaff packets are queued once each rather than merged (2.642484ms)
+✔ untrusted input rejects identity, nonfinite/out-of-range axes and invalid button types (1.648783ms)
+✔ connection guard rejects replay, identity injection and bursts; cooldown is host-clock based (3.224638ms)
+✔ manual pairing rejects malformed, wrong-kind, camera/audio and unreasonable payloads (2.128617ms)
+✔ snapshot interpolation chooses matching identity and shortest heading arc without mutation (0.847335ms)
+✔ six simultaneous flare/chaff volleys stay within wire budget without changing authoritative state (69.937ms)
+✔ twelve rapid counter streams preserve inventory and missile outcomes within packet budget (126.571525ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 367.536565

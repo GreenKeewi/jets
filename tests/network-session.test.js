@@ -114,3 +114,10 @@ test('a reordered old held-gun packet cannot override a newer release',()=>sessi
  const c=pcs.guest.channels.find(c=>c.label==='realtime');c.hold=true;guest.submitInput({fireGun:true});advance(40);guest.submitInput({fireGun:false});assert.equal(c.held.length,2);
  const[first,release]=c.held.splice(0);c.peer.onmessage({data:release});await settle();c.peer.onmessage({data:first});await settle();assert.equal(host.consumeInputs().p1.fireGun,false);
 }));
+
+test('rapid reliable flare and chaff packets are queued once each rather than merged',()=>session(async({host,guest,advance})=>{
+ host.broadcastControl({type:'start',config});await settle();
+ for(let n=0;n<10;n++){advance(10);guest.submitInput({flare:true,chaff:true});await settle();}
+ for(let n=0;n<10;n++){const i=host.consumeInputs().p1;assert.equal(i.flare,true);assert.equal(i.chaff,true);}
+ const last=host.consumeInputs().p1;assert.equal(last.flare,false);assert.equal(last.chaff,false);
+}));

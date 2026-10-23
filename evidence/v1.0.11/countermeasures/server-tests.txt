@@ -1,0 +1,30 @@
+
+> skybreak-authoritative-server@0.1.0 test
+> node --test *.test.js
+
+✔ inputs reject malicious shape, nonfinite axes, wrong types and spoofed identity (1.209346ms)
+✔ join requires compatible build and explicit regional endpoint (0.807067ms)
+✔ input sequence, pulse consumption, cooldown and stale held controls (0.436536ms)
+✔ actions survive coalesced neutral packet before next simulation step (0.247142ms)
+✔ six independent identities share a server-authoritative room; disconnect bot takeover and cleanup (4.160549ms)
+✔ Node HTTP and real WebSocket clients: join, snapshots, authority, stale input, reconnect (106.332902ms)
+✔ wrong build, binary and oversized frames fail closed (25.997356ms)
+✔ endpoint configuration forbids insecure remote origins, paths and credentials (0.755336ms)
+✔ region probing checks actual server identity and global selection prefers populated rooms (1.218349ms)
+✔ browser adapter connects two real clients, delivers control/snapshots and coalesces inputs (236.801159ms)
+✔ late dedicated joins start safely on their own runway, preserving match and aircraft resources (6.443255ms)
+✔ occupied runway rejects a late join without claiming or moving the existing bot (1.850153ms)
+✔ two real server clients preserve rapid counter presses and replicated separate inventory (623.355639ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1229.395039
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

@@ -156,15 +156,15 @@ test('a close rear missile remains dangerous during an envelope-limited break',(
  let peak=0;run(evade.g,8,()=>{peak=Math.max(peak,evade.p.normalLoad);return{host:{pitch:1}};});
  // The old fixture escaped only by exceeding plausible loading. A 600 m rear
  // threat must not guarantee survival through an impossible high-G snap turn.
- assert.equal(straight.p.hp,52);assert.equal(evade.p.hp,52);assert(peak<=9.1);assert.equal(evade.p.flares,6);
+ assert.equal(straight.p.hp,52);assert.equal(evade.p.hp,52);assert(peak<=9.1);assert.equal(evade.p.flares,60);
 });
 
 test('a warning allows a matching flare attempt; heat seekers ignore chaff and do not guarantee decoys',()=>{
  let defeated=0;
  for(let seed=0;seed<24;seed++){
   const {g,p,m}=missileFixture({distance:1200,speed:285,seed});assert(threatFor(g,p).timeToImpact>1);run(g,.7);
-  step(g,{host:{chaff:true}});assert.equal(m.decoyed,false);assert.equal(p.chaff,5);
-  step(g,{host:{flare:true}});assert.equal(p.flares,5);assert.equal(m.flareBurstsTried.length,1);
+  step(g,{host:{chaff:true}});assert.equal(m.decoyed,false);assert.equal(p.chaff,59);
+  step(g,{host:{flare:true}});assert.equal(p.flares,59);assert.equal(m.flareBurstsTried.length,1);
   const decoyed=m.decoyed;run(g,5);assert.equal(m.decoyed,decoyed,'one flare burst must not reroll every frame');
   if(decoyed){defeated++;assert.equal(p.hp,100);assert.equal(threatFor(g,p),null);}else assert.equal(p.hp,52);
  }

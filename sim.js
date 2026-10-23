@@ -5,7 +5,7 @@ import {AIRPORT,automaticSystems,groundSpawn,departureBlocked,departureInput,val
 import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak10-1023';
 import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak10-1023';
 import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak10-1023';
-import {tryHeatFlare} from './heat-seeker.js?v=skybreak10-1023';
+import {tryHeatFlare,tryRadarChaff} from './heat-seeker.js?v=skybreak10-1023';
 import {freshPilotG,pilotGInput,updatePilotG,advanceAirframeWear,sanitizePilotG,physicalVelocity,signedPilotLoad,limitFlightEnvelope} from './pilot-g.js?v=skybreak10-1023';
 import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak10-1023';
 import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak10-1023';
@@ -355,7 +355,7 @@ export function bombSolution(p){
  for(let t=.08;t<=40;t+=.08){const point={x:p.pos.x+v.x*t,y:p.pos.y+v.y*t-22.5*t*t,z:p.pos.z+v.z*t},ground=Math.max(4,surfaceHeight(point.x,point.z));if(point.y<=ground){const a=Math.max(0,Math.min(1,(previous.y-ground)/Math.max(.001,previous.y-point.y)));return{x:previous.x+(point.x-previous.x)*a,y:ground,z:previous.z+(point.z-previous.z)*a}}previous=point}return previous;
 }
 export function canBomb(g,p){return p.bomber&&p.bombs>0&&!g.bombed&&p.pos.y>100&&p.pos.y<strikeTarget(g).y+1600&&horizontal(bombSolution(p),strikeTarget(g))<330}
-function counter(g,p,type){const key=type==='flare'?'flares':'chaff',cd=type+'CD';if(!p[key]||p[cd]>0)return;p[key]--;p[cd]=1.2;const burstId=g.serial+1;for(let i=0;i<6;i++)g.countermeasures.push({id:++g.serial,burstId,type,ownerId:p.id,pos:{...p.pos},vel:{x:(random(g)-.5)*60,y:(random(g)-.5)*40-12,z:(random(g)-.5)*60},age:0,life:type==='flare'?3.8:5});emit(g,'counter',type==='flare'?'Flares out':'Chaff out',{pilotId:p.id})}
+function counter(g,p,type){const key=type==='flare'?'flares':'chaff',cd=type+'CD';if(!p[key])return;p[key]--;p[cd]=0;const burstId=g.serial+1;for(let i=0;i<6;i++)g.countermeasures.push({id:++g.serial,burstId,type,ownerId:p.id,pos:{...p.pos},vel:{x:(random(g)-.5)*60,y:(random(g)-.5)*40-12,z:(random(g)-.5)*60},age:0,life:type==='flare'?3.8:5});if(g.countermeasures.length>240)g.countermeasures.splice(0,g.countermeasures.length-240);emit(g,'counter',type==='flare'?'Flares out':'Chaff out',{pilotId:p.id})}
 function updatePilot(g,p,input,dt){
  if(p.dead)return;
  for(const k of ['gunCD','heatCD','radarCD','flareCD','chaffCD','bombCD'])p[k]=Math.max(0,p[k]-dt);
@@ -467,7 +467,7 @@ function updateMissiles(g,dt,previous){
   const specs=MISSILE[m.type]||MISSILE.heat,target=g.pilots.find(p=>p.id===m.targetId&&!p.dead&&g.time>=(p.spawnProtectedUntil||0)),from={...m.pos};
   if(target&&!missileImmune(target)&&!m.decoyed&&!m.seekerLost){
    const appropriate=m.type==='heat'?'flare':'chaff',d=dist(m.pos,target.pos);
-   const decoy=m.arcadeSam&&target.bomber?g.countermeasures.find(c=>c.ownerId===target.id&&c.type==='flare'&&c.age<2.2):m.type==='heat'?tryHeatFlare(m,target,g.countermeasures,()=>random(g)):g.countermeasures.find(c=>c.ownerId===target.id&&c.type===appropriate&&c.age<2.2&&dist(c.pos,m.pos)<1100);
+   const decoy=m.arcadeSam&&target.bomber?g.countermeasures.find(c=>c.ownerId===target.id&&c.type==='flare'&&c.age<2.2):m.type==='heat'?tryHeatFlare(m,target,g.countermeasures,()=>random(g)):tryRadarChaff(m,target,g.countermeasures,()=>random(g));
    if(decoy){m.decoyed=true;m.decoyPos={...decoy.pos};emit(g,'evade',m.arcadeSam?'SAM defeated by bomber flares':`${appropriate==='flare'?'Heat seeker':'Radar missile'} defeated`,{pilotId:target.id});}
    else{
     const sight=unitVector({x:target.pos.x-m.pos.x,y:target.pos.y-m.pos.y,z:target.pos.z-m.pos.z});

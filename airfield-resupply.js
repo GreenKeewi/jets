@@ -23,7 +23,7 @@ export function nearestAirfield(point,homeBaseId=null){
  return nearest;
 }
 export function fullWeaponStores(p){
- return{gunAmmo:GUN.capacity,heat:p.bomber?0:6,radar:p.bomber?0:4,flares:6,chaff:6,bombs:p.bomber&&p.objectiveRole!=='transport'?3:0};
+ return{gunAmmo:GUN.capacity,heat:p.bomber?0:6,radar:p.bomber?0:4,flares:p.bomber?120:60,chaff:p.bomber?120:60,bombs:p.bomber&&p.objectiveRole!=='transport'?3:0};
 }
 export function freshAirfieldResupply(point){
  return{resupplyLatched:nearestAirfield(point).distance<=AIRFIELD_RESUPPLY.exitRadius,resupplyReadyAt:0,resuppliedAt:null};

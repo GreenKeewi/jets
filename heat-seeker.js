@@ -20,14 +20,29 @@ export function tryHeatFlare(missile,target,countermeasures,random){
  const tried=missile.flareBurstsTried||(missile.flareBurstsTried=[]);
  for(const flare of countermeasures){
   if(flare.type!=='flare'||flare.ownerId!==target.id||flare.age>=HEAT_SEEKER.flareAge)continue;
-  // All six particles from one release share burstId. Old snapshots without it
+  // All particles from one release share burstId. Old snapshots without it
   // receive one fallback attempt, never six particles' worth of repeated rolls.
   const burst=flare.burstId??'legacy';
   if(tried.includes(burst)||Math.hypot(flare.pos.x-missile.pos.x,flare.pos.y-missile.pos.y,flare.pos.z-missile.pos.z)>=HEAT_SEEKER.flareRange)continue;
   tried.push(burst);
   // Failure is remembered for this burst. A fresh release earns a fresh chance;
   // continuing to fly through the same cloud does not reroll every frame.
-  if(random()<heatFlareChance(target))return flare;
+  if(random()<heatFlareChance(target)*burstChanceScale(tried.length-1))return flare;
+ }
+ return null;
+}
+
+// Each new burst provides another roll, with diminishing returns. The existing
+// failed-burst history survives snapshots; a persistent cloud never rerolls.
+export function burstChanceScale(previousAttempts){return 1/(1+Math.max(0,previousAttempts)*.65);}
+export function tryRadarChaff(missile,target,countermeasures,random){
+ if(missile.type!=='radar'||missile.decoyed||missile.seekerLost||!target)return null;
+ const tried=missile.chaffBurstsTried||(missile.chaffBurstsTried=[]);
+ for(const cloud of countermeasures){
+  if(cloud.type!=='chaff'||cloud.ownerId!==target.id||cloud.age>=2.2)continue;
+  const burst=cloud.burstId??'legacy';
+  if(tried.includes(burst)||Math.hypot(cloud.pos.x-missile.pos.x,cloud.pos.y-missile.pos.y,cloud.pos.z-missile.pos.z)>=1100)continue;
+  tried.push(burst);if(random()<.64*burstChanceScale(tried.length-1))return cloud;
  }
  return null;
 }
