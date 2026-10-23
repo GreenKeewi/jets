@@ -1,8 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {freshPilotG,signedPilotLoad,advancePilotPhysiology,physicalVelocity,updatePilotG,limitFlightEnvelope} from '../pilot-g.js';
+import {freshPilotG,signedPilotLoad,advancePilotPhysiology,physicalVelocity,updatePilotG,limitFlightEnvelope,pilotGInput,advanceAirframeWear,G_EFFECTS} from '../pilot-g.js';
 import {advanceAttitude} from '../attitude.js';
 import {viewAxes} from '../view-axes.js';
+import {createGame,step,snapshot,applySnapshot} from '../sim.js';
+import {repairAtAirport,groundSpawn} from '../airport-operations.js';
 const near=(a,b,e=1e-5)=>assert(Math.abs(a-b)<e,`${a} vs ${b}`);
 const p=()=>({...freshPilotG(),speed:400,pitch:0,roll:0,yaw:0,grounded:false,maneuverAssist:true,human:true});
 test('signed specific force gives level 1 G, steady climb cos(pitch), free fall zero and 60 degree coordinated turn 2 G',()=>{
@@ -31,18 +33,33 @@ test('normal control flight-path limiter changes actual turn instead of clipping
  limitFlightEnvelope(plane,previous,1/60);assert(plane.envelopeLimited);assert(plane.yaw<.2);
  const measured=signedPilotLoad(physicalVelocity(previous),physicalVelocity(plane),viewAxes(plane,plane.roll).up,1/60);assert(measured<=9+1e-5);
 });
-test('brief loads do not blackout, sustained load does, unloading recovers and negative G is distinct',()=>{
- for(const dt of [1/30,1/60,1/144]){
- const brief=p(),sustained=p(),negative=p();
- for(let t=0;t<.2-dt/2;t+=dt)advancePilotPhysiology(brief,9,dt);
- assert(!brief.blackedOut);assert(brief.gExposure<.08);
- for(let t=0;t<5-dt/2;t+=dt){advancePilotPhysiology(sustained,9,dt);advancePilotPhysiology(negative,-3,dt);}
- assert(sustained.blackedOut);assert(sustained.gVision>.9);assert(negative.blackedOut);assert(negative.gRedout>.9);assert.equal(negative.gExposure,0);
- for(let t=0;t<5-dt/2;t+=dt){advancePilotPhysiology(sustained,1,dt);advancePilotPhysiology(negative,1,dt);}
- assert(!sustained.blackedOut);assert(sustained.gVision<.05);assert(!negative.blackedOut);assert(negative.gRedout<.05);
+test('all loads and durations retain controls with only a light bounded vignette',()=>{
+ for(const dt of [1/30,1/60,1/144])for(const load of [1,6,9,-3,-40,40]){
+  const plane={...p(),blackedOut:true,gRedout:1,gNeedsRelease:true,gVision:1,gUnloading:true};
+  const input={pitch:1,roll:-1,yaw:1,fireGun:true,flare:true,bomb:true};
+  for(let n=0;n<120/dt;n++){advancePilotPhysiology(plane,load,dt);assert.deepEqual(pilotGInput(plane,input),input);}
+  assert(plane.gVision<=.12);assert.equal(plane.blackedOut,undefined);assert.equal(plane.gRedout,undefined);
+  for(let n=0;n<3/dt;n++)advancePilotPhysiology(plane,1,dt);assert(plane.gVision<.001);
  }
 });
-test('contact transitions are reported separately from sustained flight exposure',()=>{
- const plane={...p(),grounded:true};updatePilotG(plane,{x:0,y:-12,z:100},{x:0,y:0,z:90},1/60,false,{velocities:true});
- assert(plane.contactLoad>40);assert.equal(plane.normalLoad,1);assert.equal(plane.gExposure,0);
+test('wear is delayed, gradual, nonlethal, capped and frame-rate independent',()=>{
+ for(const dt of [1/30,1/60,1/144]){
+  for(const load of [1,3,6,7.5,-1,-2]){const plane={...p(),hp:100,normalLoad:load};for(let n=0;n<60/dt;n++)advanceAirframeWear(plane,dt);assert.equal(plane.hp,100);}
+  const plane={...p(),hp:100,normalLoad:9};for(let n=0;n<4/dt;n++)advanceAirframeWear(plane,dt);assert.equal(plane.hp,100);
+  for(let n=0;n<11/dt;n++)advanceAirframeWear(plane,dt);near(plane.hp,98.5,.006);assert(plane.gWearActive);
+  for(let n=0;n<120/dt;n++)advanceAirframeWear(plane,dt);near(plane.hp,90,.006);assert(plane.airframeWear<=10);
+  plane.hp=1;for(let n=0;n<20/dt;n++)advanceAirframeWear(plane,dt);assert.equal(plane.hp,1);assert(!plane.dead);
+ }
+});
+test('home landing repairs high-G wear through existing service',()=>{
+ const game=createGame(),plane=game.pilots[0];Object.assign(plane,groundSpawn(game,plane),{landed:true,hp:96,airframeWear:4,gWearTime:30});game.time=100;
+ repairAtAirport(game,plane,1);assert.equal(plane.hp,100);assert.equal(plane.airframeWear,0);assert.equal(plane.gWearTime,0);assert(plane.repairing);
+});
+test('legacy snapshot blackout and redout cannot re-enable removed behavior',()=>{
+ const game=createGame(),s=snapshot(game);Object.assign(s.pilots[0],{blackedOut:true,gRedout:1,gNeedsRelease:true,gVision:1});assert(applySnapshot(game,s));
+ assert.equal(game.pilots[0].blackedOut,undefined);assert.equal(game.pilots[0].gRedout,undefined);assert(game.pilots[0].gVision<=G_EFFECTS.maxVision);
+});
+test('contact impulses do not cause sustained wear',()=>{
+ const plane={...p(),hp:100,grounded:true};updatePilotG(plane,{x:0,y:-12,z:100},{x:0,y:0,z:90},1/60,false,{velocities:true});advanceAirframeWear(plane,1/60);
+ assert(plane.contactLoad>40);assert.equal(plane.normalLoad,1);assert.equal(plane.hp,100);
 });

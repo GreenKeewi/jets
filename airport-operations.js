@@ -1,5 +1,5 @@
-import {collisionRadius} from './aircraft-collision.js?v=skybreak7-1023';
-import {AIRFIELDS,fieldPoint,fieldCoordinates,fieldUnder} from './missions.js?v=skybreak7-1023';
+import {collisionRadius} from './aircraft-collision.js?v=skybreak8-1023';
+import {AIRFIELDS,fieldPoint,fieldCoordinates,fieldUnder} from './missions.js?v=skybreak8-1023';
 
 // Home-base runway operations. Gear is mandatory for a qualifying touchdown.
 export const AIRPORT=Object.freeze({takeoffSpeed:80,landingSpeed:115,repairSpeed:8,repairPower:.2,repairRate:8,repairDelay:3,queueDistance:240});
@@ -52,7 +52,7 @@ export function repairAtAirport(g,p,dt){
  p.repairing=false;p.refueling=false;
  if(p.dead||p.hp<=0||!p.landed||!onRunway(p)||p.speed>AIRPORT.repairSpeed||p.throttle>AIRPORT.repairPower||g.time-(p.lastDamage?.t??-Infinity)<AIRPORT.repairDelay)return;
  if(p.fuelKg<p.fuelCapacityKg){p.fuelKg=Math.min(p.fuelCapacityKg,p.fuelKg+p.fuelCapacityKg*.025*dt);p.fuelFraction=p.fuelKg/p.fuelCapacityKg;p.refueling=true;}
- if(p.hp<100||(p.engineHealth??1)<1||(p.controlHealth??1)<1){p.hp=Math.min(100,p.hp+AIRPORT.repairRate*dt);p.engineHealth=Math.min(1,(p.engineHealth??1)+.08*dt);p.controlHealth=Math.min(1,(p.controlHealth??1)+.08*dt);p.repairing=true;}
+ if(p.hp<100||(p.airframeWear||0)>0||(p.engineHealth??1)<1||(p.controlHealth??1)<1){p.airframeWear=Math.max(0,(p.airframeWear||0)-AIRPORT.repairRate*dt);p.gWearTime=0;p.gWearActive=false;p.hp=Math.min(100,p.hp+AIRPORT.repairRate*dt);p.engineHealth=Math.min(1,(p.engineHealth??1)+.08*dt);p.controlHealth=Math.min(1,(p.controlHealth??1)+.08*dt);p.repairing=true;}
 }
 
 // Normal mode assists gear until the pilot manually overrides it.

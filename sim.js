@@ -1,23 +1,23 @@
-import {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak7-1023';
-export {placePilotOnRunway} from './airport-operations.js?v=skybreak7-1023';
+import {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak8-1023';
+export {placePilotOnRunway} from './airport-operations.js?v=skybreak8-1023';
 import {advanceAttitude} from './attitude.js';
-import {AIRPORT,automaticSystems,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak7-1023';
-import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak7-1023';
-import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak7-1023';
-import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak7-1023';
-import {tryHeatFlare} from './heat-seeker.js?v=skybreak7-1023';
-import {freshPilotG,pilotGInput,updatePilotG,physicalVelocity,signedPilotLoad,limitFlightEnvelope} from './pilot-g.js?v=skybreak7-1023';
-import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak7-1023';
-import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak7-1023';
-import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak7-1023';
-export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak7-1023';
-import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak7-1023';
-export {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak7-1023';
-export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak7-1023';
-import {surfaceHeight} from './world.js?v=skybreak7-1023';
-import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak7-1023';
-import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak7-1023';
-export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak7-1023';
+import {AIRPORT,automaticSystems,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak8-1023';
+import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak8-1023';
+import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak8-1023';
+import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak8-1023';
+import {tryHeatFlare} from './heat-seeker.js?v=skybreak8-1023';
+import {freshPilotG,pilotGInput,updatePilotG,advanceAirframeWear,sanitizePilotG,physicalVelocity,signedPilotLoad,limitFlightEnvelope} from './pilot-g.js?v=skybreak8-1023';
+import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak8-1023';
+import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak8-1023';
+import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak8-1023';
+export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak8-1023';
+import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak8-1023';
+export {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak8-1023';
+export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak8-1023';
+import {surfaceHeight} from './world.js?v=skybreak8-1023';
+import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak8-1023';
+import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak8-1023';
+export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak8-1023';
 // Flight and combat rules are renderer-independent so missions can be replayed deterministically.
 export const RUNWAY=AIRFIELDS.home;
 export const ROUTE=ROUTES.local.gates;
@@ -380,6 +380,7 @@ function updatePilot(g,p,input,dt){
  p.normalLoad=p.grounded||wasGrounded?1:signedPilotLoad(before,physicalVelocity(p),up,dt);
  advanceFlightEnergy(p,i,dt,{freeflight:g.mode==='freeflight'});
  updatePilotG(p,before,physicalVelocity(p),dt,wasGrounded,{velocities:true});
+ advanceAirframeWear(p,dt);
  if(p.departureHold)p.speed=0;
  if(p.grounded&&!p.landed)p.flightState=p.speed>1?'takeoff':'parked';
  if(!p.human&&!p.grounded&&p.pos.y>(AIRFIELDS[p.runwayId]?.elevation||0)+35)p.gearDown=false;
@@ -410,7 +411,7 @@ function updatePilot(g,p,input,dt){
   }else kill(g,p,'terrain');
  }
  p.pos.y=Math.max(p.grounded?(AIRFIELDS[p.runwayId]?.elevation||0)+3:0,Math.min(6000,p.pos.y));
- if(p.dead||p.blackedOut||p.objectiveRole==='transport')return;
+ if(p.dead||p.objectiveRole==='transport')return;
  if(i.fireGun&&g.time>=(p.spawnProtectedUntil||0))fireGunRound(g,p);
  if(g.mode!=='freeflight'){
  const q=selectTarget(g,p);if(q&&!p.grounded&&!missileImmune(q)&&q.id===p.targetId)p.lock=Math.min(3,p.lock+dt);else{p.targetId=q?.id||null;p.lock=q&&!p.grounded&&!missileImmune(q)?dt:0}
@@ -555,7 +556,7 @@ export function applySnapshot(g,s){
   if(p.speed<0||p.speed>10000||p.hp<0||p.hp>100||p.throttle<0||p.throttle>FLIGHT.maxThrottle)return false;
   ids.add(p.id);
  }
- Object.assign(g,s);return true;
+ Object.assign(g,s);for(const p of g.pilots)sanitizePilotG(p);return true;
 }
 
 export const APPROACH=approachFor('local');

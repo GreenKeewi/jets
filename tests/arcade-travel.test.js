@@ -17,7 +17,7 @@ test('actual simulation translation boosts travel while energy, G and vision sta
  const g=createGame({mode:'freeflight'}),p=g.pilots[0];g.flightStage='practice';Object.assign(p,airframe(),{maneuverAssist:true,throttle:.78});
  const initial=structuredClone(p),before=flightForward(p),dt=.02,input={pitch:.4,roll:.2};step(g,{host:input},dt);
  const expected={...initial,yaw:p.yaw,pitch:p.pitch,roll:p.roll};updatePilotG(expected,before,flightForward(p),dt,false);advanceFlightEnergy(expected,input,dt);
- near(p.speed,expected.speed);near(p.gLoad,expected.gLoad);near(p.normalLoad,expected.normalLoad);near(p.gVision,expected.gVision);near(p.gExposure,expected.gExposure);near(p.fuelKg,expected.fuelKg);
+ near(p.speed,expected.speed);near(p.gLoad,expected.gLoad);near(p.normalLoad,expected.normalLoad);near(p.gVision,expected.gVision);near(p.fuelKg,expected.fuelKg);
  const velocity=worldVelocity(p);near(p.pos.x-initial.pos.x,velocity.x*dt);near(p.pos.y-initial.pos.y,velocity.y*dt);near(p.pos.z-initial.pos.z,velocity.z*dt);
  near(Math.hypot(p.pos.x-initial.pos.x,p.pos.y-initial.pos.y,p.pos.z-initial.pos.z),p.speed*dt*1.5);
 });

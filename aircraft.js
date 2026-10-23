@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js';
-import {batchStatic} from './geometry.js?v=skybreak7-1023';
+import {batchStatic} from './geometry.js?v=skybreak8-1023';
 // Original stylised airframes. Layout cues only, not manufacturer geometry.
 export const AIRCRAFT_PALETTES=Object.freeze([
  {main:0xaabcc5,upper:0x708b9b,accent:0x8bdfd1,mark:'#35515f'},

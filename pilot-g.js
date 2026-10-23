@@ -1,10 +1,19 @@
-// Signed pilot-axis specific force and deliberately simplified game physiology.
+// Signed pilot-axis specific force, light visual feedback and gentle airframe wear.
 // See flight-model.md for sources, envelopes and non-medical tuning assumptions.
 import {viewAxes,flightForward} from './view-axes.js';
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const dot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
 const G=9.81;
-export const freshPilotG=()=>({normalLoad:1,gLoad:1,gExposure:0,gNegativeExposure:0,gVision:0,gRedout:0,blackedOut:false,gBlackoutTime:0,gNeedsRelease:false,gUnloading:false,contactLoad:0});
+// Cosmetic vignette and gently accumulated airframe wear, never physiology.
+export const G_EFFECTS=Object.freeze({maxVision:.12,wearPositive:7.5,wearNegative:-2,wearDelay:5,wearRate:.15,maxWear:10});
+export const freshPilotG=()=>({normalLoad:1,gLoad:1,gVision:0,contactLoad:0,gWearTime:0,airframeWear:0,gWearActive:false});
+export function sanitizePilotG(p){
+ for(const key of ['blackedOut','gRedout','gBlackoutTime','gNeedsRelease','gUnloading','gExposure','gNegativeExposure'])delete p[key];
+ p.gVision=clamp(Number(p.gVision)||0,0,G_EFFECTS.maxVision);
+ p.airframeWear=clamp(Number(p.airframeWear)||0,0,G_EFFECTS.maxWear);
+ p.gWearTime=Number.isFinite(p.gWearTime)?clamp(p.gWearTime,0,120):0;
+ return p;
+}
 export function physicalVelocity(p){const f=flightForward(p);return{x:f.x*p.speed,y:f.y*p.speed-(p.grounded?0:p.stallSink||0),z:f.z*p.speed};}
 export function signedPilotLoad(before,after,up,dt){
  if(!(dt>0))return 1;
@@ -25,32 +34,27 @@ export function limitFlightEnvelope(p,previous,dt){
  let low=0,high=1;for(let n=0;n<18;n++){const mid=(low+high)/2;apply(mid);if(allowed())low=mid;else high=mid;}apply(low);p.envelopeLimited=true;
 }
 export function pilotGInput(p,input={}){
- if(!Number.isFinite(p.gLoad))Object.assign(p,freshPilotG());
- const turning=Math.max(Math.abs(Number(input.roll)||0),Math.abs(Number(input.pitch)||0),Math.abs(Number(input.yaw)||0));
- if(p.gNeedsRelease&&(!p.human||turning<.12))p.gNeedsRelease=false;
- // Bots obey the same limit and unload before they lose consciousness.
- if(!p.human){if(p.gExposure>.6)p.gUnloading=true;else if(p.gExposure<.18)p.gUnloading=false;}
- if(p.blackedOut||p.gNeedsRelease)return{...input,roll:0,pitch:0,yaw:0,fireGun:false,fireHeat:false,fireRadar:false,bomb:false,flare:false,chaff:false};
- // A conscious bot can still make gentle terrain-avoidance corrections while
- // unloading. Full neutral for several seconds would fly it into a valley wall.
- if(p.gUnloading)return{...input,roll:clamp(Number(input.roll)||0,-.16,.16),pitch:clamp(Number(input.pitch)||0,-.24,.32),yaw:0,fireGun:false,fireHeat:false,fireRadar:false,bomb:false};
- return input;
+ sanitizePilotG(p);if(!Number.isFinite(p.gLoad))p.gLoad=1;
+ return input; // Every control and weapon remains available at every G load.
 }
+// Legacy export name retained for callers; no physiological impairment remains.
 export function advancePilotPhysiology(p,load,dt){
- if(!(dt>0))return;
+ sanitizePilotG(p);if(!(dt>0))return;
+ if(!Number.isFinite(p.gLoad))p.gLoad=1;
  p.gLoad+=(load-p.gLoad)*(1-Math.exp(-dt*5));
- // Exposure is integrated from actual signed force, not delayed HUD filtering.
- // Thresholds/times are generous gameplay values, not individual tolerances.
- const positive=Math.max(0,load-4.5)*.075,negative=Math.max(0,-load-.5)*.22;
- p.gExposure=clamp((p.gExposure||0)+(positive||-.24)*dt,0,1);
- p.gNegativeExposure=clamp((p.gNegativeExposure||0)+(negative||-.32)*dt,0,1);
- if(!p.blackedOut&&Math.max(p.gExposure,p.gNegativeExposure)>=1){p.blackedOut=true;p.gBlackoutTime=0;p.gNeedsRelease=true;}
- if(p.blackedOut){p.gBlackoutTime+=dt;if(p.gBlackoutTime>=1.5&&Math.max(p.gExposure,p.gNegativeExposure)<.3){p.blackedOut=false;p.gBlackoutTime=0;p.gNeedsRelease=false;}}
- const positiveVision=clamp((p.gExposure-.15)/.85,0,1),negativeVision=clamp((p.gNegativeExposure-.15)/.85,0,1);
- const vision=p.blackedOut?1:positiveVision*.9;
- p.gVision+=(vision-p.gVision)*(1-Math.exp(-dt*4));
- p.gRedout=((p.gRedout||0)+(negativeVision-(p.gRedout||0))*(1-Math.exp(-dt*4)));
- if(p.gVision<.001)p.gVision=0;if(p.gRedout<.001)p.gRedout=0;
+ const target=G_EFFECTS.maxVision*clamp((Math.abs(load)-5)/4,0,1);
+ p.gVision+=(target-p.gVision)*(1-Math.exp(-dt*3));
+ if(p.gVision<.001)p.gVision=0;
+}
+export function advanceAirframeWear(p,dt){
+ sanitizePilotG(p);p.gWearActive=false;
+ const excessive=!p.dead&&!p.grounded&&(p.normalLoad>G_EFFECTS.wearPositive||p.normalLoad<G_EFFECTS.wearNegative);
+ const previous=Math.max(0,Number(p.gWearTime)||0);
+ p.gWearTime=excessive?previous+dt:Math.max(0,previous-dt*2);
+ if(!excessive)return;
+ const wearSeconds=Math.max(0,p.gWearTime-G_EFFECTS.wearDelay)-Math.max(0,previous-G_EFFECTS.wearDelay);
+ const damage=Math.min(wearSeconds*G_EFFECTS.wearRate,G_EFFECTS.maxWear-p.airframeWear,Math.max(0,(p.hp??100)-1));
+ if(damage>0){p.airframeWear+=damage;p.hp=(p.hp??100)-damage;p.gWearActive=true;}
 }
 export function updatePilotG(p,before,after,dt,wasGrounded,{velocities=false}={}){
  if(!(dt>0))return;

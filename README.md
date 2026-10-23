@@ -210,3 +210,8 @@ Signed pilot load now comes from physical acceleration minus gravity in the pilo
 Strike depots now sit beyond the enemy airfield, with a long outbound route and escape. At most two occasional airfield SAM launches occur per sortie; bomber flares deterministically defeat these cinematic missiles. Bombers still carry bombs and guns only.
 
 Audio includes a fix for powered sound from destroyed engines and false historical gun bursts. Browser-generated PCM and a running AudioContext were tested, not human-listened. The dedicated backend passed local Node and Cloudflare runtime tests but still has no public endpoint or configured deployment authorization. Existing friend rooms are separate; no cross-network multiplayer claim is made. See [verification evidence](evidence/v1.0.7/audio-backend.md).
+
+
+## v1.0.8 focused G feedback fix
+
+Blackout, redout and all G-induced input locks are removed. Signed G remains physical; only a light neutral edge vignette remains (12% cap, fully clear central 68%). Sustained excessive G adds gentle, nonlethal wear after five seconds, capped at ten HP and repaired by HOME runway service. It does not trigger hit flashes or damage sounds. See [current design and tests](evidence/v1.0.8/g-response/README.md). Cockpit, speed-feel and map changes are separate later work.

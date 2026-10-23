@@ -1,0 +1,236 @@
+{
+  "method": "Node simulation at30/60/144Hz. Supersedes intermediate blackout-timing experiment.",
+  "cases": [
+    {
+      "hz": 30,
+      "load": 1,
+      "duration": 120,
+      "peakVision": 0,
+      "controlsIntact": true,
+      "hp": 100,
+      "airframeWear": 0,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 30,
+      "load": 6,
+      "duration": 120,
+      "peakVision": 0.02999999999999998,
+      "controlsIntact": true,
+      "hp": 100,
+      "airframeWear": 0,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 30,
+      "load": 9,
+      "duration": 120,
+      "peakVision": 0.11999999999999993,
+      "controlsIntact": true,
+      "hp": 90.00000000000875,
+      "airframeWear": 10,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 30,
+      "load": -1,
+      "duration": 120,
+      "peakVision": 0,
+      "controlsIntact": true,
+      "hp": 100,
+      "airframeWear": 0,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 30,
+      "load": -3,
+      "duration": 120,
+      "peakVision": 0,
+      "controlsIntact": true,
+      "hp": 90.00000000000875,
+      "airframeWear": 10,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 30,
+      "load": 40,
+      "duration": 120,
+      "peakVision": 0.11999999999999993,
+      "controlsIntact": true,
+      "hp": 90.00000000000875,
+      "airframeWear": 10,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 30,
+      "load": -40,
+      "duration": 120,
+      "peakVision": 0.11999999999999993,
+      "controlsIntact": true,
+      "hp": 90.00000000000875,
+      "airframeWear": 10,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 60,
+      "load": 1,
+      "duration": 120,
+      "peakVision": 0,
+      "controlsIntact": true,
+      "hp": 100,
+      "airframeWear": 0,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 60,
+      "load": 6,
+      "duration": 120,
+      "peakVision": 0.029999999999999964,
+      "controlsIntact": true,
+      "hp": 100,
+      "airframeWear": 0,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 60,
+      "load": 9,
+      "duration": 120,
+      "peakVision": 0.11999999999999986,
+      "controlsIntact": true,
+      "hp": 90.00000000000793,
+      "airframeWear": 10,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 60,
+      "load": -1,
+      "duration": 120,
+      "peakVision": 0,
+      "controlsIntact": true,
+      "hp": 100,
+      "airframeWear": 0,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 60,
+      "load": -3,
+      "duration": 120,
+      "peakVision": 0,
+      "controlsIntact": true,
+      "hp": 90.00000000000793,
+      "airframeWear": 10,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 60,
+      "load": 40,
+      "duration": 120,
+      "peakVision": 0.11999999999999986,
+      "controlsIntact": true,
+      "hp": 90.00000000000793,
+      "airframeWear": 10,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 60,
+      "load": -40,
+      "duration": 120,
+      "peakVision": 0.11999999999999986,
+      "controlsIntact": true,
+      "hp": 90.00000000000793,
+      "airframeWear": 10,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 144,
+      "load": 1,
+      "duration": 120,
+      "peakVision": 0,
+      "controlsIntact": true,
+      "hp": 100,
+      "airframeWear": 0,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 144,
+      "load": 6,
+      "duration": 120,
+      "peakVision": 0,
+      "controlsIntact": true,
+      "hp": 100,
+      "airframeWear": 0,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 144,
+      "load": 9,
+      "duration": 120,
+      "peakVision": 0.11999999999999966,
+      "controlsIntact": true,
+      "hp": 90.00000000000685,
+      "airframeWear": 10,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 144,
+      "load": -1,
+      "duration": 120,
+      "peakVision": 0,
+      "controlsIntact": true,
+      "hp": 100,
+      "airframeWear": 0,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 144,
+      "load": -3,
+      "duration": 120,
+      "peakVision": 0,
+      "controlsIntact": true,
+      "hp": 90.00000000000685,
+      "airframeWear": 10,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 144,
+      "load": 40,
+      "duration": 120,
+      "peakVision": 0.11999999999999966,
+      "controlsIntact": true,
+      "hp": 90.00000000000685,
+      "airframeWear": 10,
+      "blackout": false,
+      "redout": false
+    },
+    {
+      "hz": 144,
+      "load": -40,
+      "duration": 120,
+      "peakVision": 0.11999999999999966,
+      "controlsIntact": true,
+      "hp": 90.00000000000685,
+      "airframeWear": 10,
+      "blackout": false,
+      "redout": false
+    }
+  ]
+}

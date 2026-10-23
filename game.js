@@ -1,20 +1,20 @@
 import {loadBindings,canonicalKey,BINDINGS,keyLabel} from './keybindings.js';
 import {mountKeybindings} from './keybindings-ui.js';
-import {AIRFIELD_RESUPPLY,nearestAirfield} from './airfield-resupply.js?v=skybreak7-1023';
-import {COMBAT_MISSIONS_ENABLED,combatMissionId,combatMissionBlocked,combatMission,missionObjective} from './combat-missions.js?v=skybreak7-1023';
-import {ACTION_KEYS,NEUTRAL_INPUT,keyboardInput,rosterConfig} from './controls.js?v=skybreak7-1023';
-import {radarPoint,turnHint,compassHeading,gunMuzzle} from './view-axes.js?v=skybreak7-1023';
-import {Renderer} from './render.js?v=skybreak7-1023';
-import {createGame,configurePlayers,placePilotOnRunway,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,strikeTarget,strikeEscape,canBomb,respawnPilot,threatFor,worldVelocity} from './sim.js?v=skybreak7-1023';
-import {FlightAudio} from './audio.js?v=skybreak7-1023';
-import {drawCockpit} from './instruments.js?v=skybreak7-1023';
-import {combatCue,nearestThreat,waypointScreenPosition,gunLeadCue} from './guidance.js?v=skybreak7-1023';
-import {AIRFIELDS,ROUTES,routeDefinition,routeFor,destinationFor,approachFor,fieldPoint} from './missions.js?v=skybreak7-1023';
-import {mountNetworkUI} from './network.js?v=skybreak7-1023';
-import {createMultiplayerRouter} from './multiplayer-router.js?v=skybreak7-1023';
-import {mountServerUI} from './server-ui.js?v=skybreak7-1023';
-import {ARENAS} from './arenas.js?v=skybreak7-1023';
-import {surfaceHeight} from './world.js?v=skybreak7-1023';
+import {AIRFIELD_RESUPPLY,nearestAirfield} from './airfield-resupply.js?v=skybreak8-1023';
+import {COMBAT_MISSIONS_ENABLED,combatMissionId,combatMissionBlocked,combatMission,missionObjective} from './combat-missions.js?v=skybreak8-1023';
+import {ACTION_KEYS,NEUTRAL_INPUT,keyboardInput,rosterConfig} from './controls.js?v=skybreak8-1023';
+import {radarPoint,turnHint,compassHeading,gunMuzzle} from './view-axes.js?v=skybreak8-1023';
+import {Renderer} from './render.js?v=skybreak8-1023';
+import {createGame,configurePlayers,placePilotOnRunway,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,strikeTarget,strikeEscape,canBomb,respawnPilot,threatFor,worldVelocity} from './sim.js?v=skybreak8-1023';
+import {FlightAudio} from './audio.js?v=skybreak8-1023';
+import {drawCockpit} from './instruments.js?v=skybreak8-1023';
+import {combatCue,nearestThreat,waypointScreenPosition,gunLeadCue} from './guidance.js?v=skybreak8-1023';
+import {AIRFIELDS,ROUTES,routeDefinition,routeFor,destinationFor,approachFor,fieldPoint} from './missions.js?v=skybreak8-1023';
+import {mountNetworkUI} from './network.js?v=skybreak8-1023';
+import {createMultiplayerRouter} from './multiplayer-router.js?v=skybreak8-1023';
+import {mountServerUI} from './server-ui.js?v=skybreak8-1023';
+import {ARENAS} from './arenas.js?v=skybreak8-1023';
+import {surfaceHeight} from './world.js?v=skybreak8-1023';
 const elements=new Map(),$=id=>{let node=elements.get(id);if(!node){node=document.getElementById(id);if(node)elements.set(id,node);}return node;},keys=new Set(),actionQueue=new Set();
 $('world').tabIndex=-1;
 let bindingStorage;try{bindingStorage=localStorage}catch{}
@@ -22,7 +22,7 @@ let bindings=loadBindings(bindingStorage);
 const physicalKeys=new Set();const actionKeys=ACTION_KEYS;const clearControls=()=>{keys.clear();physicalKeys.clear();actionQueue.clear()};
 const NEUTRAL=NEUTRAL_INPUT;
 let gunSpaceHeld=false;
-let graphicsLost=false,lastHp=100,damageUntil=0,expandedInstruments=false;
+let graphicsLost=false,lastHp=100,lastWear=0,damageUntil=0,expandedInstruments=false;
 let renderer,game=createGame(),running=false,paused=false,mode='dogfight',view='chase',assist=false,lastEvent=0,toastUntil=0,lastConfig=null,netSnapshot=null,acc=0,lastTime=performance.now(),sentAt=0,resultShown=false,helpWasPaused=false;
 const menuGame=createGame({mode:'freeflight',seed:23});menuGame.pilots[0].pos=fieldPoint(AIRFIELDS.home,0,150,3);
 const audio=new FlightAudio();
@@ -33,10 +33,10 @@ function botSkirmish(){return mode==='dogfight'&&combatMissionId($('combat-missi
 function chosenTeams(){const preset=$('team-layout').value;if(preset!=='custom')return preset.split(',').map(Number);const values=['team-alpha','team-bravo','team-charlie'].map(id=>Number($(id).value));return values[2]?values:values.slice(0,2)}
 function updateSquadControls(){const bot=botSkirmish();$('bot-layout-label').hidden=!bot;$('bot-roster').hidden=!bot||$('team-layout').value!=='custom';$('squad-label').hidden=mode==='freeflight'||bot;$('skirmish-note').hidden=!bot;}
 function config(){const count=network.state.role==='host'?network.getPlayerIds().length:1;return{mode,startingFuel:Number($('starting-fuel')?.value||75)/100,missionId:mode==='dogfight'?combatMissionId($('combat-mission').value):'dogfight',arenaId:mode==='dogfight'?$('arena-select').value:'coast',teamSize:mode==='freeflight'?1:Math.max(Number($('team-size').value),Math.ceil(count/2)),...(botSkirmish()?{skirmish:true,teamSizes:chosenTeams()}:{}),role:$('strike-role').value,difficulty:mode==='dogfight'?$('bot-skill').value:'normal',routeId:mode==='freeflight'?$('route-select').value:'local',seed:Math.floor(Math.random()*4294967295)}}
-function respawn(){if(!running||paused||graphicsLost||document.querySelector('dialog[open]'))return false;if(network.state.transport==='server'&&network.state.connected){const p=game.pilots.find(p=>p.id===network.state.localId);if(!p?.dead||p.respawnAt>game.time)return false;clearControls();return network.requestRespawn();}if(network.state.role!=='offline')return false;const id=network.state.localId||'host';if(!respawnPilot(game,id)){if(game.pilots.find(p=>p.id===id)?.respawnBlocked)toast('Waiting for a clear rejoin path. Try R again in a moment.');return false;}clearControls();lastHp=100;damageUntil=0;gunHitUntil=0;nextHudAt=0;lastHudPilot=null;lastHudTarget=null;renderer.followReady=false;renderer.needsRender=true;$('respawn-panel').hidden=true;$('world').focus({preventScroll:true});return true;}
+function respawn(){if(!running||paused||graphicsLost||document.querySelector('dialog[open]'))return false;if(network.state.transport==='server'&&network.state.connected){const p=game.pilots.find(p=>p.id===network.state.localId);if(!p?.dead||p.respawnAt>game.time)return false;clearControls();return network.requestRespawn();}if(network.state.role!=='offline')return false;const id=network.state.localId||'host';if(!respawnPilot(game,id)){if(game.pilots.find(p=>p.id===id)?.respawnBlocked)toast('Waiting for a clear rejoin path. Try R again in a moment.');return false;}clearControls();lastHp=100;lastWear=0;damageUntil=0;gunHitUntil=0;nextHudAt=0;lastHudPilot=null;lastHudTarget=null;renderer.followReady=false;renderer.needsRender=true;$('respawn-panel').hidden=true;$('world').focus({preventScroll:true});return true;}
 function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.close())}
 function unavailableHostSortie(){netSnapshot=null;network.disconnect();returnMenu(true);toast('The host is using an older game version. Ask them to reload and create a new room.')}
-function start(c=config(),fromHost=false){if(!renderer){toast('WebGL is unavailable. Enable graphics before starting a sortie.');return;}if(fromHost&&combatMissionBlocked(c)){unavailableHostSortie();return}if(graphicsLost&&!fromHost){toast('Graphics are recovering. You can launch once the view is restored.');return}if(network.state.role==='guest'&&!fromHost)return;const ids=network.getPlayerIds();c=network.state.role==='host'?rosterConfig({...c,skirmish:false,teamSizes:undefined},ids):{...c};c.missionId=c.mode==='dogfight'?combatMissionId(c.missionId):'dogfight';lastConfig={...c};$('team-size').value=String(c.teamSize);$('route-select').value=c.routeId||'local';$('arena-select').value=c.arenaId||'coast';$('bot-skill').value=c.difficulty||'normal';$('combat-mission').value=c.missionId||'dogfight';setMode(c.mode);game=createGame(c);if(ids.length)configurePlayers(game,ids);running=true;paused=false;resultShown=false;lastHp=100;damageUntil=0;gunHitUntil=0;nextHudAt=0;lastHudPilot=null;lastHudTarget=null;lastEvent=0;view='chase';assist=false;clearControls();acc=0;netSnapshot=null;closeDialogs();$('menu').hidden=true;$('hud').hidden=false;$('cockpit').hidden=true;$('hud').classList.remove('cockpit-view');$('mission-kind').textContent=game.combatMission?combatMission(game.missionId).name.toUpperCase():mode==='dogfight'?(game.arenaId==='valley'?'VALLEY DOGFIGHT':'DOGFIGHT'):mode==='strike'?'STRIKE & ESCAPE':'FREE FLIGHT';$('weapons').hidden=false;document.querySelectorAll('.combat-weapon').forEach(el=>el.hidden=mode==='freeflight');$('flight-assist').hidden=mode!=='freeflight';$('assist-state').textContent='OFF';$('route-progress').innerHTML=mode==='freeflight'?routeFor(game).map(()=>'<i></i>').join(''):'';renderer.setView('chase');audio.init();document.activeElement?.blur();$('world').focus({preventScroll:true});if(graphicsLost){$('resume').disabled=true;$('restart').disabled=true;$('pause-note').textContent='The host started a new sortie. Graphics are recovering; your controls remain neutral.';$('pause-dialog').showModal();$('pause-note').focus();}if(network.state.role==='host'&&!fromHost)network.broadcastControl({type:'start',config:c});}
+function start(c=config(),fromHost=false){if(!renderer){toast('WebGL is unavailable. Enable graphics before starting a sortie.');return;}if(fromHost&&combatMissionBlocked(c)){unavailableHostSortie();return}if(graphicsLost&&!fromHost){toast('Graphics are recovering. You can launch once the view is restored.');return}if(network.state.role==='guest'&&!fromHost)return;const ids=network.getPlayerIds();c=network.state.role==='host'?rosterConfig({...c,skirmish:false,teamSizes:undefined},ids):{...c};c.missionId=c.mode==='dogfight'?combatMissionId(c.missionId):'dogfight';lastConfig={...c};$('team-size').value=String(c.teamSize);$('route-select').value=c.routeId||'local';$('arena-select').value=c.arenaId||'coast';$('bot-skill').value=c.difficulty||'normal';$('combat-mission').value=c.missionId||'dogfight';setMode(c.mode);game=createGame(c);if(ids.length)configurePlayers(game,ids);running=true;paused=false;resultShown=false;lastHp=100;lastWear=0;damageUntil=0;gunHitUntil=0;nextHudAt=0;lastHudPilot=null;lastHudTarget=null;lastEvent=0;view='chase';assist=false;clearControls();acc=0;netSnapshot=null;closeDialogs();$('menu').hidden=true;$('hud').hidden=false;$('cockpit').hidden=true;$('hud').classList.remove('cockpit-view');$('mission-kind').textContent=game.combatMission?combatMission(game.missionId).name.toUpperCase():mode==='dogfight'?(game.arenaId==='valley'?'VALLEY DOGFIGHT':'DOGFIGHT'):mode==='strike'?'STRIKE & ESCAPE':'FREE FLIGHT';$('weapons').hidden=false;document.querySelectorAll('.combat-weapon').forEach(el=>el.hidden=mode==='freeflight');$('flight-assist').hidden=mode!=='freeflight';$('assist-state').textContent='OFF';$('route-progress').innerHTML=mode==='freeflight'?routeFor(game).map(()=>'<i></i>').join(''):'';renderer.setView('chase');audio.init();document.activeElement?.blur();$('world').focus({preventScroll:true});if(graphicsLost){$('resume').disabled=true;$('restart').disabled=true;$('pause-note').textContent='The host started a new sortie. Graphics are recovering; your controls remain neutral.';$('pause-dialog').showModal();$('pause-note').focus();}if(network.state.role==='host'&&!fromHost)network.broadcastControl({type:'start',config:c});}
 function returnMenu(fromHost=false){if(network.state.role==='guest'&&!fromHost){toast('Left the session. You can fly solo.');network.disconnect()}if(network.state.role==='host'&&!fromHost)network.broadcastControl({type:'return'});running=false;paused=false;clearControls();closeDialogs();$('menu').hidden=false;$('hud').hidden=true;renderer?.setView('chase');$('launch').focus();}
 function toast(text){$('toast').textContent=text;$('toast').classList.add('show');toastUntil=performance.now()+3200}
 function setMode(m){mode=m;menuGame.pilots[0].bomber=m==='strike'&&$('strike-role').value!=='defend';if(renderer)renderer.needsRender=true;$('combat-mission').value=combatMissionId($('combat-mission').value);$('combat-mission').disabled=!COMBAT_MISSIONS_ENABLED||network.state.role==='guest';$('combat-mission-help').hidden=!COMBAT_MISSIONS_ENABLED;$('air-combat-summary').textContent=COMBAT_MISSIONS_ENABLED?'Dogfight, escort, intercept.':'Dogfights. Squad skirmishes.';updateSquadControls();document.querySelectorAll('.mode-card').forEach(button=>{button.classList.toggle('selected',button.dataset.mode===m);button.setAttribute('aria-pressed',button.dataset.mode===m)});$('squad-label').hidden=m==='freeflight'||botSkirmish();$('role-label').hidden=m!=='strike';$('combat-mission-label').hidden=!COMBAT_MISSIONS_ENABLED||m!=='dogfight';$('skill-label').hidden=m!=='dogfight';$('arena-label').hidden=m!=='dogfight';$('route-label').hidden=m!=='freeflight';const route=ROUTES[$('route-select').value]||ROUTES.local;$('mode-description').textContent=m==='dogfight'&&$('combat-mission').value!=='dogfight'?combatMission($('combat-mission').value).description+' '+($('arena-select').value==='valley'?'Keep below the valley ridgelines.':''):m==='dogfight'?($('arena-select').value==='valley'?ARENAS.valley.description:$('bot-skill').value==='ace'?'Veteran bots: sharper turns, timed countermeasures, and shorter firing windows.':'Smart rival squads, fair flight physics. Depart your airport, manage fuel, return HOME with gear down to repair.'):m==='strike'?'A bomber, a fictional coastal target, and one escape zone. Escort the strike or intercept it.':`${route.description} About ${route.duration}. L route assist is available.`;$('menu-key-hints').innerHTML=m==='freeflight'?'<kbd>W</kbd><kbd>S</kbd> pitch <kbd>A</kbd><kbd>D</kbd> turn <kbd>↑ ↓</kbd> power <kbd>Space</kbd> gun <kbd>L</kbd> route assist <kbd>V</kbd> camera':'<kbd>W</kbd><kbd>S</kbd> pitch <kbd>A</kbd><kbd>D</kbd> turn <kbd>↑ ↓</kbd> power <kbd>Space</kbd> gun <kbd>Q/E</kbd> missiles <kbd>F</kbd> flares <kbd>C</kbd> chaff <kbd>V</kbd> camera';}
@@ -50,7 +50,7 @@ function toggleAssist(){if(mode!=='freeflight')return;assist=!assist;$('assist-s
 function mute(){audio.toggle();$('menu-sound').textContent=audio.enabled?'Sound on':'Sound off';$('menu-sound').setAttribute('aria-label',audio.enabled?'Turn game audio off':'Turn game audio on')}
 function localInput(){if(graphicsLost||document.querySelector('dialog[open]'))return{...NEUTRAL};let i=keyboardInput(keys,actionQueue);
  const p=game.pilots.find(p=>p.id===(network.state.localId||'host'))||game.pilots[0];
- if(assist&&!p.blackedOut&&!p.gNeedsRelease&&mode==='freeflight'&&!i.pitch&&!i.roll&&!i.yaw&&!i.throttle&&!i.brake)i={...i,...routeGuidance(game,p)};
+ if(assist&&mode==='freeflight'&&!i.pitch&&!i.roll&&!i.yaw&&!i.throttle&&!i.brake)i={...i,...routeGuidance(game,p)};
  return i;}
 function refreshKeyHints(){
  const labels=new Map();for(const [id,,codes] of BINDINGS){for(const code of codes)labels.set(keyLabel(code),bindings[id].map(keyLabel).join(' / '));}
@@ -111,14 +111,14 @@ function cockpitHorizon(p){
 function pilotVision(p,refresh=true){
  if(refresh)refreshKeyHints();
  const active=running&&!paused&&!p.dead&&!graphicsLost&&game.status==='playing'&&!document.querySelector('dialog[open]');
- const v=active?Math.max(0,Math.min(1,p.gVision||0)):0,overlay=$('g-vision'),warning=$('g-warning');
- const red=active?Math.max(0,Math.min(1,p.gRedout||0)):0;overlay.hidden=v<.005&&red<.005;
- if(v>=.005){const center=Math.max(0,(v-.62)/.38),edge=Math.min(1,v*1.2),opening=58-v*40;overlay.style.background=`radial-gradient(ellipse at center,rgba(0,0,0,${center.toFixed(3)}) ${opening.toFixed(1)}%,rgba(0,0,0,${edge.toFixed(3)}) ${(100-v*42).toFixed(1)}%)`;}
- if(red>v)overlay.style.background=`radial-gradient(ellipse,rgba(100,0,0,${(red*.22).toFixed(3)}) 35%,rgba(140,0,0,${(red*.7).toFixed(3)}))`;overlay.style.opacity=comfortEffects?'.32':'1';
+ const v=active?Math.max(0,Math.min(.12,p.gVision||0)):0,overlay=$('g-vision'),warning=$('g-warning');
+ overlay.hidden=v<.005;
+ // The center stays fully transparent at every load and duration. No red tint.
+ overlay.style.background=`radial-gradient(ellipse at center,rgba(0,0,0,0) 68%,rgba(0,0,0,${v.toFixed(3)}) 100%)`;
+ overlay.style.opacity=comfortEffects?'.32':'1';
  if(refresh)hudText('g-load',`${(p.gLoad??1)>=0?'+':''}${(p.gLoad??1).toFixed(1)} G`);
- $('g-load').classList.toggle('high-g',(p.gLoad||1)>7.5);
- let text='';
- if(active){if(p.blackedOut)text='BLACKOUT · Recovering…';else if(red>.15)text='NEGATIVE G · Ease the push and recover';else if(v>.35)text='TUNNEL VISION · Ease the turn to recover';else if(p.gLoad>6&&v>.05)text='HIGH G · Avoid holding a hard turn';else if(v>.02)text='RECOVERING · Keep the turn gentle';}
+ $('g-load').classList.toggle('high-g',Math.abs(p.gLoad||1)>7.5);
+ const text=active&&p.gWearActive?'AIRFRAME STRAIN · Ease the turn · HOME repairs wear':'';
  warning.hidden=!text;if(warning.textContent!==text)warning.textContent=text;
 }
 const HUD_INTERVAL=100;
@@ -170,7 +170,7 @@ function hud(p){
  crosshair.hidden=p.dead||!aim.visible;crosshair.style.left=view==='cockpit'?'50%':aim.x+'px';crosshair.style.top=view==='cockpit'?'50%':aim.y+'px';crosshair.classList.toggle('firing',p.gunCD>.05);cockpitHorizon(p);
  const lead=gunLeadCue(game,p),pipper=$('gun-lead');pipper.hidden=true;
  if(lead){const screen=renderer.project(lead.point);if(screen.visible&&screen.x>18&&screen.x<innerWidth-18&&screen.y>18&&screen.y<innerHeight-18){pipper.hidden=false;pipper.style.left=`${screen.x}px`;pipper.style.top=`${screen.y}px`;}}
- if(p.hp<lastHp){damageUntil=now+450;audio.event('damage');}lastHp=p.hp;$('hit-flash').hidden=now>damageUntil;
+ if(lastHp-p.hp>Math.max(0,(p.airframeWear||0)-lastWear)+1e-6){damageUntil=now+450;audio.event('damage');}lastHp=p.hp;lastWear=p.airframeWear||0;$('hit-flash').hidden=now>damageUntil;
  const damage=p.lastDamage,recentDamage=damage&&game.time-damage.t<2.8&&game.time>=damage.t;$('damage-note').hidden=!recentDamage;
  if(recentDamage){const label={gun:'CANNON HIT',heat:'HEAT MISSILE HIT',radar:'RADAR MISSILE HIT',terrain:'TERRAIN IMPACT',collision:'AIRCRAFT COLLISION'}[damage.weapon]||'AIRFRAME HIT',bearing=Number.isFinite(damage.bearing)?`${(Math.round(-damage.bearing/(Math.PI*2)*12)+12)%12||12} O’CLOCK`:'';hudText('damage-note',`${label}${bearing?' · '+bearing:''}`);}
  const closeMissile=nearestThreat(game,p);
