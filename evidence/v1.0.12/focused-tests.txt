@@ -1,0 +1,30 @@
+✔ custom controls persist and produce existing flight actions (10.168769ms)
+✔ conflicts include alternative bindings and navigation keys remain reserved (0.552763ms)
+✔ invalid or inaccessible storage safely restores defaults (2.487818ms)
+✔ saved swapped bindings are accepted and reset supplies fresh defaults (0.750074ms)
+✔ map defaults to M and sound moves to N without affecting camera (1.345911ms)
+✔ legacy preferences migrate once preserving custom controls and disclose sound reassignment (0.733265ms)
+✔ legacy custom N is preserved when default sound M needs another free key (0.585775ms)
+✔ legacy custom M moves only its conflicting action and preserves custom sound (0.682153ms)
+✔ legacy M alias removal retains remaining aliases and read-only storage still loads migration (0.65808ms)
+✔ new saved map binding remains customized and reset restores M without duplicate keys (0.641563ms)
+✔ native menu controller starts requested asymmetric and capped custom bot squads (29.49668ms)
+✔ R and respawn button rejoin without menu, preserve the match clock and score (15.8887ms)
+✔ respawn countdown, pause and live player prevent an accidental restart (50.539117ms)
+✔ network launch strips solo skirmish settings and preserves classic seats (28.683177ms)
+✔ lock warnings and Mach HUD update without missing elements (46.912517ms)
+✔ defeated or expired seekers cannot keep the countermeasure ready hint active (0.898551ms)
+✔ dedicated server drives guest snapshots, controls, authoritative respawn and safe disconnect (10.377762ms)
+✔ a late peer join starts on home pavement instead of taking an airborne AI seat (3.761237ms)
+✔ airport ownership follows player team, valley bases and unique HOME service (9.793935ms)
+✔ map uses north-up world coordinates and bounds airports/player/objectives (1.967781ms)
+✔ map exposes teammates and radar/selected hostile contacts, not distant hidden enemies (0.723742ms)
+✔ only map HOME supports actual pavement restock and stopped landing repair (3.721729ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 367.059806
