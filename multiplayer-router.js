@@ -39,7 +39,7 @@ export function createMultiplayerRouter(callbacks = {}, {createPeer = createNetw
     disconnect() { operation++; peers[active].disconnect(); active = 'peer'; notify(); },
     selectPeer,
   };
-  for (const key of ['getPlayerIds','consumeInputs','broadcastControl','broadcastSnapshot','sampleSnapshot','submitInput','requestRespawn']) {
+  for (const key of ['getPlayerIds','getTeams','consumeInputs','broadcastControl','broadcastSnapshot','sampleSnapshot','submitInput','requestRespawn']) {
     api[key] = (...args) => peers[active][key]?.(...args);
   }
   return api;

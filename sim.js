@@ -115,16 +115,17 @@ export function createGame({mode='dogfight',teamSize=1,teamSizes,skirmish=false,
  emit(g,'start',tactical?COMBAT_MISSIONS[missionId].description:mode==='freeflight'?'Clear for takeoff. Add power, then gently climb.':mode==='strike'?(g.role==='attack'?'Strike package ready at the airport. Take off, reach the target, then escape.':'Intercept the bomber before it escapes.'):'Airport departure. Add power; above 155 knots hold W to lift off. Gear is automatic; K enables advanced manual controls. Land and stop at your HOME runway to repair; fly within 250 m of HOME to rearm.');
  return g;
 }
-export function configurePlayers(g,ids=['host']){
+export function configurePlayers(g,ids=['host'],teams){
  if(g.mode==='freeflight'){
   for(let i=g.pilots.length;i<Math.min(ids.length,6);i++){const p=spawnPilot(g,i,0,i);g.pilots.push(p)}
   g.pilots.forEach((p,i)=>{p.id=ids[i]||`bot${i}`;p.human=!!ids[i]});return;
  }
+ g.pilots.forEach((p,i)=>{p.human=false;p.id=`bot${i}`});
  const seats=[];
  for(let slot=0;slot<Math.max(...g.teamSizes);slot++)for(let team=0;team<g.teamSizes.length;team++){
   const p=g.pilots.find(p=>p.team===team&&p.slot===slot&&!p.objectiveRole);if(p)seats.push(p);
  }
- for(let i=0;i<Math.min(ids.length,seats.length);i++){seats[i].id=ids[i];seats[i].human=true}
+ for(let i=0;i<Math.min(ids.length,seats.length);i++){const assigned=teams?.[ids[i]],seat=(assigned===0||assigned===1)?seats.find(p=>!p.human&&p.team===assigned):seats.find(p=>!p.human);if(seat){seat.id=ids[i];seat.human=true}}
 }
 function emit(g,type,text,extra={}){g.events.push({id:++g.serial,type,text,t:g.time,...extra});if(g.events.length>24)g.events.shift()}
 function recordDamage(g,p,weapon,sourceId,amount,origin){

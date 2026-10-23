@@ -18,6 +18,7 @@ export function mountNetworkUI(container, network, { onLaunch } = {}) {
       <div class="net-actions"><button type="submit" data-net="join-room">Join room</button></div>
     </form>
     <p data-net="status" role="status" aria-live="polite"></p>
+    <p>Choose Alpha or Bravo before launch. Put friends on the same team to face AI jets; empty squad seats remain bots. Three pilots maximum per team. Teams are fixed during a sortie.</p>
     <ul data-net="roster" aria-label="Pilots in the room"></ul>
     <div class="net-actions"><button type="button" data-net="launch" hidden>Launch together</button></div>
     <small>Online rooms use free PeerJS connection matching and Cloudflare STUN. They receive connection metadata; gameplay stays peer-to-peer. No account, camera or microphone needed. Some school/work networks and strict routers need a relay, which is not configured.</small>
@@ -35,7 +36,7 @@ export function mountNetworkUI(container, network, { onLaunch } = {}) {
   </section>`;
   if (!document.querySelector('[data-jets-net-style]')) {
     const style = document.createElement('style'); style.dataset.jetsNetStyle = '';
-    style.textContent = '.net-panel{font:inherit}.net-panel h3{margin:0 0 .5rem}.net-panel p{line-height:1.5}.net-guide{padding-left:22px;font-size:.88rem;line-height:1.6}.net-panel label{display:block;margin:.8rem 0 .3rem;font-size:.9rem;font-weight:700}.net-panel textarea,.net-panel input{box-sizing:border-box;display:block;width:100%;margin-top:.35rem;font:14px monospace;color:#eef6ff;background:#122334;border:1px solid #71879b;border-radius:8px;padding:12px}.net-panel textarea{resize:vertical;min-height:66px;max-height:180px;font-size:12px}.net-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.net-actions button{font:inherit;padding:10px 14px;border:1px solid #71879b;border-radius:8px;background:#24445b;color:#fff;cursor:pointer}.net-panel [data-net="create-room"],.net-panel [data-net="launch"]{background:#d7f087;color:#13251c;border-color:#d7f087;font-weight:700}.net-panel :focus-visible{outline:3px solid #ffd056;outline-offset:3px}.net-panel button:disabled{opacity:.5;cursor:default}.net-panel small{display:block;line-height:1.5;opacity:.8}.net-panel ul{padding-left:20px}.net-panel li button{margin-left:10px}.net-panel details{margin-top:18px}.net-room{margin:18px 0;padding:18px;border:1px solid #76b79f;border-radius:12px;background:#132e2d}.net-room-code{display:block;letter-spacing:.12em;font-size:clamp(1.5rem,5vw,2rem);color:#d7f087;margin:8px 0}.net-panel [data-net="status"]{padding:12px;border-radius:8px;background:#142f3d;min-height:1.5em}.net-panel [hidden]{display:none!important}';
+    style.textContent = '.net-panel{font:inherit}.net-panel h3{margin:0 0 .5rem}.net-panel p{line-height:1.5}.net-guide{padding-left:22px;font-size:.88rem;line-height:1.6}.net-panel label{display:block;margin:.8rem 0 .3rem;font-size:.9rem;font-weight:700}.net-panel textarea,.net-panel input{box-sizing:border-box;display:block;width:100%;margin-top:.35rem;font:14px monospace;color:#eef6ff;background:#122334;border:1px solid #71879b;border-radius:8px;padding:12px}.net-panel textarea{resize:vertical;min-height:66px;max-height:180px;font-size:12px}.net-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.net-actions button{font:inherit;padding:10px 14px;border:1px solid #71879b;border-radius:8px;background:#24445b;color:#fff;cursor:pointer}.net-panel [data-net="create-room"],.net-panel [data-net="launch"]{background:#d7f087;color:#13251c;border-color:#d7f087;font-weight:700}.net-panel :focus-visible{outline:3px solid #ffd056;outline-offset:3px}.net-panel button:disabled{opacity:.5;cursor:default}.net-panel small{display:block;line-height:1.5;opacity:.8}.net-panel ul{padding-left:20px}.net-panel li select{margin:8px;padding:8px;background:#122334;color:#eef6ff;border:1px solid #71879b;border-radius:5px}.net-panel li button{margin-left:10px}.net-panel details{margin-top:18px}.net-room{margin:18px 0;padding:18px;border:1px solid #76b79f;border-radius:12px;background:#132e2d}.net-room-code{display:block;letter-spacing:.12em;font-size:clamp(1.5rem,5vw,2rem);color:#d7f087;margin:8px 0}.net-panel [data-net="status"]{padding:12px;border-radius:8px;background:#142f3d;min-height:1.5em}.net-panel [hidden]{display:none!important}';
     document.head.append(style);
   }
   const el = name => container.querySelector(`[data-net="${name}"]`);
@@ -105,13 +106,15 @@ export function mountNetworkUI(container, network, { onLaunch } = {}) {
   };
   el('select').onclick = () => { el('outgoing').focus(); el('outgoing').select(); };
   el('copy').onclick = () => run(() => copy(el('outgoing').value, el('outgoing'), 'Code copied. Give it to the intended player.'));
+  function teamChoice(row,id,state){const select=document.createElement('select');select.setAttribute('aria-label',`Team for ${id}`);select.dataset.teamPilot=id;for(const [value,label] of [[0,'Alpha'],[1,'Bravo']]){const option=document.createElement('option');option.value=value;option.textContent=label;select.append(option);}select.value=String(state.teams?.[id]??0);select.disabled=state.teamsLocked||!(state.role==='host'||id===state.localId);select.onchange=()=>{if(!network.setTeam(id,Number(select.value))){select.value=String(network.state.teams?.[id]??0);message('Team is full or the sortie has started. Return to the lobby to switch.');}};row.append(select);}
   const unsubscribe = network.subscribe(state => {
     message(`${state.role === 'offline' ? 'Solo' : state.role === 'host' ? 'Host' : state.localId ? `Pilot ${state.localId}` : 'Joining'} · ${state.diagnostic}`);
     el('roster').replaceChildren();
-    if (state.role === 'host') { const row = document.createElement('li'); row.textContent = 'You · host'; el('roster').append(row); }
-    if (state.role === 'guest' && state.connected) { const row = document.createElement('li'); row.textContent = 'Host · connected'; el('roster').append(row); }
+    if (state.role === 'host') { const row = document.createElement('li'); row.textContent = 'You · host';teamChoice(row,'host',state); el('roster').append(row); }
+    if (state.role === 'guest' && state.connected) { const row = document.createElement('li'); row.textContent = 'Host · connected';teamChoice(row,'host',state); el('roster').append(row); }
     for (const peer of state.peers) {
       const row = document.createElement('li'); row.textContent = `${peer.id === state.localId ? 'You' : `Pilot ${peer.id}`} · ${peer.connected ? 'connected' : state.roomCode ? 'joining…' : peer.status}`;
+      if(peer.connected)teamChoice(row,peer.id,state);
       if (state.role === 'host') { const button = document.createElement('button'); button.type = 'button'; button.textContent = 'Remove'; button.setAttribute('aria-label', `Remove pilot ${peer.id}`); button.onclick = () => network.removePeer(peer.id); row.append(button); }
       el('roster').append(row);
     }

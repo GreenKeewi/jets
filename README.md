@@ -187,7 +187,7 @@ This section supersedes older controls and behavior described above.
 
 Public shape references: [USAF F-16 overview](https://www.airmanmagazine.af.mil/Features/Display/Article/2595848/airframe-the-f-16-fighting-falcon/) (single engine, approximately 14.8 m length / 9.8 m span) and [USAF B-2 fact sheet](https://www.af.mil/About-Us/Fact-Sheets/Display/Article/104482/b-2-spirit/) (tailless flying wing, high subsonic, approximately 20.9 m length / 52.1 m span). Models use exaggerated game-scale dimensions with original geometry and no copied proprietary game textures.
 
-Multiplayer compatibility is JETS7 / skybreak3-1022. Reload both devices and generate fresh room codes. Existing peer rooms remain distinct from the separately prepared authoritative-server work.
+Friend-room compatibility is JETS8; old invites and manual pairing codes must be regenerated. Reload both devices and generate fresh room codes. Existing peer rooms remain distinct from the separately prepared authoritative-server work.
 
 The home menu uses the actual aircraft and home airport as its WebGL backdrop. Local Chromium WebGL gameplay and cockpit screenshots are now verified; earlier cloud graphics limitations no longer describe this release. The public-site browser certificate warning was not bypassed.
 

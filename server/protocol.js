@@ -24,8 +24,11 @@ export function validateJoin(packet, region) {
   if (!plain(packet) || packet.t !== 'join' || packet.protocol !== SERVER_PROTOCOL || packet.build !== SIM_BUILD) return null;
   if (!['regional', 'global'].includes(packet.pool) || !['coast', 'valley'].includes(packet.arenaId)) return null;
   if (packet.pool === 'regional' && packet.region !== region) return null;
-  if (Object.keys(packet).some(key => !['t', 'protocol', 'build', 'pool', 'arenaId', 'region'].includes(key))) return null;
-  return {pool: packet.pool, arenaId: packet.arenaId};
+  if (packet.team!==undefined&&!['auto',0,1].includes(packet.team)) return null;
+  if(packet.match!==undefined&&!['versus','coop'].includes(packet.match))return null;
+  if(packet.match==='coop'&&packet.team!==undefined&&!['auto',0].includes(packet.team))return null;
+  if (Object.keys(packet).some(key => !['t', 'protocol', 'build', 'pool', 'arenaId', 'region','team','match'].includes(key))) return null;
+  return {pool: packet.pool, arenaId: packet.arenaId,...(packet.team!==undefined?{team:packet.team}:{}),...(packet.match!==undefined?{match:packet.match}:{})};
 }
 export function createInputBuffer() {
   let sequence = -1, at = -Infinity, held = neutralInput(), pending = neutralInput(), last = {}, tokens = 100, tokenAt = 0;

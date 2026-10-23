@@ -123,3 +123,23 @@ test('occupied runway rejects a late join without claiming or moving the existin
  for(const field of Object.values(AIRFIELDS))for(let along=-field.halfLength;along<=field.halfLength;along+=40)room.game.pilots.push({id:`obstacle-${field.id}-${along}`,human:true,team:0,dead:false,pos:fieldPoint(field,0,along,3)});
  const before=JSON.stringify(room.game.pilots),late={};assert.equal(manager.join(late,{pool:'global',arenaId:'coast'}),null);assert.match(late.joinError,/runway is busy/);assert.equal(late.id,undefined);assert.equal(room.clients.size,1);assert.equal(JSON.stringify(room.game.pilots),before);
 });
+
+test('server validates explicit teams and coop queue; capacity cannot spill friends onto enemies',()=>{
+ assert.equal(validateJoin({...join,team:2},'enam'),null);assert.equal(validateJoin({...join,match:'coop',team:1},'enam'),null);assert.equal(validateJoin({...join,match:'spoof'},'enam'),null);
+ const manager=createRoomManager({region:'enam',maxRooms:1}),clients=Array.from({length:3},()=>({}));
+ for(const c of clients){assert(manager.join(c,{...join,match:'coop',team:0}));assert.equal(c.room.game.pilots.find(p=>p.id===c.id).team,0);}
+ const room=clients[0].room;assert.equal(room.game.skirmish,false);assert(room.game.pilots.filter(p=>p.team===1).every(p=>!p.human));assert.equal(manager.join({},{...join,match:'coop',team:0}),null);
+ const old=clients[1].id;manager.removeClient(clients[1]);assert.equal(room.game.pilots.find(p=>p.id===old).human,false);const rejoin={};assert(manager.join(rejoin,{...join,match:'coop',team:0}));assert.equal(rejoin.room.game.pilots.find(p=>p.id===rejoin.id).team,0);assert.notEqual(rejoin.id,old);
+ assert.equal(manager.join({},{...join,match:'versus',team:1}),null,'cannot silently merge a versus pilot into coop');
+});
+test('two real WebSocket clients join same-team coop, share AI state and synchronized victory',async()=>{
+ const app=createGameServer({region:'enam',origins:[origin]});const address=await app.listen(0,'127.0.0.1'),url=`ws://127.0.0.1:${address.port}/play`;let a,b;
+ try{
+  a=await connect(url,{...join,match:'coop',team:0});b=await connect(url,{...join,match:'coop',team:0});assert.equal(a.welcome.roomId,b.welcome.roomId);
+  const [sa,sb]=await Promise.all([nextMessage(a.ws,'snapshot'),nextMessage(b.ws,'snapshot')]);for(const s of [sa,sb]){assert.equal(s.value.pilots.find(p=>p.id===a.welcome.id).team,0);assert.equal(s.value.pilots.find(p=>p.id===b.welcome.id).team,0);assert(s.value.pilots.filter(p=>p.team===1).every(p=>!p.human));}
+  assert.deepEqual(sa.value.pilots.filter(p=>p.team===1).map(p=>p.id),sb.value.pilots.filter(p=>p.team===1).map(p=>p.id));
+  a.ws.send(JSON.stringify({t:'input',q:1,input:{throttle:1}}));await delay(150);const room=[...app.manager.rooms.values()][0];assert(room.game.pilots.find(p=>p.id===a.welcome.id).throttle>0);
+  // Controlled terminal fixture verifies server-owned victory replication, not a flown combat sortie.
+  for(const p of room.game.pilots.filter(p=>p.team===1)){p.hp=0;p.dead=true;}const ended=async ws=>{for(let i=0;i<10;i++){const s=await nextMessage(ws,'snapshot');if(s.value.status==='complete')return s.value;}throw Error('No synchronized completion');};const [ea,eb]=await Promise.all([ended(a.ws),ended(b.ws)]);assert.equal(ea.result.winner,0);assert.deepEqual(ea.result,eb.result);
+ }finally{a?.ws.close();b?.ws.close();await app.close();}
+});

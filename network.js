@@ -1,7 +1,8 @@
+import {assignTeam,fillTeams,validAssignments} from './lobby-teams.js';
 // Data-only WebRTC. Room codes use PeerJS Cloud signaling and public STUN.
 // Advanced manual LAN pairing stays available without external services.
 // Protocol: ordered reliable control/actions; unordered zero-retransmit axes/snapshots.
-export const PROTOCOL = 'JETS7';
+export const PROTOCOL = 'JETS8';
 // Room handshake compatibility changes only when the transport/game protocol changes.
 export const ROOM_BUILD = 'skybreak10-1023';
 // Asset versions stay separate so fresh invites load the current page without
@@ -152,19 +153,19 @@ export function createInputGuard(clock = now) {
 }
 
 function validConfig(config) {
-  return plain(config) && ['dogfight', 'strike', 'freeflight'].includes(config.mode) && [1, 2, 3].includes(config.teamSize) && ['attack', 'defend'].includes(config.role) && (config.seed === undefined || typeof config.seed === 'number' && Number.isFinite(config.seed)) && (config.startingFuel === undefined || Number.isFinite(config.startingFuel) && config.startingFuel >= .25 && config.startingFuel <= 1) && (config.difficulty === undefined || ['normal','ace'].includes(config.difficulty)) && (config.routeId === undefined || ['local','northpoint','westhaven'].includes(config.routeId)) && (config.arenaId === undefined || ['coast','valley'].includes(config.arenaId));
+  return plain(config) && (config.playerTeams===undefined||validAssignments(config.playerTeams,['host','p1','p2','p3','p4','p5'])) && ['dogfight', 'strike', 'freeflight'].includes(config.mode) && [1, 2, 3].includes(config.teamSize) && ['attack', 'defend'].includes(config.role) && (config.seed === undefined || typeof config.seed === 'number' && Number.isFinite(config.seed)) && (config.startingFuel === undefined || Number.isFinite(config.startingFuel) && config.startingFuel >= .25 && config.startingFuel <= 1) && (config.difficulty === undefined || ['normal','ace'].includes(config.difficulty)) && (config.routeId === undefined || ['local','northpoint','westhaven'].includes(config.routeId)) && (config.arenaId === undefined || ['coast','valley'].includes(config.arenaId));
 }
 
 export function createNetwork(callbacks = {}) {
   const connections = new Map(), inputs = new Map(), listeners = new Set();
-  let role = 'offline', localId = null, sessionId = null, diagnostic = 'Solo ready. Pairing is optional.', roster = [];
+  let role = 'offline', localId = null, sessionId = null, diagnostic = 'Solo ready. Pairing is optional.', roster = [], teams = {host:0}, teamsLocked = false;
   let axesSeq = 0, actionsSeq = 0, snapshotSeq = 0, controlSeq = 0, lastAxes = -Infinity, lastSnapshot = -Infinity;
   let inputGeneration = 0;
   let room = null, roomPeer = null, roomEpoch = 0, roomOpening = false;
   let snapshots = [], currentControl = null, currentPaused = false, lastControlSeq = -1, lastSnapshotValue = null;
   const lastSentAction = Object.fromEntries(ACTIONS.map(k => [k, -Infinity]));
   const stats = { received: 0, rejected: 0, droppedSnapshots: 0, droppedInputs: 0 };
-  const state = () => ({ role, localId, sessionId, inputGeneration, roomCode: room, roomOpening, roomOnline: !!roomPeer?.open, connecting: [...connections.values()].some(p => !p.ready), connected: role === 'host' || [...connections.values()].some(p => p.ready), peers: role === 'guest' ? roster.map(id => ({ id, connected: true, status: 'connected' })) : [...connections.values()].map(p => ({ id: p.id, connected: p.ready, status: p.pc.connectionState === 'new' ? (p.roomConnection ? 'joining' : 'awaiting answer') : p.pc.connectionState })), diagnostic, stats: { ...stats } });
+  const state = () => ({ role, localId, sessionId, inputGeneration, teams:{...teams}, teamsLocked, roomCode: room, roomOpening, roomOnline: !!roomPeer?.open, connecting: [...connections.values()].some(p => !p.ready), connected: role === 'host' || [...connections.values()].some(p => p.ready), peers: role === 'guest' ? roster.map(id => ({ id, connected: true, status: 'connected' })) : [...connections.values()].map(p => ({ id: p.id, connected: p.ready, status: p.pc.connectionState === 'new' ? (p.roomConnection ? 'joining' : 'awaiting answer') : p.pc.connectionState })), diagnostic, stats: { ...stats } });
   const emit = () => { const s = state(); for (const f of listeners) f(s); callbacks.onPeerChange?.(s.peers, s); callbacks.onState?.(s); };
   const setStatus = message => { diagnostic = message; emit(); };
   const playerIds = () => role === 'host' ? ['host', ...[...connections.values()].filter(p => p.ready).map(p => p.id).sort()] : role === 'guest' ? ['host', ...roster] : [];
@@ -208,8 +209,8 @@ export function createNetwork(callbacks = {}) {
   }
   function broadcastRoster() {
     if (role !== 'host') return;
-    const ids = playerIds().slice(1);
-    for (const p of connections.values()) if (p.ready) send(p, 'control', { t: 'roster', ids });
+    const all=playerIds(),current=fillTeams(Object.fromEntries(all.filter(id=>teams[id]!==undefined).map(id=>[id,teams[id]])),all);if(teamsLocked)Object.assign(teams,current);else teams=current;const ids = all.slice(1);
+    for (const p of connections.values()) if (p.ready) send(p, 'control', { t: 'roster', ids,teams:current,locked:teamsLocked });
   }
   function drop(p, message) {
     if (connections.get(p.id) !== p) return;
@@ -248,6 +249,7 @@ export function createNetwork(callbacks = {}) {
     if (!plain(packet)) { stats.rejected++; return; }
     stats.received++;
     if (role === 'host') {
+      if(channel==='control'&&packet.t==='team'&&Object.keys(packet).every(k=>['t','team'].includes(k))){if(!teamsLocked&&assignTeam(teams,playerIds(),p.id,packet.team)){broadcastRoster();emit();}else{stats.rejected++;broadcastRoster();}return;}
       if (packet.g !== inputGeneration || currentPaused) { stats.rejected++; return; }
       const kind = channel === 'realtime' ? 'axes' : 'actions';
       const input = p.guard(packet, kind);
@@ -276,9 +278,9 @@ export function createNetwork(callbacks = {}) {
       return;
     }
     if (packet.t === 'welcome' && /^p[1-5]$/.test(packet.id) && /^[\w-]{16,64}$/.test(packet.session) && (p.roomConnection && !p.assignedId || packet.id === p.assignedId && packet.session === sessionId) && validSeq(packet.g) && packet.g >= inputGeneration) { p.assignedId = packet.id; sessionId = packet.session; localId = packet.id; resetInputs(packet.g); emit(); }
-    else if (packet.t === 'roster' && Array.isArray(packet.ids) && packet.ids.length <= 5 && packet.ids.every(id => /^p[1-5]$/.test(id)) && new Set(packet.ids).size === packet.ids.length) { roster = packet.ids; emit(); }
+    else if (packet.t === 'roster' && Array.isArray(packet.ids) && packet.ids.length <= 5 && packet.ids.every(id => /^p[1-5]$/.test(id)) && new Set(packet.ids).size === packet.ids.length && validAssignments(packet.teams,['host',...packet.ids]) && typeof packet.locked==='boolean') { roster = packet.ids; teams={...packet.teams};teamsLocked=packet.locked;emit(); }
     else if (packet.t === 'game' && validSeq(packet.q) && packet.q > lastControlSeq && validSeq(packet.g) && packet.g >= inputGeneration && plain(packet.message) && ((packet.message.type === 'start' && validConfig(packet.message.config)) || ['restart', 'pause', 'resume', 'return'].includes(packet.message.type))) {
-      lastControlSeq = packet.q; resetInputs(packet.g); snapshots = []; callbacks.onControl?.(packet.message);
+      lastControlSeq = packet.q; resetInputs(packet.g); snapshots = [];if(packet.message.type==='start')teamsLocked=true;if(packet.message.type==='return')teamsLocked=false;emit(); callbacks.onControl?.(packet.message);
     } else stats.rejected++;
   }
   function bind(p, channel) {
@@ -390,7 +392,7 @@ export function createNetwork(callbacks = {}) {
   }
   function disconnect() {
     roomEpoch++; roomOpening = false; room = null; const oldPeer = roomPeer; roomPeer = null;
-    role = 'offline'; localId = null; sessionId = null; roster = []; snapshots = []; currentControl = null; currentPaused = false; lastControlSeq = -1; lastSnapshotValue = null; inputGeneration = 0;
+    role = 'offline'; localId = null; sessionId = null; roster = []; teams={host:0};teamsLocked=false; snapshots = []; currentControl = null; currentPaused = false; lastControlSeq = -1; lastSnapshotValue = null; inputGeneration = 0;
     for (const p of [...connections.values()]) drop(p);
     oldPeer?.destroy();
     inputs.clear(); diagnostic = 'Solo ready. Pairing is optional.'; emit();
@@ -479,7 +481,7 @@ export function createNetwork(callbacks = {}) {
       if (!p || answer.pair !== p.pair || p.pc.signalingState !== 'have-local-offer') throw new Error('This answer does not match a pending seat, or it was already used. Create a fresh offer for that guest.');
       await p.pc.setRemoteDescription(answer.description);
       clearTimeout(p.timer); p.timer = setTimeout(() => { if (!p.ready) drop(p, 'Pairing codes matched but the LAN connection did not open. Check Wi-Fi isolation, firewall and mDNS. No relay server is configured. Try fresh codes.'); }, 30000);
-      setStatus(`Answer accepted for ${p.id}. Opening direct data channels…`);
+      setStatus(p.ready?`${playerIds().length} pilots connected. Choose teams, then launch together.`:`Answer accepted for ${p.id}. Opening direct data channels…`);
       return p.id;
     },
     async acceptOffer(code) {
@@ -537,6 +539,8 @@ export function createNetwork(callbacks = {}) {
       if (role !== 'host') return false;
       if (!plain(message) || !((message.type === 'start' && validConfig(message.config)) || ['restart', 'pause', 'resume', 'return'].includes(message.type))) throw new Error('Unsupported host game command.');
       resetInputs(inputGeneration + 1);
+      if (message.type === 'start') {teamsLocked=true;emit();}
+      if(message.type==='return'){teamsLocked=false;emit();}
       if (message.type === 'start') currentControl = JSON.parse(JSON.stringify(message));
       if (message.type === 'return') currentControl = null;
       if (['start', 'restart', 'return'].includes(message.type)) lastSnapshotValue = null;
@@ -547,6 +551,8 @@ export function createNetwork(callbacks = {}) {
       return true;
     },
     getPlayerIds: playerIds,
+    getTeams:()=>Object.fromEntries(playerIds().map(id=>[id,teams[id]])),
+    setTeam(id,team){if(teamsLocked)return false;if(role==='host'){if(!assignTeam(teams,playerIds(),id,team))return false;broadcastRoster();emit();return true;}if(role==='guest'&&id===localId)return send(connections.get('host'),'control',{t:'team',team});return false;},
     sampleSnapshot(time = now(), delay = 100) { return interpolateSnapshots(snapshots, time - delay); },
     removePeer(id) { const p = connections.get(id); if (p) drop(p, `${id} removed. That seat is available for a new offer.`); },
     disconnect,

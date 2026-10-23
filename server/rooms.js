@@ -15,20 +15,22 @@ export function createRoomManager({region = 'local', maxRooms = 8, playersPerRoo
   }
   return {
     rooms,
-    join(client, {pool, arenaId}) {
+    join(client, {pool, arenaId,team:requestedTeam='auto',match='versus'}) {
       if (client.room) return null;
       client.joinError = null;
-      let room = [...rooms.values()].find(r => r.pool === pool && r.arenaId === arenaId && r.game.status === 'playing' && r.clients.size < playersPerRoom && r.game.pilots.some(p => !p.human && !p.dead));
+      if(!['auto',0,1].includes(requestedTeam)||!['coop','versus'].includes(match)||(match==='coop'&&requestedTeam===1))return null;
+      const wanted=match==='coop'?0:requestedTeam,available=p=>!p.human&&!p.dead&&(wanted==='auto'||p.team===wanted);
+      let room = [...rooms.values()].find(r => r.pool === pool && r.arenaId === arenaId && r.match===match && r.game.status === 'playing' && r.clients.size < playersPerRoom && r.game.pilots.some(available));
       if (!room) {
         if (rooms.size >= maxRooms) return null;
-        const config = {mode:'dogfight', missionId:'dogfight', skirmish:true, teamSize:3, teamSizes:[3,3], arenaId, seed:randomInt(2**32), startingFuel:.75, difficulty:'normal'};
+        const config = {mode:'dogfight', missionId:'dogfight', skirmish:match!=='coop', teamSize:3, teamSizes:[3,3], arenaId, seed:randomInt(2**32), startingFuel:.75, difficulty:'normal'};
         const game = createGame(config); for (const p of game.pilots) p.human = false;
-        room = {id:randomUUID(), region, pool, arenaId, config, game, clients:new Map(), completedAt:null};
+        room = {id:randomUUID(), region, pool, arenaId,match, config, game, clients:new Map(), completedAt:null};
         rooms.set(room.id, room);
       }
       const population = team => [...room.clients.values()].filter(c => room.game.pilots.find(p => p.id === c.id)?.team === team).length;
-      const team = population(0) <= population(1) ? 0 : 1;
-      const seat = room.game.pilots.filter(p => !p.human && !p.dead).sort((a,b) => Number(a.team !== team) - Number(b.team !== team))[0];
+      const team = wanted==='auto'?(population(0) <= population(1) ? 0 : 1):wanted;
+      const seat = room.game.pilots.filter(available).sort((a,b) => Number(a.team !== team) - Number(b.team !== team))[0];
       if (!seat) return null;
       // Never hand an airborne AI aircraft to a new pilot. The same collision-
       // checked runway placement is used by Node and Cloudflare; failed joins
@@ -59,6 +61,6 @@ export function createRoomManager({region = 'local', maxRooms = 8, playersPerRoo
       }
     },
     snapshot(room) { return snapshot(room.game); },
-    occupancy() { return [...rooms.values()].map(r => ({pool:r.pool, arenaId:r.arenaId, players:r.clients.size, capacity:playersPerRoom, joinable:r.game.status === 'playing' && r.clients.size < playersPerRoom && r.game.pilots.some(p => !p.human && !p.dead)})); },
+    occupancy() { return [...rooms.values()].map(r => ({pool:r.pool, arenaId:r.arenaId,match:r.match, teams:[0,1].map(t=>[...r.clients.values()].filter(c=>r.game.pilots.find(p=>p.id===c.id)?.team===t).length), players:r.clients.size, capacity:r.match==='coop'?Math.min(3,playersPerRoom):playersPerRoom, joinable:r.game.status === 'playing' && r.clients.size < playersPerRoom && r.game.pilots.some(p => !p.human && !p.dead&&(r.match!=='coop'||p.team===0))})); },
   };
 }

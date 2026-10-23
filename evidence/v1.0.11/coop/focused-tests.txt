@@ -1,0 +1,37 @@
+✔ team authority rejects invalid IDs, values and fourth human; default roster balanced (6.137876ms)
+✔ same-team roster creates enough seats and leaves enemies AI; team switch changes actual aircraft (8.575009ms)
+✔ same-team pilots cannot lock or shoot friends; eliminating AI completes team victory (108.375745ms)
+✔ peer host validates guest own-team requests, locks teams in flight and replicates lobby changes (43.131974ms)
+✔ router prevents concurrent friend/server sessions and ignores inactive transport callbacks (27.690907ms)
+✔ failed dedicated connection returns routing to offline friend transport (0.879184ms)
+✔ server UI makes no requests or join control with empty/invalid endpoint configuration (2.049386ms)
+✔ configured server UI probes before joining and keeps solo fallback on failure (2.408365ms)
+✔ graphics failure and cancelled availability checks never start a server match (1.358082ms)
+✔ server UI sends selected coop/team to authority and does not borrow another queue arena (5.858395ms)
+✔ a fresh sortie clears previous guest controls and queued action pulses (35.547057ms)
+✔ reliable action traffic cannot keep stale realtime axes active (38.865971ms)
+✔ a buffer-full exception during reliable queue flush preserves the command for retry (2.639009ms)
+✔ late events from a removed connection cannot recreate its input state (3.279592ms)
+✔ old in-flight axes and weapon actions cannot affect a new sortie (3.49971ms)
+✔ old world snapshots cannot roll a guest back after a new sortie begins (2.106676ms)
+✔ pause/resume drops pending inputs and rejects even current-generation input while paused (4.423941ms)
+✔ a direct reliable send buffer exception queues and retries the command exactly once (2.238255ms)
+✔ a peer that never drains reliable control is removed before its queue can grow without bound (1.635176ms)
+✔ normal and ace difficulty are carried in authoritative start settings and invalid values are rejected (3.87041ms)
+✔ only supported host-selected routes reach guests and late-join settings (3.450489ms)
+✔ jittered guest held gun matches the authoritative local cadence without duplicate pulses (29.768004ms)
+✔ gun release is immediate on arrival and lost updates expire within 250 ms independently of reliable actions (1.237173ms)
+✔ a reordered old held-gun packet cannot override a newer release (1.243044ms)
+✔ untrusted input rejects identity, nonfinite/out-of-range axes and invalid button types (2.904578ms)
+✔ connection guard rejects replay, identity injection and bursts; cooldown is host-clock based (5.928326ms)
+✔ manual pairing rejects malformed, wrong-kind, camera/audio and unreasonable payloads (2.348507ms)
+✔ snapshot interpolation chooses matching identity and shortest heading arc without mutation (0.952028ms)
+✔ six simultaneous flare/chaff volleys stay within wire budget without changing authoritative state (190.904402ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 735.886628

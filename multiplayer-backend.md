@@ -106,3 +106,11 @@ server.disconnect();
 Do not locally step the simulation while connected. Send neutral controls while a menu is open or focus is lost. The server owns match starts and cannot be paused/restarted by an individual guest. Respawn uses `requestRespawn()` rather than offline `respawnPilot`. If the server is full or unavailable, retain solo and friend-room play. Route-assist `autopilot:false` is accepted for compatibility; `true` is rejected in shared dogfights.
 
 The optional endpoint-probing functions remain independently tested for a future multi-host configuration, but the selected Cloudflare deployment is one shared server, not multiple regional deployments.
+
+## Team selection and co-op
+
+Friend rooms now use JETS8. Before launch, choose Alpha/Bravo in the lobby: the host may assign everyone; each guest may request their own team. Three humans maximum per team. Put friends together to fight the AI-filled opposing squad. Return to the lobby to change teams; disconnected pilots become bots and in-sortie reconnects retain their team. The host owns simulation and victory; guests receive snapshots.
+
+The prepared dedicated backend validates optional `team: "auto" | 0 | 1` and `match: "versus" | "coop"` join fields. Co-op reserves up to three Alpha human seats versus three Bravo AI, with finite team victory. Versus keeps the existing balanced six-human default. Queue types never mix and a full requested team does not overflow to the enemy. Choose before joining; leave/rejoin to change. Capacity is reported per mode. This remains locally tested only: no public endpoint has been deployed.
+
+See `evidence/v1.0.11/coop/README.md` for real WebSocket checks, browser UI fixture scope and native WebRTC policy blocker.

@@ -27,6 +27,7 @@ test('manual pairing rejects malformed, wrong-kind, camera/audio and unreasonabl
   assert.throws(()=>decodePairing('JETS2.any-previous-code'),/Reload Jets on both devices/);
   assert.throws(()=>decodePairing('JETS3.any-previous-code'),/Reload Jets on both devices/);
   assert.throws(()=>decodePairing('JETS4.any-previous-code'),/Reload Jets on both devices/);
+  assert.throws(()=>decodePairing('JETS7.any-previous-code'),/Reload Jets on both devices/);
   const payload={v:4,type:'offer',session:'s'.repeat(20),pair:'p'.repeat(20),slot:'p1',description:{type:'offer',sdp:'v=0\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\n'}};
   const code=()=>`${PROTOCOL}.${btoa(JSON.stringify(payload))}`;
   assert.equal(decodePairing(code(),'offer').slot,'p1');
