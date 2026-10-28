@@ -142,8 +142,8 @@ test('threat warnings distinguish acquisition from incoming heat/radar and repor
 });
 
 test('target locks need a forward cone and missile launch cooldowns remain unchanged',()=>{
- const g=humanFixture(),[p,q]=g.pilots;q.pos={x:0,y:3000,z:1500};q.yaw=0;run(g,.5);assert(p.lock>=.45);step(g,{host:{fireHeat:true}});assert.equal(p.heat,5);assert.equal(p.heatCD,1.65);step(g,{host:{fireHeat:true}});assert.equal(p.heat,5);
- run(g,1);step(g,{host:{fireRadar:true}});assert.equal(p.radar,3);assert.equal(p.radarCD,2.5);
+ const g=humanFixture(),[p,q]=g.pilots,heat=p.heat,radar=p.radar;q.pos={x:0,y:3000,z:1500};q.yaw=0;run(g,.5);assert(p.lock>=.45);step(g,{host:{fireHeat:true}});assert.equal(p.heat,heat-1);assert.equal(p.heatCD,1.65);step(g,{host:{fireHeat:true}});assert.equal(p.heat,heat-1);
+ run(g,1);step(g,{host:{fireRadar:true}});assert.equal(p.radar,radar-1);assert.equal(p.radarCD,2.5);
  q.pos={x:2000,y:3000,z:p.pos.z};step(g);assert.equal(p.lock,0);assert.equal(p.targetId,null);
 });
 

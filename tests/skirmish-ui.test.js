@@ -14,32 +14,51 @@ import * as combatMissions from '../combat-missions.js';
 import * as resupply from '../airfield-resupply.js';
 import * as arenas from '../arenas.js';
 import * as world from '../world.js';
+import * as loadouts from '../loadouts.js';
 import {airportStatus,homeGuidance} from '../tactical-map.js';
-function app(){
+function app({storage,peerSettings={}}={}){
  const html=readFileSync(new URL('../index.html',import.meta.url),'utf8'),nodes=new Map(),events={},raf=[];
  const context2d=new Proxy({},{get:(_,key)=>key==='measureText'?()=>({width:10}):()=>{}});
  class Element{
-  constructor(id){this.id=id;this.hidden=false;this.disabled=false;this.style={};this.value='';this.textContent='';this.dataset={};this.open=false;this.firstChild={textContent:''};this.options=[];this.classes=new Set();this.classList={add:c=>this.classes.add(c),remove:c=>this.classes.delete(c),toggle:(c,on)=>{on??=!this.classes.has(c);on?this.classes.add(c):this.classes.delete(c);return on}};}
-  get parentElement(){return new Element('parent')} setAttribute(){} addEventListener(type,fn){this['on'+type]=fn} focus(){document.activeElement=this} blur(){document.activeElement=null} matches(q){return q.split(',').includes(this.tag||'')} showModal(){this.open=true} close(){this.open=false} getContext(){return context2d} querySelector(){return new Element('child')} querySelectorAll(){return []}
+  constructor(id){this.id=id;this.hidden=false;this.disabled=false;this.style={};this.value='';this.textContent='';this.dataset={};this.open=false;this.firstChild={textContent:''};this.options=[];this.children=[];this.classes=new Set();this.classList={add:c=>this.classes.add(c),remove:c=>this.classes.delete(c),toggle:(c,on)=>{on??=!this.classes.has(c);on?this.classes.add(c):this.classes.delete(c);return on}};}
+  get parentElement(){return new Element('parent')} setAttribute(){} addEventListener(type,fn){this['on'+type]=fn} focus(){document.activeElement=this} blur(){document.activeElement=null} matches(q){return q.split(',').includes(this.tag||'')} showModal(){this.open=true} close(){this.open=false} getContext(){return context2d} querySelector(){return new Element('child')} querySelectorAll(q){return this.children.flatMap(n=>[...(n.tag===q?[n]:[]),...n.querySelectorAll(q)])} appendChild(n){this.children.push(n);if(n.id)nodes.set(n.id,n);if(this.tag==='select')this.options.push(n);return n} replaceChildren(...children){this.children=[];for(const child of children)this.appendChild(child)}
  }
  for(const match of html.matchAll(/<([a-z-]+)[^>]*\bid="([^"]+)"[^>]*>/g)){const n=new Element(match[2]);n.tag=match[1];n.hidden=/\shidden(?:\s|>)/.test(match[0]);nodes.set(n.id,n)}
  for(const match of html.matchAll(/<select[^>]*id="([^"]+)"[^>]*>([\s\S]*?)<\/select>/g)){const n=nodes.get(match[1]);n.options=[...match[2].matchAll(/<option[^>]*value="([^"]+)"/g)].map(m=>({value:m[1],disabled:false}));n.value=n.options[0]?.value||''}
  const modeButtons=['dogfight','strike','freeflight'].map(mode=>Object.assign(new Element(mode),{dataset:{mode}}));
- const document={body:new Element('body'),activeElement:null,hidden:false,getElementById:id=>{assert(nodes.has(id),`Missing DOM element ${id}`);return nodes.get(id)},querySelector:q=>q==='dialog[open]'?[...nodes.values()].find(n=>n.open)||null:null,querySelectorAll:q=>q==='dialog[open]'?[...nodes.values()].filter(n=>n.open):q==='.mode-card'?modeButtons:q.includes('.mode-card,')?[...modeButtons,...q.split(',').slice(1).map(id=>nodes.get(id.slice(1)))]:[],addEventListener(){}};
+ const document={body:new Element('body'),activeElement:null,hidden:false,createElement:tag=>Object.assign(new Element(''),{tag}),getElementById:id=>{assert(nodes.has(id),`Missing DOM element ${id}`);return nodes.get(id)},querySelector:q=>q==='dialog[open]'?[...nodes.values()].find(n=>n.open)||null:null,querySelectorAll:q=>q==='dialog[open]'?[...nodes.values()].filter(n=>n.open):q==='.mode-card'?modeButtons:q.includes('.mode-card,')?[...modeButtons,...q.split(',').slice(1).map(id=>nodes.get(id.slice(1)))]:[],addEventListener(){}};
  class Renderer{constructor(){this.needsRender=true;this.followReady=false} setView(v){this.view=v} render(){this.needsRender=false} project(){return{x:500,y:300,visible:false,z:0}}}
- class FlightAudio{constructor(){this.enabled=true}init(){}update(){}event(){}toggle(){this.enabled=!this.enabled}}
- let peerCallbacks;let role='offline';const net={get state(){return{role,localId:'host',peers:[]}},getPlayerIds:()=>role==='host'?['host']:[],consumeInputs:()=>({}),broadcastControl(){},broadcastSnapshot(){},disconnect(){role='offline'}};
+ let audioFixture;class FlightAudio{constructor(){this.enabled=true;this.ctx=null;this.activations=0;audioFixture=this}init(){this.ctx={state:'running'};this.activations++}dispose(){this.ctx=null}update(){}event(){}toggle(){this.enabled=!this.enabled}}
+ let peerCallbacks;let role='offline';const net={get state(){return{role,localId:'host',peers:[],...peerSettings}},getPlayerIds:()=>role==='host'?(peerSettings.playerIds||['host']):[],getTeams:()=>peerSettings.teams,consumeInputs:()=>({}),broadcastControl(){},broadcastSnapshot(){},disconnect(){role='offline'}};
  let serverCallbacks,serverState={role:'offline',transport:'server',connected:false,localId:null,peers:[]},remote,respawns=0;const sent=[];
  const server={get state(){return serverState},subscribe(){return()=>{}},async connect(){remote=simulation.createGame({mode:'dogfight',skirmish:true,teamSizes:[3,3],seed:41});remote.pilots[0].id='server-pilot';remote.pilots[0].human=true;serverState={...serverState,role:'guest',connected:true,localId:'server-pilot'};serverCallbacks.onState(serverState);serverCallbacks.onControl({type:'start',config:remote.config||{mode:'dogfight',skirmish:true,teamSizes:[3,3],seed:41}});serverCallbacks.onSnapshot(simulation.snapshot(remote),{initial:true});},disconnect(){serverState={...serverState,role:'offline',connected:false,localId:null};serverCallbacks.onState(serverState)},getPlayerIds:()=>['server-pilot'],sampleSnapshot:()=>simulation.snapshot(remote),submitInput(input){sent.push({...input})},requestRespawn(){respawns++;return true}};
  const window={addEventListener:(type,fn)=>events[type]=fn};
  const source=readFileSync(new URL('../game.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
- vm.runInNewContext(source,{...simulation,...controls,...keybindings,mountKeybindings(){},matchMedia:()=>({matches:false}),...axes,...guidance,...missions,...combatMissions,...resupply,...arenas,...world,airportStatus,homeGuidance,RadarTerrain:class{draw(){}},Renderer,FlightAudio,drawCockpit(){},createMultiplayerRouter:callbacks=>createMultiplayerRouter(callbacks,{createPeer:callbacks=>{peerCallbacks=callbacks;return net},createServer:callbacks=>{serverCallbacks=callbacks;return server}}),mountNetworkUI(){},mountServerUI(){},window,document,location:{hostname:'localhost'},HTMLElement:Element,performance:{now:()=>0},requestAnimationFrame:fn=>raf.push(fn),innerWidth:1024,innerHeight:650,console,Math,Set},{filename:'game.js'});
- return{joinPeer:peers=>peerCallbacks.onPeerChange(peers,net.state),api:window.__skybreak,nodes,net,events,server,sent,get remote(){return remote},get respawns(){return respawns},dropServer(){server.disconnect();serverCallbacks.onDisconnect('server-pilot','Server unavailable')},frame(time=1000/60){raf.shift()(time)},setRole:value=>role=value,keydown(code){events.keydown({code,repeat:false,target:nodes.get('world'),preventDefault(){}})}};
+ vm.runInNewContext(source,{...simulation,...controls,...keybindings,...loadouts,mountKeybindings(){},matchMedia:()=>({matches:false}),...axes,...guidance,...missions,...combatMissions,...resupply,...arenas,...world,airportStatus,homeGuidance,RadarTerrain:class{draw(){}},Renderer,FlightAudio,drawCockpit(){},createMultiplayerRouter:callbacks=>createMultiplayerRouter(callbacks,{createPeer:callbacks=>{peerCallbacks=callbacks;return net},createServer:callbacks=>{serverCallbacks=callbacks;return server}}),mountNetworkUI(){},mountServerUI(){},window,document,localStorage:storage,location:{hostname:'localhost'},HTMLElement:Element,performance:{now:()=>0},requestAnimationFrame:fn=>raf.push(fn),innerWidth:1024,innerHeight:650,console,Math,Set},{filename:'game.js'});
+ return{get audio(){return audioFixture},joinPeer:peers=>peerCallbacks.onPeerChange(peers,net.state),api:window.__skybreak,nodes,net,events,server,sent,get remote(){return remote},get respawns(){return respawns},dropServer(){server.disconnect();serverCallbacks.onDisconnect('server-pilot','Server unavailable')},frame(time=1000/60){raf.shift()(time)},setRole:value=>role=value,keydown(code){events.keydown({code,repeat:false,target:nodes.get('world'),preventDefault(){}})}};
 }
 test('native menu controller starts requested asymmetric and capped custom bot squads',()=>{
  const a=app();assert.equal(a.nodes.get('squad-label').hidden,true);assert.equal(a.nodes.get('bot-layout-label').hidden,false);
  for(const preset of ['1,1','1,2','1,3','3,2,3']){a.nodes.get('team-layout').value=preset;a.nodes.get('team-layout').onchange();a.nodes.get('launch').onclick();assert.equal(a.api.state.skirmish,true);assert.deepEqual(a.api.state.teamSizes,preset.split(',').map(Number));a.api.returnMenu()}
  a.nodes.get('team-layout').value='custom';a.nodes.get('team-layout').onchange();for(const id of ['team-alpha','team-bravo','team-charlie'])a.nodes.get(id).value='4';a.nodes.get('launch').onclick();assert.equal(a.api.state.pilots.length,12);a.frame();assert.match(a.nodes.get('match-score').textContent,/CHARLIE/);assert.equal(a.nodes.get('menu').hidden,true);
+});
+test('native aircraft stations expose compatibility, preserve each fighter choice and summarize full external tanks',()=>{
+ const a=app(),variant=a.nodes.get('aircraft-select');assert.equal(variant.value,'f16');assert.equal(a.nodes.get('loadout-stations').querySelectorAll('select').length,9);
+ const tip=a.nodes.get('loadout-wingtip-l');assert.deepEqual(tip.options.map(o=>o.value),['empty','heat']);
+ a.nodes.get('starting-fuel').value='25';a.nodes.get('starting-fuel').onchange();
+ for(const id of ['innerwing-l','innerwing-r','centerline']){const control=a.nodes.get(`loadout-${id}`);control.value='tank';control.onchange();}
+ assert.match(a.nodes.get('loadout-summary').textContent,/4 heat · 2 radar · 3\/3 tanks · 2,720 kg fuel/);
+ variant.value='fa18e';variant.onchange();assert.equal(a.nodes.get('loadout-stations').querySelectorAll('select').length,11);assert.match(a.nodes.get('aircraft-description').textContent,/Twin-engine naval/);
+ variant.value='f16';variant.onchange();assert.equal(a.nodes.get('loadout-centerline').value,'tank');
+ variant.value='su37';variant.onchange();assert.equal(a.nodes.get('loadout-stations').querySelectorAll('select').length,8);assert.match(a.nodes.get('aircraft-description').textContent,/prototype/);assert(!a.nodes.get('loadout-stations').querySelectorAll('select').some(s=>s.options.some(o=>o.value==='tank')));
+ a.api.setMode('strike');assert.equal(a.nodes.get('aircraft-config').hidden,true);a.nodes.get('strike-role').value='defend';a.nodes.get('strike-role').onchange();assert.equal(a.nodes.get('aircraft-config').hidden,false);
+});
+test('browser aircraft preferences roundtrip normalized choices and malformed stored assignments stay bounded',()=>{
+ const data=new Map(),storage={getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value)},first=app({storage});
+ first.nodes.get('aircraft-select').value='fa18e';first.nodes.get('aircraft-select').onchange();first.nodes.get('loadout-centerline').value='tank';first.nodes.get('loadout-centerline').onchange();first.nodes.get('starting-fuel').value='50';first.nodes.get('starting-fuel').onchange();
+ const second=app({storage});assert.equal(second.nodes.get('aircraft-select').value,'fa18e');assert.equal(second.nodes.get('loadout-centerline').value,'tank');assert.equal(second.nodes.get('starting-fuel').value,'50');
+ storage.setItem('skybreak-aircraft-loadouts-v1',JSON.stringify({aircraftId:'f16',startingFuel:900,loadouts:{f16:{stations:{'wingtip-l':'radar',centerline:'tank',extra:'heat'},heat:99}}}));
+ const safe=app({storage});assert.equal(safe.nodes.get('loadout-wingtip-l').value,'empty');assert.equal(safe.nodes.get('loadout-centerline').value,'tank');assert.match(safe.nodes.get('loadout-summary').textContent,/0 heat · 0 radar · 1\/3 tanks/);
 });
 test('R and respawn button rejoin without menu, preserve the match clock and score',()=>{
  for(const useButton of [false,true]){const a=app();a.nodes.get('launch').onclick();const s=a.api.state;s.time=20;s.scores=[3,1];Object.assign(s.pilots[0],{dead:true,hp:0,respawnAt:19});a.api.setState(s);a.frame();assert.equal(a.nodes.get('respawn-panel').hidden,false);assert.equal(a.nodes.get('respawn-button').disabled,false);if(useButton)a.nodes.get('respawn-button').onclick();else a.keydown('KeyR');assert.equal(a.api.state.pilots[0].dead,false);assert.equal(a.nodes.get('menu').hidden,true);assert(a.api.state.time>=20);assert.deepEqual(a.api.state.scores,[3,1]);a.frame(33);assert.equal(a.nodes.get('respawn-panel').hidden,true);assert.equal(a.api.state.pilots[0].grounded,true)}
@@ -71,4 +90,19 @@ test('a late peer join starts on home pavement instead of taking an airborne AI 
  const a=app();a.setRole('host');a.nodes.get('launch').onclick();const seat=a.api.state.pilots.find(p=>!p.human);Object.assign(seat,{grounded:false,pos:{x:0,y:1800,z:0},speed:315,throttle:.78,gearDown:false});
  a.joinPeer([{id:'late-guest',connected:true}]);const joined=a.api.state.pilots.find(p=>p.id==='late-guest');assert(joined);assert.equal(joined.grounded,true);assert.equal(joined.gearDown,true);assert.equal(joined.speed,0);assert.equal(joined.throttle,0);
  const field=missions.AIRFIELDS[joined.homeBaseId],local=missions.fieldCoordinates(field,joined.pos);assert(Math.abs(local.along)<field.halfLength);assert(Math.abs(local.across)<field.width);
+});
+
+test('late join preserves enemy AI in asymmetric co-op with reinforcements off',()=>{
+ const peerSettings={playerIds:['host','p1'],peers:[{id:'p1',connected:true}],teams:{host:0,p1:0},matchSettings:{teamSize:3,enemyTeamSize:4},enemyRespawnSeconds:0};
+ const a=app({peerSettings});a.setRole('host');a.api.start({mode:'dogfight',teamSize:3,role:'attack',seed:42});
+ assert.equal(a.api.state.coopTeam,0);assert.equal(a.api.state.enemyRespawnSeconds,0);assert.deepEqual(a.api.state.teamSizes,[3,4]);
+ peerSettings.peers.push({id:'p2',connected:true});peerSettings.teams.p2=1;a.joinPeer(peerSettings.peers);
+ assert.equal(a.api.state.pilots.some(p=>p.id==='p2'),false);assert(a.api.state.pilots.filter(p=>p.team===1).every(p=>!p.human));
+ peerSettings.teams.p2=0;a.joinPeer(peerSettings.peers);
+ const joined=a.api.state.pilots.find(p=>p.id==='p2');assert(joined);assert.equal(joined.team,0);assert.equal(joined.grounded,true);assert.equal(joined.hp,100);
+ assert.equal(a.api.state.pilots.filter(p=>p.team===1&&!p.human).length,4);
+});
+
+test('a user flight key restores audio after a pagehide disposal and resumed page',()=>{
+ const a=app();a.nodes.get('launch').onclick();assert.equal(a.audio.activations,1);a.events.pagehide();assert.equal(a.audio.ctx,null);a.keydown('KeyW');assert.equal(a.audio.activations,2);assert.equal(a.audio.ctx.state,'running');assert.equal(a.api.running,true);
 });

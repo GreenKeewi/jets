@@ -28,7 +28,7 @@ test('both replay paths can use a nonmutating roster-normalized configuration fo
  for(const mode of ['dogfight','strike','freeflight'])for(const count of [1,2,3,4,5,6]){const ids=['host',...Array.from({length:count-1},(_,i)=>'p'+(i+1))],original={mode,teamSize:1,role:'attack',seed:42},c=rosterConfig(original,ids),g=createGame(c);configurePlayers(g,ids);assert.equal(original.teamSize,1);assert(ids.every(id=>g.pilots.some(p=>p.id===id&&p.human)));assert.equal(c.teamSize,mode==='freeflight'?1:Math.ceil(count/2));}
 });
 test('held gun fires ten rounds per second without lock and preserves missile stocks',()=>{
- const g=air(createGame({mode:'freeflight'})),p=g.pilots[0];run(g,2,{host:{fireGun:true}});assert.equal(p.gunShots,20);assert.equal(p.gunAmmo,GUN.capacity-20);assert.equal(p.heat,6);assert.equal(p.radar,4);assert(g.bullets.length>0&&g.bullets.length<=GUN.maxRounds);
+ const g=air(createGame({mode:'freeflight'})),p=g.pilots[0],stores={heat:p.heat,radar:p.radar};run(g,2,{host:{fireGun:true}});assert.equal(p.gunShots,20);assert.equal(p.gunAmmo,GUN.capacity-20);assert.equal(p.heat,stores.heat);assert.equal(p.radar,stores.radar);assert(g.bullets.length>0&&g.bullets.length<=GUN.maxRounds);
 });
 test('unguided gun rounds damage an aimed hostile and can complete combat, but miss off-axis aircraft',()=>{
  const g=air(createGame()),p=g.pilots[0],q=g.pilots[1];q.pos={x:0,y:3000,z:500};run(g,3,{host:{fireGun:true}});assert.equal(q.dead,true);assert.equal(g.result.winner,0);assert.equal(p.hp,100);

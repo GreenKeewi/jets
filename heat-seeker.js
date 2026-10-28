@@ -35,14 +35,18 @@ export function tryHeatFlare(missile,target,countermeasures,random){
 // Each new burst provides another roll, with diminishing returns. The existing
 // failed-burst history survives snapshots; a persistent cloud never rerolls.
 export function burstChanceScale(previousAttempts){return 1/(1+Math.max(0,previousAttempts)*.65);}
+// Chaff is a small extra chance, not the primary radar escape mechanic. Its
+// faster falloff bounds even a long stream of fresh releases below certainty.
+export const RADAR_CHAFF=Object.freeze({chance:.12,range:1100,age:2.2});
+export function radarChaffChance(previousAttempts){return RADAR_CHAFF.chance/(1+.9*Math.max(0,previousAttempts))**1.8;}
 export function tryRadarChaff(missile,target,countermeasures,random){
  if(missile.type!=='radar'||missile.decoyed||missile.seekerLost||!target)return null;
  const tried=missile.chaffBurstsTried||(missile.chaffBurstsTried=[]);
  for(const cloud of countermeasures){
-  if(cloud.type!=='chaff'||cloud.ownerId!==target.id||cloud.age>=2.2)continue;
+  if(cloud.type!=='chaff'||cloud.ownerId!==target.id||cloud.age>=RADAR_CHAFF.age)continue;
   const burst=cloud.burstId??'legacy';
-  if(tried.includes(burst)||Math.hypot(cloud.pos.x-missile.pos.x,cloud.pos.y-missile.pos.y,cloud.pos.z-missile.pos.z)>=1100)continue;
-  tried.push(burst);if(random()<.64*burstChanceScale(tried.length-1))return cloud;
+  if(tried.includes(burst)||Math.hypot(cloud.pos.x-missile.pos.x,cloud.pos.y-missile.pos.y,cloud.pos.z-missile.pos.z)>=RADAR_CHAFF.range)continue;
+  tried.push(burst);if(random()<radarChaffChance(tried.length-1))return cloud;
  }
  return null;
 }

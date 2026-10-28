@@ -1,13 +1,14 @@
-import {CockpitInterior} from './cockpit-interior.js?v=skybreak14-1023';
-import {viewAxes,gunMuzzle} from './view-axes.js?v=skybreak14-1023';
-import {GUN} from './guns.js?v=skybreak14-1023';
+import {CockpitInterior} from './cockpit-interior.js?v=skybreak110-1028';
+import {viewAxes,gunMuzzle} from './view-axes.js?v=skybreak110-1028';
+import {GUN} from './guns.js?v=skybreak110-1028';
 import * as THREE from './vendor/three.module.js';
-import {RUNWAY,ROUTE,TARGET,ESCAPE,strikeTarget,strikeEscape,forward,bombSolution,canBomb,clamp} from './sim.js?v=skybreak14-1023';
-import {surfaceHeight} from './world.js?v=skybreak14-1023';
-import {routeFor,destinationFor,fieldPoint} from './missions.js?v=skybreak14-1023';
-import {Scenery} from './scenery.js?v=skybreak14-1023';
-import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak14-1023';
-import {batchStatic} from './geometry.js?v=skybreak14-1023';
+import {RUNWAY,ROUTE,TARGET,ESCAPE,strikeTarget,strikeEscape,forward,bombSolution,canBomb,clamp} from './sim.js?v=skybreak110-1028';
+import {surfaceHeight} from './world.js?v=skybreak110-1028';
+import {routeFor,destinationFor,fieldPoint} from './missions.js?v=skybreak110-1028';
+import {Scenery} from './scenery.js?v=skybreak110-1028';
+import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak110-1028';
+import {normalizeAircraftId} from './loadouts.js?v=skybreak110-1028';
+import {batchStatic} from './geometry.js?v=skybreak110-1028';
 export const makeJet=createAircraft;
 const COLORS={mint:0x9cead6,orange:0xffac7a};
 function canvasTexture(width,height,draw){const c=document.createElement('canvas');c.width=width;c.height=height;draw(c.getContext('2d'),width,height);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return tex}
@@ -196,11 +197,11 @@ export class Renderer{
   this.lastFollowId=p.id;this.lastFollowPosition={...p.pos};const tilt=this.view==='cockpit'?p.roll:0;const up=viewAxes(p,tilt).up;this.camera.up.set(up.x,up.y,up.z);this.camera.lookAt(look);const desiredFov=flightFov(p.speed,this.view,this.reducedMotion);this.camera.fov+=(desiredFov-this.camera.fov)*Math.min(1,dt*4);this.camera.updateProjectionMatrix();
  }
  updateAircraft(g,p,dt){
-  for(const pilot of g.pilots){let model=this.jets.get(pilot.id);if(model&&(model.userData.bomber!==pilot.bomber||model.userData.team!==pilot.team)){this.disposeAircraft(model);this.jets.delete(pilot.id);model=null}if(!model){model=createAircraft(pilot.team,pilot.bomber);this.scene.add(model);this.jets.set(pilot.id,model)}model.visible=!pilot.dead&&!(pilot.id===p.id&&this.view==='cockpit'&&!this.menuPreview);model.position.set(pilot.pos.x,pilot.pos.y+(pilot.grounded?4.08:0),pilot.pos.z);model.rotation.set(-pilot.pitch,pilot.yaw,-pilot.roll,'YXZ');animateAircraft(model,pilot,g.time,dt);const detailed=pilot.id===p.id||Math.hypot(pilot.pos.x-p.pos.x,pilot.pos.y-p.pos.y,pilot.pos.z-p.pos.z)<1600;model.userData.detailed.visible=detailed;model.userData.distant.visible=!detailed;this.updateVortex(pilot,model,g.time)}
+  for(const pilot of g.pilots){const aircraftId=normalizeAircraftId(pilot.aircraftId);let model=this.jets.get(pilot.id);if(model&&(model.userData.bomber!==pilot.bomber||model.userData.team!==pilot.team||model.userData.aircraftId!==aircraftId)){this.disposeAircraft(model);this.jets.delete(pilot.id);model=null}if(!model){model=createAircraft(pilot.team,pilot.bomber,aircraftId);this.scene.add(model);this.jets.set(pilot.id,model)}model.visible=!pilot.dead&&!(pilot.id===p.id&&this.view==='cockpit'&&!this.menuPreview);model.position.set(pilot.pos.x,pilot.pos.y+(pilot.grounded?4.08:0),pilot.pos.z);model.rotation.set(-pilot.pitch,pilot.yaw,-pilot.roll,'YXZ');animateAircraft(model,pilot,g.time,dt);const detailed=pilot.id===p.id||Math.hypot(pilot.pos.x-p.pos.x,pilot.pos.y-p.pos.y,pilot.pos.z-p.pos.z)<1600;model.userData.detailed.visible=detailed;model.userData.distant.visible=!detailed;this.updateVortex(pilot,model,g.time)}
   for(const[id,model]of this.jets)if(!g.pilots.some(p=>p.id===id)){this.disposeAircraft(model);this.jets.delete(id)}
   const ground=surfaceHeight(p.pos.x,p.pos.z),height=p.pos.y-ground;this.shadow.visible=!p.dead&&height<230;this.shadow.position.set(p.pos.x+height*.45,ground+.6,p.pos.z+height*.35);this.shadow.scale.set(p.bomber?70:42,p.bomber?65:45,1);this.shadow.material.opacity=Math.max(0,.6-height/350);
  }
- disposeAircraft(model){const geometries=new Set(),materials=new Set(),textures=new Set();model.traverse(node=>{if(node.geometry)geometries.add(node.geometry);if(node.material)for(const m of(Array.isArray(node.material)?node.material:[node.material])){materials.add(m);if(m.map)textures.add(m.map)}});model.removeFromParent();geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose())}
+ disposeAircraft(model){const geometries=new Set(),materials=new Set(),textures=new Set();model.traverse(node=>{if(node.isInstancedMesh)node.dispose();if(node.geometry)geometries.add(node.geometry);if(node.material)for(const m of(Array.isArray(node.material)?node.material:[node.material])){materials.add(m);if(m.map)textures.add(m.map)}});model.removeFromParent();geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose())}
  updateVortex(p,model,time){
   if(!this.vortices.has(p.id)){const pair=[];for(let side=0;side<2;side++){const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(54*3),3));geometry.setDrawRange(0,0);const line=new THREE.Line(geometry,new THREE.LineBasicMaterial({color:0xe6eee5,transparent:true,opacity:.25,depthWrite:false}));this.scene.add(line);pair.push({line,points:[],last:-1})}this.vortices.set(p.id,pair)}
   const active=!p.dead&&!p.grounded&&p.speed>115&&Math.abs(p.roll)>.25;

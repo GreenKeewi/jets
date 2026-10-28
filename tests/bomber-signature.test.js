@@ -11,7 +11,7 @@ for(const dt of [1/30,1/60,1/144])test(`bomber acquisition is shorter and twice 
  const far=fixture(true,3300);tick(far,dt);assert.equal(far.p.targetId,null);
  const fighter=fixture(false,3300);tick(fighter,dt);assert.equal(fighter.p.targetId,fighter.q.id);
  const f=fixture();for(let i=0;i<Math.round(.6/dt);i++)tick(f,dt);assert(f.p.lock<.45);tick(f,dt,{fireHeat:true});assert.equal(f.g.missiles.length,0);
- for(let i=0;i<Math.ceil(3/dt);i++)tick(f,dt);assert(f.p.lock>=1.45);tick(f,dt,{fireRadar:true});assert.equal(f.g.missiles[0].targetId,f.q.id);assert.equal(f.p.radar,3);
+ for(let i=0;i<Math.ceil(3/dt);i++)tick(f,dt);assert(f.p.lock>=1.45);const before=f.p.radar;tick(f,dt,{fireRadar:true});assert.equal(f.g.missiles[0].targetId,f.q.id);assert.equal(f.p.radar,before-1);
 });
 test('lock cannot transfer from a fighter to a bomber or survive leaving its range',()=>{
  const f=fixture(false);for(let i=0;i<120;i++)tick(f,1/60);const old=f.q.id;

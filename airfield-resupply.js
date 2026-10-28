@@ -1,7 +1,8 @@
-import {AIRFIELDS,fieldCoordinates} from './missions.js?v=skybreak14-1023';
-import {GUN} from './guns.js?v=skybreak14-1023';
+import {AIRFIELDS,fieldCoordinates} from './missions.js?v=skybreak110-1028';
+import {GUN} from './guns.js?v=skybreak110-1028';
+import {loadoutStores} from './loadouts.js?v=skybreak110-1028';
 
-export const AIRFIELD_RESUPPLY=Object.freeze({radius:250,exitRadius:350,cooldown:12});
+export const AIRFIELD_RESUPPLY=Object.freeze({radius:250,exitRadius:350,cooldown:12,repair:18});
 const fields=Object.values(AIRFIELDS);
 // Match the visible pavement in scenery.js, in each runway's local coordinates.
 // Distance is to these finite surfaces, including height, not an infinite column.
@@ -23,7 +24,8 @@ export function nearestAirfield(point,homeBaseId=null){
  return nearest;
 }
 export function fullWeaponStores(p){
- return{gunAmmo:GUN.capacity,heat:p.bomber?0:6,radar:p.bomber?0:4,flares:p.bomber?120:60,chaff:p.bomber?120:60,bombs:p.bomber&&p.objectiveRole!=='transport'?3:0};
+ const loadout=p.bomber?{heat:0,radar:0}:loadoutStores(p.aircraftId||'f16',p.loadout);
+ return{gunAmmo:GUN.capacity,heat:loadout.heat,radar:loadout.radar,flares:p.bomber?120:60,chaff:p.bomber?120:60,bombs:p.bomber&&p.objectiveRole!=='transport'?3:0};
 }
 export function freshAirfieldResupply(point){
  return{resupplyLatched:nearestAirfield(point).distance<=AIRFIELD_RESUPPLY.exitRadius,resupplyReadyAt:0,resuppliedAt:null};
@@ -40,8 +42,8 @@ export function resupplyAtAirfield(g,p){
  p.resupplyLatched=true;
  if(g.time<(p.resupplyReadyAt||0))return null;
  p.resupplyReadyAt=g.time+AIRFIELD_RESUPPLY.cooldown;
- const stores=fullWeaponStores(p),changed=Object.entries(stores).some(([key,max])=>p[key]<max);
+ const stores=fullWeaponStores(p),damaged=p.hp<100||(p.engineHealth??1)<1||(p.controlHealth??1)<1||(p.airframeWear||0)>0,changed=damaged||Object.entries(stores).some(([key,max])=>p[key]<max);
  if(!changed)return null;
- Object.assign(p,stores,{resuppliedAt:g.time});
+ Object.assign(p,stores,{resuppliedAt:g.time,hp:Math.min(100,p.hp+AIRFIELD_RESUPPLY.repair),airframeWear:Math.max(0,(p.airframeWear||0)-AIRFIELD_RESUPPLY.repair),engineHealth:Math.min(1,(p.engineHealth??1)+.18),controlHealth:Math.min(1,(p.controlHealth??1)+.18)});
  return field;
 }

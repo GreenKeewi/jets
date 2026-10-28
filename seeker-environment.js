@@ -1,5 +1,5 @@
-import {surfaceHeight} from './world.js?v=skybreak14-1023';
-import {heatFlareChance,HEAT_SEEKER} from './heat-seeker.js?v=skybreak14-1023';
+import {surfaceHeight} from './world.js?v=skybreak110-1028';
+import {heatFlareChance,HEAT_SEEKER} from './heat-seeker.js?v=skybreak110-1028';
 
 // Shared with the visible sky disk. The sun is a direction, not a world point.
 const sunLength=Math.hypot(-.62,.28,-.73);
@@ -7,13 +7,26 @@ export const SUN_DIRECTION=Object.freeze({x:-.62/sunLength,y:.28/sunLength,z:-.7
 const sunCone=Math.cos(8*Math.PI/180);
 const clamp01=value=>Math.max(0,Math.min(1,value));
 
+// Fictional readable gameplay envelope; this is not a real radar model.
+export const RADAR_CLUTTER=Object.freeze({fullBelow:25,clearAbove:180,lossRate:.65,minTurnScale:.38});
+export function terrainOccluded(from,to,height=surfaceHeight){
+ const distance=Math.hypot(to.x-from.x,to.y-from.y,to.z-from.z),steps=Math.min(96,Math.ceil(distance/70));
+ for(let n=1;n<steps;n++){
+  const t=n/steps,x=from.x+(to.x-from.x)*t,y=from.y+(to.y-from.y)*t,z=from.z+(to.z-from.z)*t;
+  if(height(x,z)>=y)return true;
+ }
+ return false;
+}
 export function seekerInterference(missile,target,sight){
  if(missile.type==='radar'){
   // Terrain-relative height also covers aircraft skimming a runway before
   // their wheels touch. Ground clutter weakens guidance, never grants immunity.
   const clearance=target.pos.y-surfaceHeight(target.pos.x,target.pos.z);
-  const strength=target.grounded?1:clamp01((18-clearance)/15);
-  return{strength,lossRate:.18*strength,turnScale:1-.45*strength};
+  const strength=clamp01((RADAR_CLUTTER.clearAbove-clearance)/(RADAR_CLUTTER.clearAbove-RADAR_CLUTTER.fullBelow));
+  // Solid terrain breaks the line of sight through seeker memory in sim.js;
+  // low clearance alone remains a seeded chance, including grounded targets.
+  const terrainBlocked=terrainOccluded(missile.pos,target.pos);
+  return{strength,lossRate:RADAR_CLUTTER.lossRate*strength,turnScale:terrainBlocked?0:1-(1-RADAR_CLUTTER.minTurnScale)*strength,terrainBlocked};
  }
  if(missile.type!=='heat')return{strength:0,lossRate:0,turnScale:1};
  const alignment=sight.x*SUN_DIRECTION.x+sight.y*SUN_DIRECTION.y+sight.z*SUN_DIRECTION.z;

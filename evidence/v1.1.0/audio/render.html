@@ -1,0 +1,18 @@
+<!doctype html><html><body><pre id="result">running</pre><script type="module">
+import {FlightAudio} from '/audio.js';
+const render=async({inside=false,burner=false,muted=false,dead=false,events=false,volume=1}={})=>{
+ const ctx=new OfflineAudioContext(2,48000*2,48000),Native=window.AudioContext;window.AudioContext=function(){return ctx};
+ const audio=new FlightAudio({speech:null,Utterance:null});audio.init();window.AudioContext=Native;audio.enabled=!muted;audio.setVolume(volume);
+ const p={id:'pilot',pos:{x:0,y:1000,z:0},yaw:0,pitch:0,roll:0,speed:300,throttle:burner?1.1:1,afterburnerActive:burner,fuelKg:100,engineHealth:1,gLoad:1,gunShots:0,dead};
+ audio.update(p,true,events?{type:'missile',range:100}:null,inside?'cockpit':'chase');
+ if(events)for(const type of ['launch','gun-hit','counter','damage','target','landed'])audio.event(type);
+ const scheduledVoices=audio.voices.size;const output=await ctx.startRendering();let peak=0,sum=0,finite=true;for(let ch=0;ch<2;ch++)for(const sample of output.getChannelData(ch)){peak=Math.max(peak,Math.abs(sample));sum+=sample*sample;finite&&=Number.isFinite(sample)}
+ return{peak,rms:Math.sqrt(sum/(output.length*2)),finite,scheduledVoices,voices:audio.voices.size};
+};
+try{
+ const mixes={};for(const [name,options]of Object.entries({dry:{},cockpit:{inside:true},burner:{burner:true},muted:{muted:true},zero:{volume:0},quiet:{volume:.2},dead:{dead:true},events:{events:true}}))mixes[name]=await render(options);
+ const errors=[];for(const [name,mix] of Object.entries(mixes)){if(!mix.finite||mix.peak>=1)errors.push(name+' invalid/clipped');if(['muted','zero','dead'].includes(name)){if(mix.peak!==0)errors.push(name+' audible');}else if(mix.rms<.0001)errors.push(name+' silent');if(mix.voices)errors.push(name+' leaked voice');}
+ if(mixes.burner.rms<=mixes.dry.rms)errors.push('burner quieter');if(mixes.cockpit.rms>=mixes.dry.rms)errors.push('cockpit louder');if(mixes.quiet.rms>=mixes.dry.rms)errors.push('volume ineffective');
+ document.querySelector('#result').textContent=JSON.stringify({passed:!errors.length,errors,mixes});
+}catch(error){document.querySelector('#result').textContent=JSON.stringify({error:String(error),stack:error.stack});}
+</script></body></html>

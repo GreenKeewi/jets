@@ -1,14 +1,16 @@
-// Signed pilot-axis specific force, light visual feedback and gentle airframe wear.
+// Signed pilot-axis specific force, bounded tunnel vision and gentle airframe wear.
 // See flight-model.md for sources, envelopes and non-medical tuning assumptions.
 import {viewAxes,flightForward} from './view-axes.js';
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const dot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
 const G=9.81;
 // Cosmetic vignette and gently accumulated airframe wear, never physiology.
-export const G_EFFECTS=Object.freeze({maxVision:.12,wearPositive:7.5,wearNegative:-2,wearDelay:5,wearRate:.15,maxWear:10});
-export const freshPilotG=()=>({normalLoad:1,gLoad:1,gVision:0,contactLoad:0,gWearTime:0,airframeWear:0,gWearActive:false});
+export const G_EFFECTS=Object.freeze({maxVision:.5,wearPositive:7.5,wearNegative:-2,wearDelay:5,wearRate:.15,maxWear:10});
+const LEGACY_G=Object.freeze({blackedOut:false,gRedout:0,gBlackoutTime:0,gNeedsRelease:false,gUnloading:false,gExposure:0,gNegativeExposure:0});
+export const freshPilotG=()=>({...LEGACY_G,normalLoad:1,gLoad:1,gVision:0,contactLoad:0,gWearTime:0,airframeWear:0,gWearActive:false});
 export function sanitizePilotG(p){
- for(const key of ['blackedOut','gRedout','gBlackoutTime','gNeedsRelease','gUnloading','gExposure','gNegativeExposure'])delete p[key];
+ // Keep legacy wire fields neutral so old snapshots cannot restore a lockout.
+ Object.assign(p,LEGACY_G);
  p.gVision=clamp(Number(p.gVision)||0,0,G_EFFECTS.maxVision);
  p.airframeWear=clamp(Number(p.airframeWear)||0,0,G_EFFECTS.maxWear);
  p.gWearTime=Number.isFinite(p.gWearTime)?clamp(p.gWearTime,0,120):0;
@@ -21,9 +23,10 @@ export function signedPilotLoad(before,after,up,dt){
 }
 // Limit the commanded flight-path change BEFORE movement. HUD loads are never
 // clipped. The same controller protects normal, advanced and bot flight.
+export const flightEnvelopeFor=p=>p.bomber?{min:-1.5,max:3.5}:{min:-3,max:(p.aircraftId??'f16')==='f16'&&p.aoaLimiterOff===true?12:9};
 export function limitFlightEnvelope(p,previous,dt){
  if(p.grounded||!(dt>0))return;
- const min=p.bomber?-1.5:-3,max=p.bomber?3.5:9;
+ const {min,max}=flightEnvelopeFor(p);
  const old=flightForward(previous),desired={pitch:p.pitch,yaw:p.yaw,roll:p.roll};
  const angle=x=>Math.atan2(Math.sin(x),Math.cos(x));
  const apply=t=>{for(const key of ['pitch','yaw','roll'])p[key]=previous[key]+angle(desired[key]-previous[key])*t;};
@@ -37,7 +40,7 @@ export function pilotGInput(p,input={}){
  sanitizePilotG(p);if(!Number.isFinite(p.gLoad))p.gLoad=1;
  return input; // Every control and weapon remains available at every G load.
 }
-// Legacy export name retained for callers; no physiological impairment remains.
+// Legacy export name retained for callers; tunnel vision never locks controls.
 export function advancePilotPhysiology(p,load,dt){
  sanitizePilotG(p);if(!(dt>0))return;
  if(!Number.isFinite(p.gLoad))p.gLoad=1;

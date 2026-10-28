@@ -1,0 +1,55 @@
+TAP version 13
+# Subtest: terrain prediction detects rising terrain during level flight, not a blanket altitude threshold
+ok 1 - terrain prediction detects rising terrain during level flight, not a blanket altitude threshold
+  ---
+  duration_ms: 6.769189
+  ...
+# Subtest: default prediction samples actual authored ridge and uses arcade movement velocity
+ok 2 - default prediction samples actual authored ridge and uses arcade movement velocity
+  ---
+  duration_ms: 2.584958
+  ...
+# Subtest: prediction uses sink rate and actual vertical velocity and bounds terrain work
+ok 3 - prediction uses sink rate and actual vertical velocity and bounds terrain work
+  ---
+  duration_ms: 3.425894
+  ...
+# Subtest: qualifying runway landing is quiet but unsafe gear-up descent remains a warning
+ok 4 - qualifying runway landing is quiet but unsafe gear-up descent remains a warning
+  ---
+  duration_ms: 3.741173
+  ...
+# Subtest: one speech channel prioritizes terrain and immediately preempts it with pull up
+ok 5 - one speech channel prioritizes terrain and immediately preempts it with pull up
+  ---
+  duration_ms: 2.452531
+  ...
+# Subtest: G and bank warnings require sustained excursions, prefer G and use release hysteresis
+ok 6 - G and bank warnings require sustained excursions, prefer G and use release hysteresis
+  ---
+  duration_ms: 1.729706
+  ...
+# Subtest: negative G and bomber load limits are aircraft specific
+ok 7 - negative G and bomber load limits are aircraft specific
+  ---
+  duration_ms: 2.283292
+  ...
+# Subtest: pause, menu, death, ground, disable, zero volume and cleanup cancel owned speech
+ok 8 - pause, menu, death, ground, disable, zero volume and cleanup cancel owned speech
+  ---
+  duration_ms: 1.57494
+  ...
+# Subtest: speech needs a gesture, falls back without browser support and respects voice/master settings
+ok 9 - speech needs a gesture, falls back without browser support and respects voice/master settings
+  ---
+  duration_ms: 5.279609
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 67.648598

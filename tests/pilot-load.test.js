@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {freshPilotG,signedPilotLoad,advancePilotPhysiology,physicalVelocity,updatePilotG,limitFlightEnvelope,pilotGInput,advanceAirframeWear,G_EFFECTS} from '../pilot-g.js';
+import {freshPilotG,signedPilotLoad,advancePilotPhysiology,physicalVelocity,updatePilotG,limitFlightEnvelope,flightEnvelopeFor,pilotGInput,advanceAirframeWear,G_EFFECTS} from '../pilot-g.js';
 import {advanceAttitude} from '../attitude.js';
 import {viewAxes} from '../view-axes.js';
 import {createGame,step,snapshot,applySnapshot} from '../sim.js';
@@ -33,12 +33,12 @@ test('normal control flight-path limiter changes actual turn instead of clipping
  limitFlightEnvelope(plane,previous,1/60);assert(plane.envelopeLimited);assert(plane.yaw<.2);
  const measured=signedPilotLoad(physicalVelocity(previous),physicalVelocity(plane),viewAxes(plane,plane.roll).up,1/60);assert(measured<=9+1e-5);
 });
-test('all loads and durations retain controls with only a light bounded vignette',()=>{
+test('all loads and durations retain controls with stronger bounded tunnel vision',()=>{
  for(const dt of [1/30,1/60,1/144])for(const load of [1,6,9,-3,-40,40]){
   const plane={...p(),blackedOut:true,gRedout:1,gNeedsRelease:true,gVision:1,gUnloading:true};
   const input={pitch:1,roll:-1,yaw:1,fireGun:true,flare:true,bomb:true};
   for(let n=0;n<120/dt;n++){advancePilotPhysiology(plane,load,dt);assert.deepEqual(pilotGInput(plane,input),input);}
-  assert(plane.gVision<=.12);assert.equal(plane.blackedOut,undefined);assert.equal(plane.gRedout,undefined);
+  assert(plane.gVision<=G_EFFECTS.maxVision&&plane.gVision<1);assert.equal(plane.blackedOut,false);assert.equal(plane.gRedout,0);assert.equal(plane.gNeedsRelease,false);
   for(let n=0;n<3/dt;n++)advancePilotPhysiology(plane,1,dt);assert(plane.gVision<.001);
  }
 });
@@ -57,9 +57,30 @@ test('home landing repairs high-G wear through existing service',()=>{
 });
 test('legacy snapshot blackout and redout cannot re-enable removed behavior',()=>{
  const game=createGame(),s=snapshot(game);Object.assign(s.pilots[0],{blackedOut:true,gRedout:1,gNeedsRelease:true,gVision:1});assert(applySnapshot(game,s));
- assert.equal(game.pilots[0].blackedOut,undefined);assert.equal(game.pilots[0].gRedout,undefined);assert(game.pilots[0].gVision<=G_EFFECTS.maxVision);
+ assert.equal(game.pilots[0].blackedOut,false);assert.equal(game.pilots[0].gRedout,0);assert(game.pilots[0].gVision<=G_EFFECTS.maxVision);
 });
 test('contact impulses do not cause sustained wear',()=>{
  const plane={...p(),hp:100,grounded:true};updatePilotG(plane,{x:0,y:-12,z:100},{x:0,y:0,z:90},1/60,false,{velocities:true});advanceAirframeWear(plane,1/60);
  assert(plane.contactLoad>40);assert.equal(plane.normalLoad,1);assert.equal(plane.hp,100);
+});
+
+test('F-16 limiter override raises a finite commanded envelope, never bomber or other fighters',()=>{
+ for(const dt of [1/30,1/60,1/144]){
+  let normal,override;
+  for(const off of [false,true]){
+   const plane={...p(),aircraftId:'f16',aoaLimiterOff:off},before={...plane};plane.pitch=.2;
+   limitFlightEnvelope(plane,before,dt);
+   const load=signedPilotLoad(physicalVelocity(before),physicalVelocity(plane),viewAxes(plane,plane.roll).up,dt);
+   assert(load<=(off?12:9)+1e-5);assert(load>(off?11.9:8.9));
+   if(off)override=plane.pitch;else normal=plane.pitch;
+  }
+  assert(override>normal);
+ }
+ assert.deepEqual(flightEnvelopeFor({bomber:true,aoaLimiterOff:true}),{min:-1.5,max:3.5});
+ for(const aircraftId of ['fa18e','su37'])assert.deepEqual(flightEnvelopeFor({aircraftId,aoaLimiterOff:true}),{min:-3,max:9});
+});
+test('tunnel cue is visible under sustained high load, recovers, and retains neutral legacy wire fields',()=>{
+ const plane=p();for(let n=0;n<180;n++)advancePilotPhysiology(plane,9,1/60);
+ assert(plane.gVision>.45&&plane.gVision<=G_EFFECTS.maxVision);assert.equal(plane.blackedOut,false);assert.equal(plane.gBlackoutTime,0);
+ for(let n=0;n<180;n++)advancePilotPhysiology(plane,1,1/60);assert(plane.gVision<.001);
 });

@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: native menu controller starts requested asymmetric and capped custom bot squads
+ok 1 - native menu controller starts requested asymmetric and capped custom bot squads
+  ---
+  duration_ms: 93.187305
+  ...
+# Subtest: native aircraft stations expose compatibility, preserve each fighter choice and summarize full external tanks
+ok 2 - native aircraft stations expose compatibility, preserve each fighter choice and summarize full external tanks
+  ---
+  duration_ms: 9.904592
+  ...
+# Subtest: browser aircraft preferences roundtrip normalized choices and malformed stored assignments stay bounded
+ok 3 - browser aircraft preferences roundtrip normalized choices and malformed stored assignments stay bounded
+  ---
+  duration_ms: 31.157438
+  ...
+# Subtest: R and respawn button rejoin without menu, preserve the match clock and score
+ok 4 - R and respawn button rejoin without menu, preserve the match clock and score
+  ---
+  duration_ms: 24.362742
+  ...
+# Subtest: respawn countdown, pause and live player prevent an accidental restart
+ok 5 - respawn countdown, pause and live player prevent an accidental restart
+  ---
+  duration_ms: 35.30267
+  ...
+# Subtest: network launch strips solo skirmish settings and preserves classic seats
+ok 6 - network launch strips solo skirmish settings and preserves classic seats
+  ---
+  duration_ms: 13.489023
+  ...
+# Subtest: lock warnings and Mach HUD update without missing elements
+ok 7 - lock warnings and Mach HUD update without missing elements
+  ---
+  duration_ms: 12.69132
+  ...
+# Subtest: defeated or expired seekers cannot keep the countermeasure ready hint active
+ok 8 - defeated or expired seekers cannot keep the countermeasure ready hint active
+  ---
+  duration_ms: 1.217158
+  ...
+# Subtest: dedicated server drives guest snapshots, controls, authoritative respawn and safe disconnect
+ok 9 - dedicated server drives guest snapshots, controls, authoritative respawn and safe disconnect
+  ---
+  duration_ms: 28.545817
+  ...
+# Subtest: a late peer join starts on home pavement instead of taking an airborne AI seat
+ok 10 - a late peer join starts on home pavement instead of taking an airborne AI seat
+  ---
+  duration_ms: 11.029701
+  ...
+# Subtest: late join preserves enemy AI in asymmetric co-op with reinforcements off
+ok 11 - late join preserves enemy AI in asymmetric co-op with reinforcements off
+  ---
+  duration_ms: 14.276281
+  ...
+# Subtest: a user flight key restores audio after a pagehide disposal and resumed page
+ok 12 - a user flight key restores audio after a pagehide disposal and resumed page
+  ---
+  duration_ms: 9.697578
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 313.827135

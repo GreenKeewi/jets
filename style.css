@@ -122,6 +122,16 @@ body.graphics-ready #menu{background:transparent}
 #menu .mission-config select{display:block;width:100%;min-width:0!important;min-height:33px;margin-top:5px;padding:7px 20px 7px 8px;border:1px solid #a7c0c13b;border-radius:2px;background:#14262ee8;color:#e0e8e4;font:11px Arial,Helvetica,sans-serif;letter-spacing:0}
 #menu .mission-config p{grid-column:1/-1;margin:0;min-width:0;max-width:none;font-size:10px;line-height:1.5;color:#92a7ae}
 #menu .fuel-hint{font-size:9px;line-height:1.4;margin:6px 0 0;color:#7e969f}
+#menu .aircraft-config{min-width:0;margin:5px 0 13px;padding:10px;border:1px solid #a7c0c133;border-radius:2px;background:#12263099}
+#menu .aircraft-config legend{padding:0 5px;font-size:10px;color:#c8d8d3;letter-spacing:.2px}
+#menu .aircraft-config label{display:block;min-width:0;font:9px ui-monospace,SFMono-Regular,Consolas,monospace;color:#9aaeb4;line-height:1.3}
+#menu .aircraft-config select{display:block;width:100%;min-width:0;min-height:34px;margin-top:5px;padding:7px 22px 7px 8px;border:1px solid #a7c0c13b;border-radius:2px;background:#14262e;color:#e0e8e4;font:11px Arial,Helvetica,sans-serif}
+#menu #aircraft-description{margin:7px 0 9px;color:#92a7ae;font-size:10px;line-height:1.4}
+#menu #loadout-editor>summary{min-height:30px;padding:5px 0;color:#c2d3cf;font-size:10px;cursor:pointer}
+#menu .loadout-stations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 10px;margin:7px 0 10px}
+#menu .loadout-stations label:last-child:nth-child(odd){grid-column:1/-1}
+#menu #loadout-hint{margin:6px 0 10px;font-size:9px;line-height:1.5;color:#91a9af}
+#menu #loadout-summary{display:block;border-top:1px solid #a7c0c124;margin-top:5px;padding-top:9px;color:#d0dfd7;font-size:10px;line-height:1.5;font-variant-numeric:tabular-nums}
 #menu .sortie-note{font-size:9px;line-height:1.4;letter-spacing:0;margin:6px 0 0;color:#a0b5b6}
 #menu #bot-roster{margin:9px 0 0;padding:8px 10px;background:#122630;border-radius:2px;border-color:#a7c0c133}
 #menu #bot-roster legend{font-size:9px;letter-spacing:0}
@@ -175,3 +185,16 @@ body:not(.graphics-ready) #menu .menu-scene-label{display:none}
 @media(max-width:560px){#g-warning{right:12px;top:300px;max-width:190px;font-size:9px}}
 
 #enemy-respawn-note{font-size:11px;line-height:1.4;color:#e4dcc0;letter-spacing:0}#enemy-respawn-note[hidden]{display:none}
+
+/* Keep transient messages and target details in the lower HUD, clear of aim. */
+#hud{--combat-hud-bottom:24px}
+#combat-readout{position:absolute;left:50%;bottom:var(--combat-hud-bottom);transform:translateX(-50%);width:min(420px,calc(100vw - 640px));min-width:230px;display:flex;flex-direction:column;align-items:center;gap:7px;padding:10px 15px 13px;border:1px solid #d4edda55;border-radius:7px;background:#102e39dc;color:#ffca9f;text-align:center;font:10px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.4px}
+#combat-readout.locked{border-color:#b2f3cf99;color:var(--mint)}
+#combat-readout #target-label{display:block;white-space:normal}
+#combat-readout #target-lock{position:static;white-space:normal;font-size:8px;font-weight:700;letter-spacing:1px}
+#combat-readout .lock-track{left:15px;right:15px;bottom:5px}
+#hud #toast{bottom:calc(var(--combat-hud-bottom) + 88px);width:max-content;max-width:min(480px,calc(100vw - 48px));padding:10px 16px;font-size:11px;line-height:1.5}
+@media(min-width:601px) and (max-width:1300px){#hud{--combat-hud-bottom:112px}}
+@media(max-width:1000px){#combat-readout{width:270px;min-width:0}#hud.expanded-instruments #combat-readout{bottom:158px}#hud.expanded-instruments #toast{bottom:246px}}
+@media(max-width:600px){#hud{--combat-hud-bottom:152px}#combat-readout{width:calc(100vw - 36px);max-width:360px;padding:8px 12px 11px;font-size:9px}#hud #toast{bottom:calc(var(--combat-hud-bottom) + 78px);font-size:10px;padding:8px 12px}#hud.expanded-instruments #combat-readout{bottom:var(--combat-hud-bottom)}#hud.expanded-instruments #toast{bottom:calc(var(--combat-hud-bottom) + 78px)}}
+@media(max-height:500px){#hud{--combat-hud-bottom:16px}#combat-readout,#hud.expanded-instruments #combat-readout{left:auto;right:16px;bottom:16px;transform:none;width:240px;max-width:40vw;font-size:8px}#hud #toast,#hud.expanded-instruments #toast{bottom:96px;font-size:10px;max-width:55vw}#hud.expanded-instruments .radar-block{bottom:98px;width:92px}#hud.expanded-instruments #radar{width:92px;height:92px}}

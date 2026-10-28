@@ -1,15 +1,16 @@
+import {AIRCRAFT_DEFINITIONS,validLoadout} from './loadouts.js?v=skybreak110-1028';
 import {assignTeam,fillTeams,validAssignments} from './lobby-teams.js';
 // Data-only WebRTC. Room codes use PeerJS Cloud signaling and public STUN.
 // Advanced manual LAN pairing stays available without external services.
 // Protocol: ordered reliable control/actions; unordered zero-retransmit axes/snapshots.
-export const PROTOCOL = 'JETS8';
+export const PROTOCOL = 'JETS9';
 // Room handshake compatibility changes only when the transport/game protocol changes.
-export const ROOM_BUILD = 'skybreak14-1023';
+export const ROOM_BUILD = 'skybreak110-1028';
 // Asset versions stay separate so fresh invites load the current page without
 // rejecting an already connected player using compatible gameplay packets.
 export const CLIENT_BUILD = new URL(import.meta.url).searchParams.get('v') || 'rooms3-1019';
-export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb', 'toggleAirbrake', 'toggleGear', 'toggleManeuver'];
-export { mountNetworkUI } from './network-ui.js?v=skybreak14-1023';
+export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb', 'toggleAirbrake', 'toggleGear', 'toggleManeuver', 'toggleAoaLimiter'];
+export { mountNetworkUI } from './network-ui.js?v=skybreak110-1028';
 // PeerJS 1.5.5 registers its pass-through serializer as 'raw' (not 'none').
 const ROOM_SERIALIZATION = 'raw';
 const ROOM_ICE = { iceServers: [{ urls: 'stun:stun.cloudflare.com:3478' }] };
@@ -38,7 +39,7 @@ export function roomInviteLink(code, href = globalThis.location?.href) {
 const HELD = ['fireGun'];
 const GUN_INPUT_EXPIRY = 250;
 const AXES = ['pitch', 'roll', 'yaw', 'throttle'];
-const COOLDOWN = { fireHeat: 250, fireRadar: 400, flare: 0, chaff: 0, bomb: 300, toggleAirbrake: 150, toggleGear: 150, toggleManeuver: 150 };
+const COOLDOWN = { fireHeat: 250, fireRadar: 400, flare: 0, chaff: 0, bomb: 300, toggleAirbrake: 150, toggleGear: 150, toggleManeuver: 150, toggleAoaLimiter:150 };
 const MAX_PACKET = 60000;
 const HIGH_WATER = 131072;
 const neutral = () => Object.fromEntries([...AXES.map(k => [k, 0]), ...[...ACTIONS, ...HELD].map(k => [k, false]), ['brake', false], ['autopilot',false]]);
@@ -153,7 +154,11 @@ export function createInputGuard(clock = now) {
 }
 
 const validEnemyRespawn = value => [0,15,30,60].includes(value);
+const validMatchSettings = value => plain(value)&&Object.keys(value).every(key=>['teamSize','enemyTeamSize'].includes(key))&&[1,2,3].includes(value.teamSize)&&[1,2,3,4].includes(value.enemyTeamSize);
 function validConfig(config) {
+  if(config?.aircraftId!==undefined&&!Object.hasOwn(AIRCRAFT_DEFINITIONS,config.aircraftId)||config?.loadout!==undefined&&!validLoadout(config.aircraftId||'f16',config.loadout))return false;
+  if(config?.enemyTeamSize!==undefined&&(![1,2,3,4].includes(config.enemyTeamSize)||config.mode!=='dogfight'||![0,1].includes(config.coopTeam)||!plain(config.playerTeams)||Object.values(config.playerTeams).some(team=>team!==config.coopTeam)))return false;
+  if(config?.teamSizes!==undefined&&(!Array.isArray(config.teamSizes)||config.teamSizes.length!==2||config.teamSizes.some(n=>!Number.isInteger(n)||n<1||n>4)))return false;
   if (!plain(config) || config.enemyRespawnSeconds !== undefined && !validEnemyRespawn(config.enemyRespawnSeconds) || config.coopTeam !== undefined && ![0,1].includes(config.coopTeam)) return false;
   if (config.enemyRespawnSeconds && (config.mode !== 'dogfight' || ![0,1].includes(config.coopTeam) || !plain(config.playerTeams) || config.playerTeams.host !== config.coopTeam || Object.values(config.playerTeams).some(team => team !== config.coopTeam))) return false;
   return plain(config) && (config.playerTeams===undefined||validAssignments(config.playerTeams,['host','p1','p2','p3','p4','p5'])) && ['dogfight', 'strike', 'freeflight'].includes(config.mode) && [1, 2, 3].includes(config.teamSize) && ['attack', 'defend'].includes(config.role) && (config.seed === undefined || typeof config.seed === 'number' && Number.isFinite(config.seed)) && (config.startingFuel === undefined || Number.isFinite(config.startingFuel) && config.startingFuel >= .25 && config.startingFuel <= 1) && (config.difficulty === undefined || ['normal','ace'].includes(config.difficulty)) && (config.routeId === undefined || ['local','northpoint','westhaven'].includes(config.routeId)) && (config.arenaId === undefined || ['coast','valley'].includes(config.arenaId));
@@ -161,14 +166,14 @@ function validConfig(config) {
 
 export function createNetwork(callbacks = {}) {
   const connections = new Map(), inputs = new Map(), listeners = new Set();
-  let role = 'offline', localId = null, sessionId = null, diagnostic = 'Solo ready. Pairing is optional.', roster = [], teams = {host:0}, teamsLocked = false, enemyRespawnSeconds = 0;
+  let role = 'offline', localId = null, sessionId = null, diagnostic = 'Solo ready. Pairing is optional.', roster = [], teams = {host:0}, teamsLocked = false, enemyRespawnSeconds = 0, matchSettings={teamSize:1,enemyTeamSize:4};
   let axesSeq = 0, actionsSeq = 0, snapshotSeq = 0, controlSeq = 0, lastAxes = -Infinity, lastSnapshot = -Infinity;
   let inputGeneration = 0;
   let room = null, roomPeer = null, roomEpoch = 0, roomOpening = false;
   let snapshots = [], currentControl = null, currentPaused = false, lastControlSeq = -1, lastSnapshotValue = null;
   const lastSentAction = Object.fromEntries(ACTIONS.map(k => [k, -Infinity]));
   const stats = { received: 0, rejected: 0, droppedSnapshots: 0, droppedInputs: 0 };
-  const state = () => ({ role, localId, sessionId, inputGeneration, teams:{...teams}, teamsLocked, enemyRespawnSeconds, roomCode: room, roomOpening, roomOnline: !!roomPeer?.open, connecting: [...connections.values()].some(p => !p.ready), connected: role === 'host' || [...connections.values()].some(p => p.ready), peers: role === 'guest' ? roster.map(id => ({ id, connected: true, status: 'connected' })) : [...connections.values()].map(p => ({ id: p.id, connected: p.ready, status: p.pc.connectionState === 'new' ? (p.roomConnection ? 'joining' : 'awaiting answer') : p.pc.connectionState })), diagnostic, stats: { ...stats } });
+  const state = () => ({ role, localId, sessionId, inputGeneration, teams:{...teams}, teamsLocked, enemyRespawnSeconds, matchSettings:{...matchSettings}, roomCode: room, roomOpening, roomOnline: !!roomPeer?.open, connecting: [...connections.values()].some(p => !p.ready), connected: role === 'host' || [...connections.values()].some(p => p.ready), peers: role === 'guest' ? roster.map(id => ({ id, connected: true, status: 'connected' })) : [...connections.values()].map(p => ({ id: p.id, connected: p.ready, status: p.pc.connectionState === 'new' ? (p.roomConnection ? 'joining' : 'awaiting answer') : p.pc.connectionState })), diagnostic, stats: { ...stats } });
   const emit = () => { const s = state(); for (const f of listeners) f(s); callbacks.onPeerChange?.(s.peers, s); callbacks.onState?.(s); };
   const setStatus = message => { diagnostic = message; emit(); };
   const playerIds = () => role === 'host' ? ['host', ...[...connections.values()].filter(p => p.ready).map(p => p.id).sort()] : role === 'guest' ? ['host', ...roster] : [];
@@ -213,10 +218,10 @@ export function createNetwork(callbacks = {}) {
   function broadcastRoster() {
     if (role !== 'host') return;
     const all=playerIds();
-    const coopTeam=teamsLocked && currentControl?.config?.enemyRespawnSeconds ? currentControl.config.coopTeam : undefined;
+    const coopTeam=teamsLocked && (currentControl?.config?.enemyRespawnSeconds||currentControl?.config?.enemyTeamSize) ? currentControl.config.coopTeam : undefined;
     if(coopTeam!==undefined)for(const id of all)if(teams[id]===undefined && Object.values(teams).filter(team=>team===coopTeam).length<3)teams[id]=coopTeam;
     const current=fillTeams(Object.fromEntries(all.filter(id=>teams[id]!==undefined).map(id=>[id,teams[id]])),all);if(teamsLocked)Object.assign(teams,current);else teams=current;const ids = all.slice(1);
-    for (const p of connections.values()) if (p.ready) send(p, 'control', { t: 'roster', ids,teams:current,locked:teamsLocked,enemyRespawnSeconds });
+    for (const p of connections.values()) if (p.ready) send(p, 'control', { t: 'roster', ids,teams:current,locked:teamsLocked,enemyRespawnSeconds,matchSettings });
   }
   function drop(p, message) {
     if (connections.get(p.id) !== p) return;
@@ -284,7 +289,7 @@ export function createNetwork(callbacks = {}) {
       return;
     }
     if (packet.t === 'welcome' && /^p[1-5]$/.test(packet.id) && /^[\w-]{16,64}$/.test(packet.session) && (p.roomConnection && !p.assignedId || packet.id === p.assignedId && packet.session === sessionId) && validSeq(packet.g) && packet.g >= inputGeneration) { p.assignedId = packet.id; sessionId = packet.session; localId = packet.id; resetInputs(packet.g); emit(); }
-    else if (packet.t === 'roster' && Array.isArray(packet.ids) && packet.ids.length <= 5 && packet.ids.every(id => /^p[1-5]$/.test(id)) && new Set(packet.ids).size === packet.ids.length && validAssignments(packet.teams,['host',...packet.ids]) && typeof packet.locked==='boolean' && validEnemyRespawn(packet.enemyRespawnSeconds)) { enemyRespawnSeconds=packet.enemyRespawnSeconds; roster = packet.ids; teams={...packet.teams};teamsLocked=packet.locked;emit(); }
+    else if (packet.t === 'roster' && Array.isArray(packet.ids) && packet.ids.length <= 5 && packet.ids.every(id => /^p[1-5]$/.test(id)) && new Set(packet.ids).size === packet.ids.length && validAssignments(packet.teams,['host',...packet.ids]) && typeof packet.locked==='boolean' && validEnemyRespawn(packet.enemyRespawnSeconds)&& (packet.matchSettings===undefined||validMatchSettings(packet.matchSettings))) { if(packet.matchSettings)matchSettings={...packet.matchSettings};enemyRespawnSeconds=packet.enemyRespawnSeconds; roster = packet.ids; teams={...packet.teams};teamsLocked=packet.locked;emit(); }
     else if (packet.t === 'game' && validSeq(packet.q) && packet.q > lastControlSeq && validSeq(packet.g) && packet.g >= inputGeneration && plain(packet.message) && ((packet.message.type === 'start' && validConfig(packet.message.config)) || ['restart', 'pause', 'resume', 'return'].includes(packet.message.type))) {
       lastControlSeq = packet.q; resetInputs(packet.g); snapshots = [];if(packet.message.type==='start')teamsLocked=true;if(packet.message.type==='return')teamsLocked=false;emit(); callbacks.onControl?.(packet.message);
     } else stats.rejected++;
@@ -398,7 +403,7 @@ export function createNetwork(callbacks = {}) {
   }
   function disconnect() {
     roomEpoch++; roomOpening = false; room = null; const oldPeer = roomPeer; roomPeer = null;
-    role = 'offline'; localId = null; sessionId = null; roster = []; teams={host:0};teamsLocked=false;enemyRespawnSeconds=0; snapshots = []; currentControl = null; currentPaused = false; lastControlSeq = -1; lastSnapshotValue = null; inputGeneration = 0;
+    role = 'offline'; localId = null; sessionId = null; roster = []; teams={host:0};teamsLocked=false;enemyRespawnSeconds=0;matchSettings={teamSize:1,enemyTeamSize:4}; snapshots = []; currentControl = null; currentPaused = false; lastControlSeq = -1; lastSnapshotValue = null; inputGeneration = 0;
     for (const p of [...connections.values()]) drop(p);
     oldPeer?.destroy();
     inputs.clear(); diagnostic = 'Solo ready. Pairing is optional.'; emit();
@@ -557,6 +562,7 @@ export function createNetwork(callbacks = {}) {
     },
     getPlayerIds: playerIds,
     getEnemyRespawn:()=>enemyRespawnSeconds,
+    setMatchSettings(partial){if(role!=='host'||teamsLocked||!plain(partial))return false;const next={...matchSettings,...partial};if(!validMatchSettings(next))return false;matchSettings=next;broadcastRoster();emit();return true;},
     setEnemyRespawn(seconds){seconds=[120,180,300].includes(seconds)?30:seconds;if(role!=='host'||teamsLocked||!validEnemyRespawn(seconds))return false;enemyRespawnSeconds=seconds;broadcastRoster();emit();return true;},
     getTeams:()=>Object.fromEntries(playerIds().map(id=>[id,teams[id]])),
     setTeam(id,team){if(teamsLocked)return false;if(role==='host'){if(!assignTeam(teams,playerIds(),id,team))return false;broadcastRoster();emit();return true;}if(role==='guest'&&id===localId)return send(connections.get('host'),'control',{t:'team',team});return false;},

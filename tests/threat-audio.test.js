@@ -13,3 +13,11 @@ test('launched heat and radar missiles have distinct tones and become urgent by 
  assert(closing.urgent&&close.urgent);assert(closing.period<radar.period);assert(closing.gain>radar.gain);
  assert.equal(threatAudioProfile(null),null);
 });
+test('generic missile cue reveals no seeker information',()=>{
+ const generic=threatAudioProfile({type:'missile',range:800,timeToImpact:3});
+ assert.equal(generic.type,'missile');assert.equal(generic.urgent,true);
+ assert.deepEqual(generic,threatAudioProfile({type:'missile',kind:'heat',range:800,timeToImpact:3}));
+ assert.deepEqual(generic,threatAudioProfile({type:'missile',kind:'radar',range:800,timeToImpact:3}));
+ assert.notEqual(generic.frequency,threatAudioProfile({type:'heat',range:800}).frequency);
+ assert.notEqual(generic.frequency,threatAudioProfile({type:'radar',range:800}).frequency);
+});

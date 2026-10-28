@@ -1,9 +1,10 @@
 import * as THREE from './vendor/three.module.js';
+import {normalizeAircraftId} from './loadouts.js?v=skybreak110-1028';
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,Number(n)||0));
 // Original low-poly cockpit. Eye-space rendering keeps near geometry independent
 // of the world's kilometre-scale depth range and the speed-dependent outside FOV.
 export class CockpitInterior{
- constructor(){
+ constructor(aircraftId='f16'){
   this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(58,1,.05,20);this.root=new THREE.Group();this.scene.add(this.root);
   this.scene.add(new THREE.HemisphereLight(0xc6e8e6,0x19232c,2.2));const light=new THREE.DirectionalLight(0xffe8c7,2);light.position.set(-3,5,1);this.scene.add(light);
   const mat=color=>new THREE.MeshStandardMaterial({color,roughness:.9,metalness:.15});
@@ -26,20 +27,47 @@ export class CockpitInterior{
   box(this.root,[.32,.08,.6],[-.68,-.62,-1.1],black);
   this.throttle=new THREE.Group();this.throttle.position.set(-.68,-.59,-.95);this.root.add(this.throttle);
   rod(this.throttle,[0,0,0],[0,.19,0],.025,metal);box(this.throttle,[.23,.1,.14],[0,.22,0],black);box(this.throttle,[.16,.015,.08],[0,.278,0],amber);
-  box(this.root,[.28,.12,.32],[0,-.88,-1.1],black);
+  this.stickBase=box(this.root,[.28,.12,.32],[0,-.88,-1.1],black);
   this.stick=new THREE.Group();this.stick.position.set(0,-.82,-1.1);this.root.add(this.stick);
   rod(this.stick,[0,0,0],[0,.34,0],.035,metal);rod(this.stick,[0,.3,0],[0,.47,0],.065,black);box(this.stick,[.035,.025,.035],[.025,.49,0],amber);
+  // Separate arm chains: right hand follows the stick, left hand the throttle.
+  // The F-16 layout follows the USAF side-stick description and NASA TP-2857
+  // figure 10 (right-hand sidestick); geometry and readable travel are simplified.
+  this.arms={};
+  for(const [side,name,control]of [[-1,'left','throttle'],[1,'right','stick']]){
+   const group=new THREE.Group();group.name=`${name}-arm`;this.root.add(group);
+   const upper=new THREE.Mesh(new THREE.CylinderGeometry(.086,.1,1,10),cloth),forearm=new THREE.Mesh(new THREE.CylinderGeometry(.075,.086,1,10),cloth),hand=box(group,[.145,.13,.19],[0,0,0],boot);group.add(upper,forearm);
+   this.arms[name]={group,upper,forearm,hand,side,control,shoulder:new THREE.Vector3(side*.48,-.32,-.31)};
+  }
+  this.rightArm=this.arms.right;this.leftArm=this.arms.left;
   // Narrow side walls imply a seated enclosure without covering the aiming area.
   this.pose={pitch:0,roll:0,yaw:0,throttle:0};
-  this.fighterRoot=this.root;this.bomber=buildBomber();this.scene.add(this.bomber.root);this.bomber.root.visible=false;this.activeType='fighter';
+  this.fighterRoot=this.root;this.fighterRoot.position.y=-.06;this.setAircraft(aircraftId);this.bomber=buildBomber();this.scene.add(this.bomber.root);this.bomber.root.visible=false;this.activeType='fighter';this.poseArms();
+ }
+ setAircraft(id){
+  const aircraftId=normalizeAircraftId(id);if(this.aircraftId===aircraftId)return;
+  // MAKS' Su-37 prototype retrospective also identifies a side stick.
+  this.aircraftId=aircraftId;const sideStick=aircraftId==='f16'||aircraftId==='su37',x=sideStick?.65:0;
+  this.stick.position.x=x;this.stickBase.position.x=x;this.stick.name=sideStick?'right-side-stick':'center-stick';this.controlLayout=sideStick?'right-side-stick':'center-stick';
+  this.fighterRoot.userData={aircraftId,controlLayout:this.controlLayout,visualModel:'Simplified original cockpit'};
+ }
+ poseArms(){
+  const targets={right:new THREE.Vector3(0,.43,0).applyQuaternion(this.stick.quaternion).add(this.stick.position),left:new THREE.Vector3(0,.22,0).applyQuaternion(this.throttle.quaternion).add(this.throttle.position)};
+  for(const [name,arm]of Object.entries(this.arms)){
+   const hand=targets[name],elbow=new THREE.Vector3(arm.side*(name==='right'&&this.controlLayout==='center-stick'?.43:.68),-.56,-.65);
+   for(const [mesh,a,b]of [[arm.upper,arm.shoulder,elbow],[arm.forearm,elbow,hand]]){const direction=b.clone().sub(a);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.scale.y=direction.length();mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),direction.normalize())}
+   arm.hand.position.copy(hand);arm.hand.quaternion.copy(name==='right'?this.stick.quaternion:this.throttle.quaternion);
+  }
  }
  update(p,dt=1/60){
+  this.setAircraft(p.aircraftId??this.aircraftId);
   this.activeType=p.bomber?'bomber':'fighter';this.fighterRoot.visible=!p.bomber;this.bomber.root.visible=!!p.bomber;
   const input=p.controlInput||{},a=1-Math.exp(-Math.max(0,dt)*16);
   for(const key of ['pitch','roll','yaw'])this.pose[key]+=(clamp(input[key],-1,1)-this.pose[key])*a;
   this.pose.throttle+=(clamp(p.throttle,0,1)-this.pose.throttle)*a;
   this.stick.rotation.x=this.pose.pitch*.24;this.stick.rotation.z=this.pose.roll*.27;
   this.throttle.position.z=-.88-this.pose.throttle*.34;
+  this.poseArms();
   for(const stick of this.bomber.sticks){stick.rotation.x=this.pose.pitch*.20;stick.rotation.z=this.pose.roll*.24;}
   for(const throttle of this.bomber.throttles)throttle.rotation.x=-.35+this.pose.throttle*.7;
   this.bomber.feet.forEach((foot,i)=>{foot.position.z=-2.05+(i?1:-1)*this.pose.yaw*.08;foot.rotation.x=(i?1:-1)*this.pose.yaw*.1;});

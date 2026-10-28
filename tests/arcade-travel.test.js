@@ -35,7 +35,7 @@ test('weapon caps can catch maximum boosted jets and snapshots retain travel sta
 });
 test('a launched heat missile can catch a straight maximum-speed boosted fighter',()=>{
  const g=createGame({mode:'dogfight',teamSize:1,seed:94}),[p,target]=g.pilots;
- for(const q of g.pilots)Object.assign(q,airframe(),{human:true,pitch:0,yaw:0,roll:0,speed:686,throttle:1,spawnProtectedUntil:0,collisionGraceUntil:0});
+ for(const q of g.pilots)Object.assign(q,airframe(),{human:true,pitch:0,yaw:0,roll:0,speed:686,throttle:1.1,spawnProtectedUntil:0,collisionGraceUntil:0});
  target.pos={...target.pos,z:target.pos.z+900};p.targetId=target.id;p.lock=2;
  step(g,{host:{fireHeat:true}},1/60);assert.equal(g.missiles.length,1);
  for(let n=0;n<600&&target.hp===100;n++)step(g,{},1/60);
