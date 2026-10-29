@@ -33,3 +33,28 @@ test('gradual airbrake response is consistent at30/60/144Hz',()=>{
  const speeds=[30,60,144].map(hz=>run(plane(250),5,true,1/hz).speed);
  assert(Math.max(...speeds)-Math.min(...speeds)<.3,JSON.stringify(speeds));
 });
+
+test('new-jet surface deployment advances on the ground and stays continuous at liftoff',()=>{
+ for(const aircraftId of ['fa18e','su37']){
+  const p=plane(100,{aircraftId,grounded:true,airbrake:true});run(p,.5,true);
+  assert(p.airbrakeDeployment>.6&&p.airbrakeDeployment<.7);const before=p.airbrakeDeployment;
+  p.grounded=false;advanceFlightEnergy(p,{brake:true},1/60);assert(p.airbrakeDeployment>before&&p.airbrakeDeployment-before<.03);
+  p.grounded=true;p.airbrake=false;run(p,1,false);assert(p.airbrakeDeployment<.1);
+ }
+});
+test('full-power braking spends meaningful energy on new jets while thrust can still overcome drag',()=>{
+ for(const aircraftId of ['fa18e','su37'])for(const throttle of [1,1.1])for(const dt of [1/30,1/60,1/144]){
+  const coast=initializeFuel({aircraftId,speed:315,throttle,pitch:0,normalLoad:1,pos:{y:1000},grounded:false,gearDown:false},.5),braked=structuredClone(coast);
+  advanceFlightEnergy(coast,{},dt);advanceFlightEnergy(braked,{brake:true},dt);assert(coast.speedAcceleration-braked.speedAcceleration<1.1);
+  run(coast,5,false,dt);run(braked,5,true,dt);
+  assert(coast.speed-braked.speed>45);assert(coast.speed-braked.speed<70);assert(braked.speed>250);
+  if(throttle===1)assert(braked.speed<315);else assert(braked.speed>315,'full afterburner may still accelerate against brake drag');
+ }
+});
+test('new-jet deployment and speed remain consistent across timesteps',()=>{
+ for(const aircraftId of ['fa18e','su37']){
+  const results=[30,60,144].map(hz=>{const p=plane(315,{aircraftId,throttle:1});run(p,2,true,1/hz);run(p,1,false,1/hz);return p;});
+  assert(Math.max(...results.map(p=>p.speed))-Math.min(...results.map(p=>p.speed))<.3);
+  assert(Math.max(...results.map(p=>p.airbrakeDeployment))-Math.min(...results.map(p=>p.airbrakeDeployment))<1e-10);
+ }
+});

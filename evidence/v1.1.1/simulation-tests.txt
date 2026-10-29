@@ -1,0 +1,259 @@
+
+> skybreak-jets@1.1.1 test
+> node --test tests/*.test.js
+
+TAP version 13
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/airbrake-balance.test.js
+ok 1 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/airbrake-balance.test.js
+  ---
+  duration_ms: 1107.150178
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/aircraft-selection.test.js
+ok 2 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/aircraft-selection.test.js
+  ---
+  duration_ms: 1840.011045
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/aircraft-winding.test.js
+ok 3 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/aircraft-winding.test.js
+  ---
+  duration_ms: 721.862817
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/airport-upgrade.test.js
+ok 4 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/airport-upgrade.test.js
+  ---
+  duration_ms: 17239.926692
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/arcade-travel.test.js
+ok 5 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/arcade-travel.test.js
+  ---
+  duration_ms: 832.98797
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/attitude-upgrade.test.js
+ok 6 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/attitude-upgrade.test.js
+  ---
+  duration_ms: 1113.961487
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/audio-mixing.test.js
+ok 7 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/audio-mixing.test.js
+  ---
+  duration_ms: 932.878285
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/bomber-instruments.test.js
+ok 8 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/bomber-instruments.test.js
+  ---
+  duration_ms: 448.694594
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/bomber-signature.test.js
+ok 9 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/bomber-signature.test.js
+  ---
+  duration_ms: 1643.798128
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/bomber-strike.test.js
+ok 10 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/bomber-strike.test.js
+  ---
+  duration_ms: 11044.944389
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/cockpit-interior.test.js
+ok 11 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/cockpit-interior.test.js
+  ---
+  duration_ms: 1323.98095
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/cockpit-systems.test.js
+ok 12 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/cockpit-systems.test.js
+  ---
+  duration_ms: 1181.038489
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/combat-balance.test.js
+ok 13 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/combat-balance.test.js
+  ---
+  duration_ms: 4890.761357
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/controls-gun.test.js
+ok 14 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/controls-gun.test.js
+  ---
+  duration_ms: 1641.067772
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/coop-teams.test.js
+ok 15 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/coop-teams.test.js
+  ---
+  duration_ms: 925.55702
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/countermeasure-bursts.test.js
+ok 16 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/countermeasure-bursts.test.js
+  ---
+  duration_ms: 989.50984
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/enemy-respawn-network.test.js
+ok 17 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/enemy-respawn-network.test.js
+  ---
+  duration_ms: 573.888744
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/enemy-respawn.test.js
+ok 18 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/enemy-respawn.test.js
+  ---
+  duration_ms: 918.039972
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/flight-speed-cues.test.js
+ok 19 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/flight-speed-cues.test.js
+  ---
+  duration_ms: 742.353584
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/flight-speed.test.js
+ok 20 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/flight-speed.test.js
+  ---
+  duration_ms: 752.865195
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/flight-upgrade.test.js
+ok 21 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/flight-upgrade.test.js
+  ---
+  duration_ms: 932.810361
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/flight-warnings.test.js
+ok 22 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/flight-warnings.test.js
+  ---
+  duration_ms: 551.578166
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/gun-world-speed.test.js
+ok 23 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/gun-world-speed.test.js
+  ---
+  duration_ms: 470.050516
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/keybindings.test.js
+ok 24 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/keybindings.test.js
+  ---
+  duration_ms: 632.723649
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/loadouts.test.js
+ok 25 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/loadouts.test.js
+  ---
+  duration_ms: 320.706057
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/lobby-match.test.js
+ok 26 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/lobby-match.test.js
+  ---
+  duration_ms: 427.483487
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/match-settings.test.js
+ok 27 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/match-settings.test.js
+  ---
+  duration_ms: 866.853289
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/menu-preview.test.js
+ok 28 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/menu-preview.test.js
+  ---
+  duration_ms: 875.259882
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/model-fixes.test.js
+ok 29 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/model-fixes.test.js
+  ---
+  duration_ms: 1640.102536
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/multiplayer-router.test.js
+ok 30 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/multiplayer-router.test.js
+  ---
+  duration_ms: 502.658353
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/network-session.test.js
+ok 31 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/network-session.test.js
+  ---
+  duration_ms: 683.409356
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/network.test.js
+ok 32 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/network.test.js
+  ---
+  duration_ms: 2138.391264
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/normal-advanced-controls.test.js
+ok 33 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/normal-advanced-controls.test.js
+  ---
+  duration_ms: 680.738248
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/northpoint-island.test.js
+ok 34 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/northpoint-island.test.js
+  ---
+  duration_ms: 4363.092472
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/pilot-load.test.js
+ok 35 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/pilot-load.test.js
+  ---
+  duration_ms: 1763.725876
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/radar-terrain.test.js
+ok 36 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/radar-terrain.test.js
+  ---
+  duration_ms: 1155.724028
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/routes.test.js
+ok 37 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/routes.test.js
+  ---
+  duration_ms: 6427.398202
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/runway-pavement.test.js
+ok 38 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/runway-pavement.test.js
+  ---
+  duration_ms: 1411.23269
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/sim.test.js
+ok 39 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/sim.test.js
+  ---
+  duration_ms: 34310.813191
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/skirmish-ui.test.js
+ok 40 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/skirmish-ui.test.js
+  ---
+  duration_ms: 2045.408749
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/sortie-upgrade.test.js
+ok 41 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/sortie-upgrade.test.js
+  ---
+  duration_ms: 1518.867272
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/squad-combat.test.js
+ok 42 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/squad-combat.test.js
+  ---
+  duration_ms: 12474.624989
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/strike-airfield.test.js
+ok 43 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/strike-airfield.test.js
+  ---
+  duration_ms: 2017.56237
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/tactical-map.test.js
+ok 44 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/tactical-map.test.js
+  ---
+  duration_ms: 791.894036
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/threat-audio.test.js
+ok 45 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/threat-audio.test.js
+  ---
+  duration_ms: 470.710404
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/version-ui.test.js
+ok 46 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/version-ui.test.js
+  ---
+  duration_ms: 544.31695
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/winding-valley.test.js
+ok 47 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/winding-valley.test.js
+  ---
+  duration_ms: 2672.216443
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/world-upgrade.test.js
+ok 48 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/world-upgrade.test.js
+  ---
+  duration_ms: 1166.606392
+  ...
+# Subtest: /home/dev/Documents/Codex/2026-10-28/task/jets/tests/world.test.js
+ok 49 - /home/dev/Documents/Codex/2026-10-28/task/jets/tests/world.test.js
+  ---
+  duration_ms: 5606.597912
+  ...
+1..49
+# tests 49
+# suites 0
+# pass 49
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 58393.578578

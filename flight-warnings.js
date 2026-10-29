@@ -1,7 +1,7 @@
-import {worldVelocity} from './arcade-travel.js?v=skybreak110-1028';
-import {surfaceHeight} from './world.js?v=skybreak110-1028';
-import {fieldUnder} from './missions.js?v=skybreak110-1028';
-import {validTouchdown} from './airport-operations.js?v=skybreak110-1028';
+import {worldVelocity} from './arcade-travel.js?v=skybreak111-1029';
+import {surfaceHeight} from './world.js?v=skybreak111-1029';
+import {fieldUnder} from './missions.js?v=skybreak111-1029';
+import {validTouchdown} from './airport-operations.js?v=skybreak111-1029';
 
 // Gameplay approximations, not certified aircraft warning or terrain avoidance logic.
 // Constant-velocity look-ahead uses the collision heightfield, including sea/runways,

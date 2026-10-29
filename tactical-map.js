@@ -1,8 +1,8 @@
-import {AIRFIELDS,routeFor,approachFor,fieldPoint} from './missions.js?v=skybreak110-1028';
-import {airportForTeam} from './airport-operations.js?v=skybreak110-1028';
-import {terrainHeight,SEA_LEVEL} from './world.js?v=skybreak110-1028';
-import {strikeTarget,strikeEscape} from './sim.js?v=skybreak110-1028';
-import {relativePosition} from './view-axes.js?v=skybreak110-1028';
+import {AIRFIELDS,routeFor,approachFor,fieldPoint} from './missions.js?v=skybreak111-1029';
+import {airportForTeam} from './airport-operations.js?v=skybreak111-1029';
+import {terrainHeight,SEA_LEVEL} from './world.js?v=skybreak111-1029';
+import {strikeTarget,strikeEscape} from './sim.js?v=skybreak111-1029';
+import {relativePosition} from './view-axes.js?v=skybreak111-1029';
 
 export function airportStatus(g,p,field){
  if(field.id===p.homeBaseId)return{kind:'home',symbol:'H',label:'HOME · service',color:'#d5f58c'};

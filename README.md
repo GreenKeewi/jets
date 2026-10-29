@@ -2,19 +2,21 @@
 
 An original static 3D browser jet game, built for approachable keyboard flying. No build step, player accounts, microphone, camera or external runtime CDN. Solo and peer play remain independent of the optional, separately hosted authoritative server. Three.js is vendored with its MIT license.
 
-## Current release: v1.1.0
+## Current release: v1.1.1
 
 Choose F-16C, F/A-18E Super Hornet, or the Su-37 prototype in Sortie setup. Configure each compatible missile/tank station before launch; the live model and HOME restock follow that selection. The F-16 carries up to six missiles and three tanks. Each tank adds 20% of internal fuel capacity as game balance, and starts full in addition to the chosen internal fuel. The Su-37 uses internal fuel only. These original stylized models, generic weapon categories and flight tuning are simplified gameplay, with [aircraft references and limits](evidence/aircraft-loadouts-reference.md).
 
-The F-16 cockpit uses a right-hand side stick. O toggles a bounded AoA assist override with higher turn strain; K advanced attitude hold keeps its existing behavior. High G creates stronger peripheral tunnel vision while the center stays clear and every control remains available. Cockpit instruments sit slightly lower, and target details and transient messages sit below the crosshair.
+The F-16 cockpit uses a right-hand side stick. O toggles a bounded AoA assist override only on the F/A-18E and Su-37; the F-16 has no player override. K advanced attitude hold keeps its existing behavior. Existing custom O-action bindings are preserved. High G creates stronger peripheral tunnel vision while the center stays clear and every control remains available. Cockpit instruments sit slightly lower, and target details and transient messages sit below the crosshair.
 
 Missiles have faster closure against straight runners, finite motor/coast energy and bounded guidance. Chaff has a small diminishing chance per fresh burst. Actual terrain can obstruct radar; low-clearance interference can degrade tracking without guaranteeing safety. Ace conceals incoming missile type in text, sound and countermeasure hints. HOME passes repair up to 18% airframe/components, once per entry: leave beyond 350 m, wait 12 seconds and return within 250 m. Flybys do not refuel.
 
 Engine and combat sound use original layered synthesis. Cockpit voice warnings prioritize predicted terrain impact, then over-G and excessive bank, with repeat limits and cleanup on mute/pause/menu. Controls & accessibility includes volume and voice switches. Browser speech availability varies; warning behavior is a game approximation.
 
-In Play with friends, Match & teams holds the original sortie controls, pilot team choices, allied count, enemy AI count and reinforcement timer. Put both pilots on Alpha, choose two allied aircraft and four enemy AI, enable reinforcements and leave the timer at 30 seconds. Settings lock during flight and synchronize to guests. JETS9 rooms require both clients to reload and create a fresh invite. The separately hosted server must also update its simulation build before accepting these clients.
+In Play with friends, Match & teams holds the original sortie controls, pilot team choices, allied count, enemy AI count and reinforcement timer. Put both pilots on Alpha, choose two allied aircraft and four enemy AI, enable reinforcements and leave the timer at 30 seconds. Settings lock during flight and synchronize to guests. JETS10 rooms require both clients to reload and create a fresh invite. The separately hosted server must also update its simulation build before accepting these clients.
 
-[Verification and limitations](evidence/v1.1.0/README.md).
+The Su-37 silhouette now has a longer radome, forward canopy, blended center body, separated engine nacelles, smaller canards and swept twin fins. X deploys a dorsal brake on Su-37 and distributed braking surfaces on F/A-18E; surface movement follows the same deployment state used by flight drag. External tanks render as elongated ellipsoids in the menu and in flight.
+
+[Verification and limitations](evidence/v1.1.1/README.md).
 
 ## Play
 
@@ -32,7 +34,7 @@ At cruise, airborne aircraft cover up to 50% more world distance while indicated
 
 ## Keyboard
 
-**A / D** or **Left / Right** bank and turn visually left / right. **Up / Down** increases / reduces engine power; Shift and Z/minus remain power aliases. **W / S** climbs / descends. Normal mode self-levels. X toggles persistent air/wheel brakes and G toggles gear in either mode. K enables advanced attitude-hold controls. Open Settings to customize keys; preferences save on this browser, conflicting keys are rejected, and Reset defaults restores the original layout. **Hold Space for the machine gun**: unguided rounds need no lock, so lead the target with the crosshair. Weapons restock only near your HOME base. **O toggles the F-16 AoA assist override independently from K. Fighters: Q fires a heat-seeking missile; E fires a radar missile. Bombers have guns and bombs only.** Build a short/full lock respectively, then press once. Holding or auto-repeat on Q/E does not steer, change power or launch repeatedly. F flares; C chaff; B bomb; R respawn in bot skirmishes; V chase/cockpit; L free-flight route assist; I extra instruments; H controls; Escape or P pause; M tactical map; N mute. In K mode, release pitch/roll input to hold the current attitude and roll back level manually. Tab, Enter and native select arrows navigate menus. Pairing fields support Ctrl+A/C/V.
+**A / D** or **Left / Right** bank and turn visually left / right. **Up / Down** increases / reduces engine power; Shift and Z/minus remain power aliases. **W / S** climbs / descends. Normal mode self-levels. X toggles persistent air/wheel brakes and G toggles gear in either mode. K enables advanced attitude-hold controls. Open Settings to customize keys; preferences save on this browser, conflicting keys are rejected, and Reset defaults restores the original layout. **Hold Space for the machine gun**: unguided rounds need no lock, so lead the target with the crosshair. Weapons restock only near your HOME base. **O toggles the F/A-18E / Su-37 AoA assist override independently from K; it has no effect on F-16. Fighters: Q fires a heat-seeking missile; E fires a radar missile. Bombers have guns and bombs only.** Build a short/full lock respectively, then press once. Holding or auto-repeat on Q/E does not steer, change power or launch repeatedly. F flares; C chaff; B bomb; R respawn in bot skirmishes; V chase/cockpit; L free-flight route assist; I extra instruments; H controls; Escape or P pause; M tactical map; N mute. In K mode, release pitch/roll input to hold the current attitude and roll back level manually. Tab, Enter and native select arrows navigate menus. Pairing fields support Ctrl+A/C/V.
 
 Positive simulation yaw/roll retains the authored world/AI convention. Pilot-facing input, radar, directional hints, aircraft bank, cockpit horizon and clockwise compass headings use one consistent view convention. Westhaven's east–west arrival is labelled runway 27 for its displayed heading; the runway geometry and flight route are unchanged.
 
@@ -201,7 +203,7 @@ This section supersedes older controls and behavior described above.
 
 Public shape references: [USAF F-16 overview](https://www.airmanmagazine.af.mil/Features/Display/Article/2595848/airframe-the-f-16-fighting-falcon/) (single engine, approximately 14.8 m length / 9.8 m span) and [USAF B-2 fact sheet](https://www.af.mil/About-Us/Fact-Sheets/Display/Article/104482/b-2-spirit/) (tailless flying wing, high subsonic, approximately 20.9 m length / 52.1 m span). Models use exaggerated game-scale dimensions with original geometry and no copied proprietary game textures.
 
-Friend-room compatibility is JETS9; old invites and manual pairing codes must be regenerated. Reload both devices and generate fresh room codes. Existing peer rooms remain distinct from the separately prepared authoritative-server work.
+Friend-room compatibility is JETS10; old invites and manual pairing codes must be regenerated. Reload both devices and generate fresh room codes. Existing peer rooms remain distinct from the separately prepared authoritative-server work.
 
 The home menu uses the actual aircraft and home airport as its WebGL backdrop. Local Chromium WebGL gameplay and cockpit screenshots are now verified; earlier cloud graphics limitations no longer describe this release. The public-site browser certificate warning was not bypassed.
 
@@ -241,7 +243,7 @@ B-2-inspired bombers are harder to acquire: 2.8 km maximum acquisition range and
 
 ## v1.0.11 friend teams and responsive countermeasures
 
-In the friend-room lobby, choose Alpha or Bravo for each connected pilot before launch. Put friends on the same team to fight AI jets; empty squad seats remain bots. Hosts assign teams, guests may request their own team, and teams lock during the sortie. The new JETS9 room protocol requires fresh invitations and a reload on both devices. Dedicated-server co-op is implemented and tested locally, but no public server endpoint is configured.
+In the friend-room lobby, choose Alpha or Bravo for each connected pilot before launch. Put friends on the same team to fight AI jets; empty squad seats remain bots. Hosts assign teams, guests may request their own team, and teams lock during the sortie. The new JETS10 room protocol requires fresh invitations and a reload on both devices. Dedicated-server co-op is implemented and tested locally, but no public server endpoint is configured.
 
 F releases flares and C releases chaff once per discrete press, without a gameplay cooldown; holding a key does not drain stocks. V remains camera and all controls stay rebindable. Fighter inventories are 60/60 and bomber inventories 120/120, explicitly fictional game release counts because public sources do not establish universal verified capacities. Fresh matching bursts add opportunities with diminishing returns, not general missile immunity. HOME restocks finite supplies, and the requested cinematic bomber SAM flare guarantee remains. See [public research and game balance](countermeasures.md) and [combined verification](evidence/v1.0.11/README.md).
 

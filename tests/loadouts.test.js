@@ -47,8 +47,12 @@ test('fighter tuning is distinct while bombers ignore fighter type and external 
  assert.equal(new Set(speeds).size,3);
  const bomber=initializeFuel({bomber:true,aircraftId:'su37',loadout:tanks('su37'),throttle:1.1},.25);assert.equal(bomber.fuelCapacityKg,65000);assert.equal(bomber.fuelKg,16250);assert.equal(bomber.massKg,72000+16250);advanceFuel(bomber,.1);assert.equal(bomber.afterburnerActive,false);
 });
-test('limiter override affects only F-16 and leaves advanced maneuver control independent',()=>{
- const p=initializeFuel({aircraftId:'f16',speed:300},.5),base=pitchRateLimit(p);p.maneuverAssist=true;assert.equal(pitchRateLimit(p),base);p.aoaLimiterOff=true;assert(pitchRateLimit(p)>base);assert(pitchRateLimit(p)<=.9);
- for(const aircraftId of ['fa18e','su37']){p.aircraftId=aircraftId;p.aoaLimiterOff=false;const normal=pitchRateLimit(p);p.aoaLimiterOff=true;assert.equal(pitchRateLimit(p),normal);}
- p.bomber=true;const normal=pitchRateLimit(p);p.aoaLimiterOff=false;assert.equal(pitchRateLimit(p),normal);
+test('limiter override affects only F/A-18E and Su-37 while advanced mode stays independent',()=>{
+ for(const aircraftId of ['fa18e','su37']){
+  const p=initializeFuel({aircraftId,speed:300},.5),normal=pitchRateLimit(p);p.maneuverAssist=true;assert.equal(pitchRateLimit(p),normal);
+  p.aoaLimiterOff=true;assert(pitchRateLimit(p)>normal);assert(pitchRateLimit(p)<=.9);
+ }
+ for(const extra of [{aircraftId:'f16'},{},{aircraftId:'unknown'},{aircraftId:'fa18e',bomber:true},{aircraftId:'su37',bomber:true}]){
+  const p=initializeFuel({...extra,speed:300},.5),normal=pitchRateLimit(p);p.aoaLimiterOff=true;assert.equal(pitchRateLimit(p),normal);
+ }
 });

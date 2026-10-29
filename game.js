@@ -1,24 +1,25 @@
-import {TacticalMap,airportStatus,homeGuidance} from './tactical-map.js?v=skybreak110-1028';
-import {RadarTerrain} from './radar-terrain.js?v=skybreak110-1028';
-import {loadBindings,canonicalKey,BINDINGS,keyLabel} from './keybindings.js?v=skybreak110-1028';
-import {mountKeybindings} from './keybindings-ui.js?v=skybreak110-1028';
-import {AIRFIELD_RESUPPLY,nearestAirfield} from './airfield-resupply.js?v=skybreak110-1028';
-import {COMBAT_MISSIONS_ENABLED,combatMissionId,combatMissionBlocked,combatMission,missionObjective} from './combat-missions.js?v=skybreak110-1028';
-import {ActionQueue,ACTION_KEYS,NEUTRAL_INPUT,keyboardInput,rosterConfig} from './controls.js?v=skybreak110-1028';
-import {radarPoint,turnHint,compassHeading,gunMuzzle} from './view-axes.js?v=skybreak110-1028';
-import {Renderer} from './render.js?v=skybreak110-1028';
-import {createGame,configurePlayers,placePilotOnRunway,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,strikeTarget,strikeEscape,canBomb,respawnPilot,threatFor,worldVelocity} from './sim.js?v=skybreak110-1028';
-import {FlightAudio} from './audio.js?v=skybreak110-1028';
-import {drawBomberCockpit} from './bomber-instruments.js?v=skybreak110-1028';
-import {drawCockpit} from './instruments.js?v=skybreak110-1028';
-import {combatCue,nearestThreat,waypointScreenPosition,gunLeadCue} from './guidance.js?v=skybreak110-1028';
-import {AIRFIELDS,ROUTES,routeDefinition,routeFor,destinationFor,approachFor,fieldPoint} from './missions.js?v=skybreak110-1028';
-import {mountNetworkUI} from './network.js?v=skybreak110-1028';
-import {createMultiplayerRouter} from './multiplayer-router.js?v=skybreak110-1028';
-import {mountServerUI} from './server-ui.js?v=skybreak110-1028';
-import {ARENAS} from './arenas.js?v=skybreak110-1028';
-import {surfaceHeight} from './world.js?v=skybreak110-1028';
-import {AIRCRAFT_DEFINITIONS,aircraftDefinition,normalizeAircraftId,normalizeLoadout,loadoutStores} from './loadouts.js?v=skybreak110-1028';
+import {TacticalMap,airportStatus,homeGuidance} from './tactical-map.js?v=skybreak111-1029';
+import {RadarTerrain} from './radar-terrain.js?v=skybreak111-1029';
+import {loadBindings,canonicalKey,BINDINGS,keyLabel} from './keybindings.js?v=skybreak111-1029';
+import {mountKeybindings} from './keybindings-ui.js?v=skybreak111-1029';
+import {AIRFIELD_RESUPPLY,nearestAirfield} from './airfield-resupply.js?v=skybreak111-1029';
+import {COMBAT_MISSIONS_ENABLED,combatMissionId,combatMissionBlocked,combatMission,missionObjective} from './combat-missions.js?v=skybreak111-1029';
+import {ActionQueue,ACTION_KEYS,NEUTRAL_INPUT,keyboardInput,rosterConfig} from './controls.js?v=skybreak111-1029';
+import {radarPoint,turnHint,compassHeading,gunMuzzle} from './view-axes.js?v=skybreak111-1029';
+import {Renderer} from './render.js?v=skybreak111-1029';
+import {createGame,configurePlayers,placePilotOnRunway,step,snapshot,applySnapshot,forward,dist,horizontal,angle,steer,routeGuidance,ROUTE,RUNWAY,TARGET,ESCAPE,strikeTarget,strikeEscape,canBomb,respawnPilot,threatFor,worldVelocity} from './sim.js?v=skybreak111-1029';
+import {FlightAudio} from './audio.js?v=skybreak111-1029';
+import {drawBomberCockpit} from './bomber-instruments.js?v=skybreak111-1029';
+import {drawCockpit} from './instruments.js?v=skybreak111-1029';
+import {combatCue,nearestThreat,waypointScreenPosition,gunLeadCue} from './guidance.js?v=skybreak111-1029';
+import {AIRFIELDS,ROUTES,routeDefinition,routeFor,destinationFor,approachFor,fieldPoint} from './missions.js?v=skybreak111-1029';
+import {mountNetworkUI} from './network.js?v=skybreak111-1029';
+import {createMultiplayerRouter} from './multiplayer-router.js?v=skybreak111-1029';
+import {mountServerUI} from './server-ui.js?v=skybreak111-1029';
+import {ARENAS} from './arenas.js?v=skybreak111-1029';
+import {surfaceHeight} from './world.js?v=skybreak111-1029';
+import {supportsAoaOverride} from './aircraft-capabilities.js?v=skybreak111-1029';
+import {AIRCRAFT_DEFINITIONS,aircraftDefinition,normalizeAircraftId,normalizeLoadout,loadoutStores} from './loadouts.js?v=skybreak111-1029';
 const elements=new Map(),$=id=>{let node=elements.get(id);if(!node){node=document.getElementById(id);if(node)elements.set(id,node);}return node;},keys=new Set(),actionQueue=new ActionQueue();
 $('world').tabIndex=-1;
 let bindingStorage;try{bindingStorage=localStorage}catch{}
@@ -160,7 +161,7 @@ function hud(p){
  for(const [id,k]of [['gun-count','gunAmmo'],['heat-count','heat'],['radar-count','radar'],['flare-count','flares'],['chaff-count','chaff'],['bomb-count','bombs']])hudText(id,p[k]);
  $('bomb-weapon').hidden=!p.bomber||game.mode==='freeflight';
  for(const id of ['heat-count','radar-count'])$(id).parentElement.hidden=p.bomber||game.mode==='freeflight';
- if($('aoa-state')){hudText('aoa-state',p.aoaLimiterOff?'OVERRIDE':'ON');$('aoa-status').hidden=p.bomber||p.aircraftId!=='f16';}
+ if($('aoa-state')){hudText('aoa-state',p.aoaLimiterOff?'OVERRIDE':'ON');$('aoa-status').hidden=!supportsAoaOverride(p);}
  hudText('fuel-value',`${Math.round((p.fuelFraction??1)*100)}%`);
  hudText('burner-value',p.bomber?'N/A':p.afterburnerActive?'AFTERBURNER':'MIL · AB AT 110%');
  hudText('airbrake-state',p.airbrake?'DEPLOYED':'STOWED');hudText('gear-state',p.gearDown?'DOWN':'UP');hudText('maneuver-state',p.maneuverAssist?'ADVANCED':'NORMAL');$('airbrake-state').parentElement.hidden=false;$('gear-state').parentElement.hidden=false;

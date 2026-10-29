@@ -1,24 +1,25 @@
-import {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak110-1028';
-export {placePilotOnRunway} from './airport-operations.js?v=skybreak110-1028';
+import {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak111-1029';
+export {placePilotOnRunway} from './airport-operations.js?v=skybreak111-1029';
+import {supportsAoaOverride,aoaOverrideActive,sanitizeAoaOverride} from './aircraft-capabilities.js?v=skybreak111-1029';
 import {advanceAttitude} from './attitude.js';
-import {normalizeAircraftId,normalizeLoadout,loadoutStores,validLoadout} from './loadouts.js?v=skybreak110-1028';
-import {AIRPORT,automaticSystems,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak110-1028';
-import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak110-1028';
-import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak110-1028';
-import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak110-1028';
-import {tryHeatFlare,tryRadarChaff} from './heat-seeker.js?v=skybreak110-1028';
-import {freshPilotG,pilotGInput,updatePilotG,advanceAirframeWear,sanitizePilotG,physicalVelocity,signedPilotLoad,limitFlightEnvelope} from './pilot-g.js?v=skybreak110-1028';
-import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak110-1028';
-import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak110-1028';
-import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak110-1028';
-export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak110-1028';
-import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak110-1028';
-export {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak110-1028';
-export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak110-1028';
-import {surfaceHeight} from './world.js?v=skybreak110-1028';
-import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak110-1028';
-import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak110-1028';
-export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak110-1028';
+import {normalizeAircraftId,normalizeLoadout,loadoutStores,validLoadout} from './loadouts.js?v=skybreak111-1029';
+import {AIRPORT,automaticSystems,groundSpawn,departureBlocked,departureInput,validTouchdown,missileImmune,repairAtAirport} from './airport-operations.js?v=skybreak111-1029';
+import {seekerInterference,advanceSeekerInterference} from './seeker-environment.js?v=skybreak111-1029';
+import {fullWeaponStores,freshAirfieldResupply,resupplyAtAirfield} from './airfield-resupply.js?v=skybreak111-1029';
+import {COMBAT_MISSIONS,combatMissionId,combatMissionBlocked,missionRoute} from './combat-missions.js?v=skybreak111-1029';
+import {tryHeatFlare,tryRadarChaff} from './heat-seeker.js?v=skybreak111-1029';
+import {freshPilotG,pilotGInput,updatePilotG,advanceAirframeWear,sanitizePilotG,physicalVelocity,signedPilotLoad,limitFlightEnvelope} from './pilot-g.js?v=skybreak111-1029';
+import {flightForward,gunMuzzle as gunMuzzleForAI} from './view-axes.js?v=skybreak111-1029';
+import {GUN,gunIntercept,fireGunRound,advanceGunRounds} from './guns.js?v=skybreak111-1029';
+import {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak111-1029';
+export {AIRCRAFT_RADIUS,collisionRadius,sweptSphereHit} from './aircraft-collision.js?v=skybreak111-1029';
+import {FLIGHT,fighterTargetSpeed,advanceFlightEnergy,turnAuthority,pitchRateLimit,initializeFuel} from './flight.js?v=skybreak111-1029';
+export {TRAVEL,worldSpeed,worldVelocity} from './arcade-travel.js?v=skybreak111-1029';
+export {FLIGHT,fighterTargetSpeed} from './flight.js?v=skybreak111-1029';
+import {surfaceHeight} from './world.js?v=skybreak111-1029';
+import {ARENAS,VALLEY,valleyCenter,valleyFloor,valleyPoint,inValley} from './arenas.js?v=skybreak111-1029';
+import {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates,fieldUnder,WORLD_BOUNDS} from './missions.js?v=skybreak111-1029';
+export {AIRFIELDS,ROUTES,routeFor,destinationFor,approachFor,fieldPoint,fieldCoordinates} from './missions.js?v=skybreak111-1029';
 // Flight and combat rules are renderer-independent so missions can be replayed deterministically.
 export const RUNWAY=AIRFIELDS.home;
 export const ROUTE=ROUTES.local.gates;
@@ -99,7 +100,7 @@ function spawnPilot(g,i,team,slot=0){
  const free=g.mode==='freeflight',strike=g.mode==='strike',attacker=g.role==='defend'?1:0;
  const transport=g.combatMission?.transportTeam===team&&slot===g.teamSizes[team]-1,bomber=transport||strike&&team===attacker&&slot===0,formation=g.formations[team];
  const departure=groundSpawn(g,{team,slot},slot),pos=departure.pos,aircraftId=bomber?'bomber':g.aircraftId,loadout=bomber?null:normalizeLoadout(aircraftId,g.loadout);
- return initializeFuel({...freshPilotG(),engineHealth:1,controlHealth:1,aircraftId,loadout,aoaLimiterOff:false,id:i===0?'host':`bot${i}`,team,slot,human:i===0,bomber,objectiveRole:transport?'transport':null,personality:transport?'transport':g.teamSizes[team]-(g.combatMission?.transportTeam===team?1:0)>=2&&slot<2?'paired':((g.rng+team+slot)%2?'aggressive':'cautious'),pos,yaw:free?0:formation.yaw,pitch:0,roll:0,speed:free?0:g.combatMission?transport?155:215:strike?(team===attacker?110:185):FLIGHT.cruiseSpeed,throttle:free?0:transport?.92:g.combatMission?.69:strike&&!bomber?(team===attacker?.55:.635):.78,hp:100,...fullWeaponStores({bomber,aircraftId,loadout,objectiveRole:transport?'transport':null}),...freshAirfieldResupply(pos),lastDamage:null,gunCD:0,gunShots:0,heatCD:0,radarCD:0,flareCD:0,chaffCD:0,bombCD:0,lock:0,targetId:null,dead:false,grounded:free,landed:false,runwayId:'home',throttleHeld:0,throttleDirection:0,aiTargetId:null,aiTargetUntil:0,aiGunBurst:0,aiGunRest:0,aiFlarePending:false,aiExtendYaw:0,aiTimer:0,aiShot:2+i*.6,aiDefend:0,aiBreak:0,aiNextBreak:7+i*1.9,rearm:0,aiEvade:0,spawnProtectedUntil:0,collisionGraceUntil:g.time+COMBAT_LIMITS.spawnGrace,respawnAt:null,deaths:0,kills:0,trail:[],...departure},g.startingFuel);
+ return initializeFuel({...freshPilotG(),engineHealth:1,controlHealth:1,aircraftId,loadout,aoaLimiterOff:false,airbrakeDeployment:0,id:i===0?'host':`bot${i}`,team,slot,human:i===0,bomber,objectiveRole:transport?'transport':null,personality:transport?'transport':g.teamSizes[team]-(g.combatMission?.transportTeam===team?1:0)>=2&&slot<2?'paired':((g.rng+team+slot)%2?'aggressive':'cautious'),pos,yaw:free?0:formation.yaw,pitch:0,roll:0,speed:free?0:g.combatMission?transport?155:215:strike?(team===attacker?110:185):FLIGHT.cruiseSpeed,throttle:free?0:transport?.92:g.combatMission?.69:strike&&!bomber?(team===attacker?.55:.635):.78,hp:100,...fullWeaponStores({bomber,aircraftId,loadout,objectiveRole:transport?'transport':null}),...freshAirfieldResupply(pos),lastDamage:null,gunCD:0,gunShots:0,heatCD:0,radarCD:0,flareCD:0,chaffCD:0,bombCD:0,lock:0,targetId:null,dead:false,grounded:free,landed:false,runwayId:'home',throttleHeld:0,throttleDirection:0,aiTargetId:null,aiTargetUntil:0,aiGunBurst:0,aiGunRest:0,aiFlarePending:false,aiExtendYaw:0,aiTimer:0,aiShot:2+i*.6,aiDefend:0,aiBreak:0,aiNextBreak:7+i*1.9,rearm:0,aiEvade:0,spawnProtectedUntil:0,collisionGraceUntil:g.time+COMBAT_LIMITS.spawnGrace,respawnAt:null,deaths:0,kills:0,trail:[],...departure},g.startingFuel);
 }
 export function createGame({mode='dogfight',teamSize=1,teamSizes,skirmish=false,role='attack',seed=64821,difficulty='normal',routeId='local',arenaId='coast',missionId='dogfight',startingFuel=.75,enemyRespawnSeconds=0,coopTeam=null,aircraftId='f16',loadout,enemyTeamSize}={}){
  if(!['dogfight','strike','freeflight'].includes(mode))mode='dogfight';
@@ -368,7 +369,8 @@ function counter(g,p,type){const key=type==='flare'?'flares':'chaff',cd=type+'CD
 function updatePilot(g,p,input,dt){
  if(p.dead)return;
  for(const k of ['gunCD','heatCD','radarCD','flareCD','chaffCD','bombCD'])p[k]=Math.max(0,p[k]-dt);
- if(input?.toggleAoaLimiter&&p.aircraftId==='f16'&&!p.bomber){p.aoaLimiterOff=!p.aoaLimiterOff;emit(g,'systems',`F-16 AoA assist ${p.aoaLimiterOff?'OVERRIDE · higher strain':'ON'}`,{pilotId:p.id});}
+ sanitizeAoaOverride(p);
+ if(input?.toggleAoaLimiter&&supportsAoaOverride(p)){p.aoaLimiterOff=!p.aoaLimiterOff;emit(g,'systems',`AoA assist ${p.aoaLimiterOff?'OVERRIDE · higher strain':'ON'}`,{pilotId:p.id});}
  if(input?.toggleManeuver){p.maneuverAssist=!p.maneuverAssist;emit(g,'systems',`Advanced arcade mode ${p.maneuverAssist?'ON · attitude hold':'OFF · self-leveling'}`,{pilotId:p.id});}
  p.travelApproach=g.mode==='freeflight'&&g.flightStage==='approach';
  automaticSystems(p);
@@ -390,7 +392,7 @@ function updatePilot(g,p,input,dt){
  const wantedRoll=clamp(Number(i.roll)||0,-1,1)*1.0;
  p.roll+=(wantedRoll-p.roll)*Math.min(1,dt*3.8);
  const pitchAuthority=clamp(p.speed/105,.25,1);
- const wantedPitch=clamp(Number(i.pitch)||0,-1,1)*(p.aircraftId==='f16'&&p.aoaLimiterOff?.88:.52)*pitchAuthority;
+ const wantedPitch=clamp(Number(i.pitch)||0,-1,1)*(aoaOverrideActive(p)?.88:.52)*pitchAuthority;
  const maxPitchChange=pitchRateLimit(p)*dt;
  p.pitch+=clamp((wantedPitch-p.pitch)*Math.min(1,dt*1.8),-maxPitchChange,maxPitchChange);
  p.yaw=angle(p.yaw+(Math.sin(p.roll)*.62+clamp(Number(i.yaw)||0,-1,1)*.17)*dt*clamp(p.speed/100,.35,1.3)*turnAuthority(p.speed,p));
@@ -590,6 +592,7 @@ export function applySnapshot(g,s){
   if(p.speed<0||p.speed>10000||p.hp<0||p.hp>100||p.throttle<0||p.throttle>FLIGHT.maxThrottle)return false;
   if(!p.bomber&&(p.aircraftId!==undefined&&!['f16','fa18e','su37'].includes(p.aircraftId)||p.loadout!==undefined&&!validLoadout(p.aircraftId||'f16',p.loadout)))return false;
   if(p.aoaLimiterOff!==undefined&&typeof p.aoaLimiterOff!=='boolean')return false;
+  if(p.airbrakeDeployment!==undefined&&(!Number.isFinite(p.airbrakeDeployment)||p.airbrakeDeployment<0||p.airbrakeDeployment>1))return false;
   if(p.loadout&&!p.bomber){const stores=loadoutStores(p.aircraftId,p.loadout);if(!Number.isInteger(p.heat)||!Number.isInteger(p.radar)||p.heat<0||p.radar<0||p.heat>stores.heat||p.radar>stores.radar)return false;}
   ids.add(p.id);
  }

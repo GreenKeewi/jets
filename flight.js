@@ -1,6 +1,7 @@
 // SI units: metres, seconds, kilograms. Mach uses a fixed 343 m/s reference.
 // This is an energy-based game model, not an aircraft certification simulator.
-import {aircraftDefinition,loadoutCapacity} from './loadouts.js?v=skybreak110-1028';
+import {aoaOverrideActive,usesSimulationAirbrakeDeployment} from './aircraft-capabilities.js?v=skybreak111-1029';
+import {aircraftDefinition,loadoutCapacity} from './loadouts.js?v=skybreak111-1029';
 export const FLIGHT=Object.freeze({soundSpeed:343,maxFighterSpeed:686,cruiseSpeed:315,maxBomberSpeed:309,bomberCruiseSpeed:245,afterburnerThreshold:1.1,maxThrottle:1.1});
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const GRAVITY=9.81;
@@ -29,7 +30,7 @@ function ensureFuel(p){
 export function fuelMassRatio(p){const a=frame(p),total=capacity(p),fuel=Number.isFinite(p.fuelKg)?clamp(p.fuelKg,0,total):total*clamp(p.fuelFraction??1,0,1);return(a.dryMass+a.fuelCapacity*.5)/(a.dryMass+fuel);}
 export function turnAuthority(speed,p={}){return Math.min(1,(280/Math.max(280,speed))**1.5)*fuelMassRatio(p)*controlFactor(p);}
 export function pitchRateLimit(p){
- const speed=Math.max(90,Number(p.speed)||0),load=p.bomber?2.5:p.aircraftId==='f16'&&p.aoaLimiterOff?11:frame(p).turnLoad||8;
+ const speed=Math.max(90,Number(p.speed)||0),load=p.bomber?2.5:aoaOverrideActive(p)?11:frame(p).turnLoad||8;
  return Math.min(.9,GRAVITY*load/speed)*Math.min(1,fuelMassRatio(p))*controlFactor(p);
 }
 export function advanceFuel(p,dt){
@@ -45,6 +46,10 @@ export function advanceFuel(p,dt){
  ensureFuel(p);return p.afterburnerActive?1:0;
 }
 // Call after attitude and normal-load updates, before position integration.
+function advanceAirbrakeDeployment(p,deployed,seconds){
+ const deployment=clamp(Number(p.airbrakeDeployment)||0,0,1);
+ p.airbrakeDeployment=deployment+((deployed?1:0)-deployment)*(1-Math.exp(-seconds*2));
+}
 export function advanceFlightEnergy(p,input={},dt){
  const seconds=clamp(Number(dt)||0,0,.1);if(seconds<=0){p.speedAcceleration=0;return;}
  const burnerDuty=advanceFuel(p,seconds),a=frame(p),mass=fuelMassRatio(p);
@@ -54,6 +59,10 @@ export function advanceFlightEnergy(p,input={},dt){
  const altitude=clamp(Number(p.pos?.y)||0,0,6000),density=Math.exp(-altitude/16000),pressure=density*speed*speed;
  const engineOn=p.fuelKg>0&&!p.dead;
  const thrust=engineOn?(a.maxThrust*dryPower+a.burnerThrust*burnerDuty)*Math.pow(density,.65)*mass*engineFactor(p):0;
+ const sharedAirbrake=usesSimulationAirbrakeDeployment(p);
+ // These aircraft render the authoritative surface position on the ground
+ // too. Automatic wheel braking alone does not open the airborne surfaces.
+ if(sharedAirbrake)advanceAirbrakeDeployment(p,p.grounded?p.airbrake:input.brake,seconds);
  if(p.grounded){
   // Wheel/runway dynamics have bounded thrust, rolling drag and brakes. Never
   // accelerate toward a requested top speed: rotation takes seconds and runway.
@@ -69,8 +78,7 @@ export function advanceFlightEnergy(p,input={},dt){
  const turnDrag=a.turnDragLimit*extra/(a.turnDragLimit+extra);
  // Airbrake drag builds smoothly and eases near approach speed. Wheel brakes
  // above deliberately retain their original stopping force.
- const deployment=clamp(Number(p.airbrakeDeployment)||0,0,1);
- p.airbrakeDeployment=deployment+((input.brake?1:0)-deployment)*(1-Math.exp(-seconds*2));
+ if(!sharedAirbrake)advanceAirbrakeDeployment(p,input.brake,seconds);
  const airbrake=p.airbrakeDeployment*(12+4*clamp(speed/315,0,1)**2)*density;
  const gravity=-GRAVITY*Math.sin(Number(p.pitch)||0),gearDrag=p.gearDown?2.5*(speed/150)**2:0;
  p.speed=clamp(speed+(thrust-parasite-baseInduced-turnDrag+gravity-airbrake-gearDrag)*seconds,0,maxSpeed);

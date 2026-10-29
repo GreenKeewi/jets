@@ -1,5 +1,5 @@
-import {createNetwork} from './network.js?v=skybreak110-1028';
-import {createServerClient} from './server-client.js?v=skybreak110-1028';
+import {createNetwork} from './network.js?v=skybreak111-1029';
+import {createServerClient} from './server-client.js?v=skybreak111-1029';
 
 // Exactly one simulation transport owns the game at a time. Friend-room UI retains
 // its original API, while dedicated matches reuse the existing guest render path.

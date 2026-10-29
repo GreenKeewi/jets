@@ -1,6 +1,6 @@
 export const BINDINGS_KEY='skybreak-keybindings-v1';
 export const BINDINGS=[
- ['pitchUp','Pitch up',['KeyW']],['pitchDown','Pitch down',['KeyS']],['left','Bank left',['KeyA','ArrowLeft']],['right','Bank right',['KeyD','ArrowRight']],['powerUp','Increase power',['ArrowUp','ShiftLeft','ShiftRight']],['powerDown','Decrease power',['ArrowDown','KeyZ','Minus']],['gun','Gun',['Space']],['heat','Heat missile',['KeyQ']],['radar','Radar missile',['KeyE']],['flare','Flares',['KeyF']],['chaff','Chaff',['KeyC']],['bomb','Bomb',['KeyB']],['airbrake','Airbrake / wheel brake',['KeyX']],['gear','Landing gear',['KeyG']],['advanced','Advanced flight',['KeyK']],['aoaLimiter','F-16 AoA assist override',['KeyO']],['assist','Route assist',['KeyL']],['camera','Camera',['KeyV']],['respawn','Respawn',['KeyR']],['map','Tactical map',['KeyM']],['mute','Sound',['KeyN']],['instruments','Extra instruments',['KeyI']],['pause','Pause',['KeyP']],['help','Flight manual',['KeyH']]
+ ['pitchUp','Pitch up',['KeyW']],['pitchDown','Pitch down',['KeyS']],['left','Bank left',['KeyA','ArrowLeft']],['right','Bank right',['KeyD','ArrowRight']],['powerUp','Increase power',['ArrowUp','ShiftLeft','ShiftRight']],['powerDown','Decrease power',['ArrowDown','KeyZ','Minus']],['gun','Gun',['Space']],['heat','Heat missile',['KeyQ']],['radar','Radar missile',['KeyE']],['flare','Flares',['KeyF']],['chaff','Chaff',['KeyC']],['bomb','Bomb',['KeyB']],['airbrake','Airbrake / wheel brake',['KeyX']],['gear','Landing gear',['KeyG']],['advanced','Advanced flight',['KeyK']],['aoaLimiter','F/A-18E / Su-37 AoA assist override',['KeyO']],['assist','Route assist',['KeyL']],['camera','Camera',['KeyV']],['respawn','Respawn',['KeyR']],['map','Tactical map',['KeyM']],['mute','Sound',['KeyN']],['instruments','Extra instruments',['KeyI']],['pause','Pause',['KeyP']],['help','Flight manual',['KeyH']]
 ];
 export const defaultBindings=()=>Object.fromEntries(BINDINGS.map(([id,,codes])=>[id,[...codes]]));
 export const keyLabel=code=>({ArrowUp:'↑',ArrowDown:'↓',ArrowLeft:'←',ArrowRight:'→',Space:'Space',ShiftLeft:'Left Shift',ShiftRight:'Right Shift',Minus:'−'}[code]||code.replace(/^Key|^Digit/,''));
@@ -43,7 +43,7 @@ export function loadBindings(storage,onMigration=()=>{}){
    saveBindings(storage,loaded);
    try{onMigration(`Tactical map: M. ${changes.length?changes.join('; ')+'. ':''}Other saved controls kept. You can change these in Controls.`)}catch{}
   }
-  if(addingAoa&&!legacy){saveBindings(storage,loaded);try{onMigration(`F-16 AoA assist: ${loaded.aoaLimiter.map(keyLabel).join(' / ')}. Other saved controls kept.`)}catch{}}
+  if(addingAoa&&!legacy){saveBindings(storage,loaded);try{onMigration(`F/A-18E / Su-37 AoA assist: ${loaded.aoaLimiter.map(keyLabel).join(' / ')}. Other saved controls kept.`)}catch{}}
   return loaded;
  }catch{return defaults;}
 }

@@ -1,5 +1,5 @@
 const {chromium}=require('playwright'),fs=require('node:fs'),assert=require('node:assert/strict');
-const OUT=process.env.QA_OUTPUT_DIR||'evidence/v1.1.0/browser',BASE=process.env.JETS_URL||'http://127.0.0.1:8201/';
+const OUT=process.env.QA_OUTPUT_DIR||'evidence/v1.1.1/sortie-browser',BASE=process.env.JETS_URL||'http://127.0.0.1:8201/';
 fs.mkdirSync(OUT,{recursive:true});
 (async()=>{
  const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']}),page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[],report={method:'Rendered local Chromium WebGL; native loadout/menu/key controls plus explicit airborne fixtures. Two game documents use deterministic RTC channels, not a physical-device connection. No subjective audio listening claim.',errors};
@@ -18,8 +18,8 @@ fs.mkdirSync(OUT,{recursive:true});
   await page.selectOption('#loadout-innerwing-l','tank');await page.selectOption('#loadout-innerwing-r','tank');await page.selectOption('#loadout-centerline','tank');
   await page.selectOption('#starting-fuel','50');await page.locator('#launch').click();
   let state=await page.evaluate(()=>__skybreak.state),pilot=state.pilots[0];assert.equal(pilot.heat+pilot.radar,6);assert.equal(pilot.fuelCapacityKg,5120);assert(pilot.fuelKg>3510&&pilot.fuelKg<=3520);
-  await page.keyboard.press('KeyO');await page.waitForFunction(()=>__skybreak.state.pilots[0].aoaLimiterOff===true);assert.equal(await page.evaluate(()=>!!__skybreak.state.pilots[0].maneuverAssist),false);
-  await page.keyboard.press('KeyK');await page.waitForFunction(()=>__skybreak.state.pilots[0].maneuverAssist===true);assert.equal(await page.evaluate(()=>__skybreak.state.pilots[0].aoaLimiterOff),true);
+  await page.keyboard.press('KeyO');await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>__skybreak.state.pilots[0].aoaLimiterOff),false);assert.equal(await page.evaluate(()=>!!__skybreak.state.pilots[0].maneuverAssist),false);
+  await page.keyboard.press('KeyK');await page.waitForFunction(()=>__skybreak.state.pilots[0].maneuverAssist===true);assert.equal(await page.evaluate(()=>__skybreak.state.pilots[0].aoaLimiterOff),false);
   await page.evaluate(()=>{const s=__skybreak.state,p=s.pilots[0];s.time=20;Object.assign(p,{grounded:false,departureActive:false,gearDown:false,pos:{x:0,y:3000,z:0},speed:230,pitch:0,yaw:0,roll:0,throttle:.78,gVision:.5});for(const q of s.pilots.slice(1))Object.assign(q,{human:true,grounded:false,departureActive:false,pos:{x:4000+q.slot*300,y:3000,z:4000}});__skybreak.setState(s)});
   await page.keyboard.press('KeyV');await page.waitForTimeout(250);
   report.cockpit=await page.evaluate(()=>{const c=__skybreak.renderer.cockpitInterior;const cross=document.querySelector('#crosshair').getBoundingClientRect(),readout=document.querySelector('#combat-readout').getBoundingClientRect();return{layout:c.controlLayout,stickX:c.stick.position.x,rootY:c.fighterRoot.position.y,cross:{x:cross.x,y:cross.y},readout:{y:readout.y},vision:document.querySelector('#g-vision').style.background}});

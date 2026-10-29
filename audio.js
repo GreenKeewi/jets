@@ -1,5 +1,5 @@
-import {worldVelocity as velocity} from './arcade-travel.js?v=skybreak110-1028';
-import {FlightWarnings} from './flight-warnings.js?v=skybreak110-1028';
+import {worldVelocity as velocity} from './arcade-travel.js?v=skybreak111-1029';
+import {FlightWarnings} from './flight-warnings.js?v=skybreak111-1029';
 // Original procedural jet, wind and radio cues; no downloaded audio or media permissions.
 const clamp=(value,low,high)=>Math.max(low,Math.min(high,Number.isFinite(value)?value:0));
 const hidden=()=>!!globalThis.document?.hidden;

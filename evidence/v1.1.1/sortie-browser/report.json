@@ -1,0 +1,59 @@
+{
+  "method": "Rendered local Chromium WebGL; native loadout/menu/key controls plus explicit airborne fixtures. Two game documents use deterministic RTC channels, not a physical-device connection. No subjective audio listening claim.",
+  "errors": [],
+  "f16": {
+    "aircraftId": "f16",
+    "engines": 1,
+    "summary": "4 heat · 2 radar · 0/3 tanks · 2,400 kg fuel"
+  },
+  "fa18e": {
+    "aircraftId": "fa18e",
+    "engines": 2,
+    "summary": "4 heat · 4 radar · 0/3 tanks · 4,950 kg fuel"
+  },
+  "su37": {
+    "aircraftId": "su37",
+    "engines": 2,
+    "summary": "4 heat · 4 radar · 0/0 tanks · 7,050 kg fuel"
+  },
+  "cockpit": {
+    "layout": "right-side-stick",
+    "stickX": 0.65,
+    "rootY": -0.06,
+    "cross": {
+      "x": 687.5,
+      "y": 427.5
+    },
+    "readout": {
+      "y": 0
+    },
+    "vision": "radial-gradient(rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.008) 100%)"
+  },
+  "ace": "MISSILE INBOUNDMISSILE WARNING · EVADE6 O'CLOCK · 3245 m · ~3.0s",
+  "rebinding": [
+    "KeyU"
+  ],
+  "lobby": "Alpha: 2 pilots · 4 enemy AI · enemy AI return every 30 seconds",
+  "coopState": {
+    "teamSizes": [
+      2,
+      4
+    ],
+    "respawn": 30,
+    "loadout": {
+      "stations": {
+        "wingtip-l": "heat",
+        "wingtip-r": "heat",
+        "outerwing-l": "heat",
+        "outerwing-r": "heat",
+        "midwing-l": "radar",
+        "midwing-r": "radar",
+        "innerwing-l": "tank",
+        "innerwing-r": "tank",
+        "centerline": "tank"
+      }
+    }
+  },
+  "coopRespawn": true,
+  "pass": true
+}

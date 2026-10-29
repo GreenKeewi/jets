@@ -1,0 +1,815 @@
+{
+  "method": "Matched orthographic WebGL model views of v1.1.0 baseline and working release; native X/O/K in actual game with explicit safe airborne fixtures. No physical-device or performance claim.",
+  "errors": [],
+  "before": {
+    "su37-top-clean": {
+      "aircraftId": "su37",
+      "tankSize": {
+        "x": 2,
+        "y": 2,
+        "z": 1.9498558044433594,
+        "count": 0
+      },
+      "brakes": [
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            -1.55,
+            0.05,
+            -14.799999999999999
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            -1.55,
+            0.05,
+            -14.799999999999999
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            1.55,
+            0.05,
+            -14.799999999999999
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            1.55,
+            0.05,
+            -14.799999999999999
+          ],
+          "visible": true
+        }
+      ],
+      "nozzles": 2
+    },
+    "su37-side-clean": {
+      "aircraftId": "su37",
+      "tankSize": {
+        "x": 2,
+        "y": 2,
+        "z": 1.9498558044433594,
+        "count": 0
+      },
+      "brakes": [
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            -1.55,
+            0.05,
+            -14.799999999999999
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            -1.55,
+            0.05,
+            -14.799999999999999
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            1.55,
+            0.05,
+            -14.799999999999999
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            1.55,
+            0.05,
+            -14.799999999999999
+          ],
+          "visible": true
+        }
+      ],
+      "nozzles": 2
+    },
+    "su37-rear-brake": {
+      "aircraftId": "su37",
+      "tankSize": {
+        "x": 2,
+        "y": 2,
+        "z": 1.9498558044433594,
+        "count": 0
+      },
+      "brakes": [
+        {
+          "rotation": [
+            -0.8199998706182883,
+            0,
+            0
+          ],
+          "position": [
+            -1.55,
+            0.05,
+            -14.799999999999999
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0.8199998706182883,
+            0,
+            0
+          ],
+          "position": [
+            -1.55,
+            0.05,
+            -14.799999999999999
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            -0.8199998706182883,
+            0,
+            0
+          ],
+          "position": [
+            1.55,
+            0.05,
+            -14.799999999999999
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0.8199998706182883,
+            0,
+            0
+          ],
+          "position": [
+            1.55,
+            0.05,
+            -14.799999999999999
+          ],
+          "visible": true
+        }
+      ],
+      "nozzles": 2
+    },
+    "fa18e-rear-brake": {
+      "aircraftId": "fa18e",
+      "tankSize": {
+        "x": 2,
+        "y": 2,
+        "z": 1.9498558044433594,
+        "count": 0
+      },
+      "brakes": [
+        {
+          "rotation": [
+            -0.8199998706182883,
+            0,
+            0
+          ],
+          "position": [
+            -1.55,
+            0.05,
+            -12
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0.8199998706182883,
+            0,
+            0
+          ],
+          "position": [
+            -1.55,
+            0.05,
+            -12
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            -0.8199998706182883,
+            0,
+            0
+          ],
+          "position": [
+            1.55,
+            0.05,
+            -12
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0.8199998706182883,
+            0,
+            0
+          ],
+          "position": [
+            1.55,
+            0.05,
+            -12
+          ],
+          "visible": true
+        }
+      ],
+      "nozzles": 2
+    },
+    "f16-side-clean-tanks": {
+      "aircraftId": "f16",
+      "tankSize": {
+        "x": 2,
+        "y": 2,
+        "z": 1.9498558044433594,
+        "count": 3
+      },
+      "brakes": [
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            -1.55,
+            0.05,
+            -10.4
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            -1.55,
+            0.05,
+            -10.4
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            1.55,
+            0.05,
+            -10.4
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            1.55,
+            0.05,
+            -10.4
+          ],
+          "visible": true
+        }
+      ],
+      "nozzles": 1
+    },
+    "fa18e-side-clean-tanks": {
+      "aircraftId": "fa18e",
+      "tankSize": {
+        "x": 2,
+        "y": 2,
+        "z": 1.9498558044433594,
+        "count": 3
+      },
+      "brakes": [
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            -1.55,
+            0.05,
+            -12
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            -1.55,
+            0.05,
+            -12
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            1.55,
+            0.05,
+            -12
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            1.55,
+            0.05,
+            -12
+          ],
+          "visible": true
+        }
+      ],
+      "nozzles": 2
+    }
+  },
+  "after": {
+    "su37-top-clean": {
+      "aircraftId": "su37",
+      "tankSize": {
+        "x": 1.399999976158142,
+        "y": 1.399999976158142,
+        "z": 6.800000190734863,
+        "count": 0
+      },
+      "brakes": [
+        {
+          "rotation": [
+            -0.07,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            1.98,
+            6
+          ],
+          "visible": true
+        }
+      ],
+      "nozzles": 2
+    },
+    "su37-side-clean": {
+      "aircraftId": "su37",
+      "tankSize": {
+        "x": 1.399999976158142,
+        "y": 1.399999976158142,
+        "z": 6.800000190734863,
+        "count": 0
+      },
+      "brakes": [
+        {
+          "rotation": [
+            -0.07,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            1.98,
+            6
+          ],
+          "visible": true
+        }
+      ],
+      "nozzles": 2
+    },
+    "su37-rear-brake": {
+      "aircraftId": "su37",
+      "tankSize": {
+        "x": 1.399999976158142,
+        "y": 1.399999976158142,
+        "z": 6.800000190734863,
+        "count": 0
+      },
+      "brakes": [
+        {
+          "rotation": [
+            0.9099999999999999,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            1.98,
+            6
+          ],
+          "visible": true
+        }
+      ],
+      "nozzles": 2
+    },
+    "fa18e-rear-brake": {
+      "aircraftId": "fa18e",
+      "tankSize": {
+        "x": 1.399999976158142,
+        "y": 1.399999976158142,
+        "z": 6.800000190734863,
+        "count": 0
+      },
+      "brakes": [
+        {
+          "rotation": [
+            0,
+            0.43,
+            0
+          ],
+          "position": [
+            0,
+            0,
+            -10
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            -0.43,
+            0
+          ],
+          "position": [
+            0,
+            0,
+            -10
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            1.02,
+            0,
+            0
+          ],
+          "position": [
+            -3.15,
+            0.12,
+            3.6
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            -0.38,
+            0,
+            0
+          ],
+          "position": [
+            -5.4,
+            0.015,
+            -5.25
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            1.02,
+            0,
+            0
+          ],
+          "position": [
+            3.15,
+            0.12,
+            3.6
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            -0.38,
+            0,
+            0
+          ],
+          "position": [
+            5.4,
+            0.015,
+            -5.25
+          ],
+          "visible": true
+        }
+      ],
+      "nozzles": 2
+    },
+    "f16-side-clean-tanks": {
+      "aircraftId": "f16",
+      "tankSize": {
+        "x": 1.399999976158142,
+        "y": 1.399999976158142,
+        "z": 6.800000190734863,
+        "count": 3
+      },
+      "brakes": [
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            -1.55,
+            0.05,
+            -10.4
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            -1.55,
+            0.05,
+            -10.4
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            1.55,
+            0.05,
+            -10.4
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            1.55,
+            0.05,
+            -10.4
+          ],
+          "visible": true
+        }
+      ],
+      "nozzles": 1
+    },
+    "fa18e-side-clean-tanks": {
+      "aircraftId": "fa18e",
+      "tankSize": {
+        "x": 1.399999976158142,
+        "y": 1.399999976158142,
+        "z": 6.800000190734863,
+        "count": 3
+      },
+      "brakes": [
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            0,
+            -10
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            0,
+            0,
+            -10
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            -3.15,
+            0.12,
+            3.6
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            -5.4,
+            0.015,
+            -5.25
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            3.15,
+            0.12,
+            3.6
+          ],
+          "visible": true
+        },
+        {
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "position": [
+            5.4,
+            0.015,
+            -5.25
+          ],
+          "visible": true
+        }
+      ],
+      "nozzles": 2
+    }
+  },
+  "controls": {
+    "f16": {
+      "on": {
+        "flag": true,
+        "deployment": 0.9449767799435927,
+        "visual": 0.578125,
+        "rotations": [
+          [
+            -0.4740625,
+            0,
+            0
+          ],
+          [
+            0.4740625,
+            0,
+            0
+          ],
+          [
+            -0.4740625,
+            0,
+            0
+          ],
+          [
+            0.4740625,
+            0,
+            0
+          ]
+        ],
+        "advanced": true,
+        "override": false
+      },
+      "off": {
+        "flag": false,
+        "deployment": 0.019818288453201594
+      }
+    },
+    "fa18e": {
+      "on": {
+        "flag": true,
+        "deployment": 0.9768709682923834,
+        "visual": 0.9768709682923834,
+        "rotations": [
+          [
+            0,
+            0.4200545163657249,
+            0
+          ],
+          [
+            0,
+            -0.4200545163657249,
+            0
+          ],
+          [
+            0.996408387658231,
+            0,
+            0
+          ],
+          [
+            -0.3712109679511057,
+            0,
+            0
+          ],
+          [
+            0.996408387658231,
+            0,
+            0
+          ],
+          [
+            -0.3712109679511057,
+            0,
+            0
+          ]
+        ],
+        "advanced": true,
+        "override": true
+      },
+      "off": {
+        "flag": false,
+        "deployment": 0.06233627449293533
+      }
+    },
+    "su37": {
+      "on": {
+        "flag": true,
+        "deployment": 0.9431117616538984,
+        "visual": 0.9431117616538984,
+        "rotations": [
+          [
+            0.8542495264208205,
+            0,
+            0
+          ]
+        ],
+        "advanced": true,
+        "override": true
+      },
+      "off": {
+        "flag": false,
+        "deployment": 0.02745180835488718
+      }
+    }
+  },
+  "savedKeyPreserved": true,
+  "pass": true
+}

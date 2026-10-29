@@ -64,11 +64,11 @@ test('contact impulses do not cause sustained wear',()=>{
  assert(plane.contactLoad>40);assert.equal(plane.normalLoad,1);assert.equal(plane.hp,100);
 });
 
-test('F-16 limiter override raises a finite commanded envelope, never bomber or other fighters',()=>{
- for(const dt of [1/30,1/60,1/144]){
+test('supported jets alone receive a finite override envelope and ignore stale unsupported state',()=>{
+ for(const aircraftId of ['fa18e','su37'])for(const dt of [1/30,1/60,1/144]){
   let normal,override;
   for(const off of [false,true]){
-   const plane={...p(),aircraftId:'f16',aoaLimiterOff:off},before={...plane};plane.pitch=.2;
+   const plane={...p(),aircraftId,aoaLimiterOff:off},before={...plane};plane.pitch=.2;
    limitFlightEnvelope(plane,before,dt);
    const load=signedPilotLoad(physicalVelocity(before),physicalVelocity(plane),viewAxes(plane,plane.roll).up,dt);
    assert(load<=(off?12:9)+1e-5);assert(load>(off?11.9:8.9));
@@ -76,8 +76,8 @@ test('F-16 limiter override raises a finite commanded envelope, never bomber or 
   }
   assert(override>normal);
  }
- assert.deepEqual(flightEnvelopeFor({bomber:true,aoaLimiterOff:true}),{min:-1.5,max:3.5});
- for(const aircraftId of ['fa18e','su37'])assert.deepEqual(flightEnvelopeFor({aircraftId,aoaLimiterOff:true}),{min:-3,max:9});
+ for(const extra of [{aircraftId:'fa18e',bomber:true},{aircraftId:'su37',bomber:true}])assert.deepEqual(flightEnvelopeFor({...extra,aoaLimiterOff:true}),{min:-1.5,max:3.5});
+ for(const aircraftId of ['f16',undefined,'unknown'])assert.deepEqual(flightEnvelopeFor({aircraftId,aoaLimiterOff:true}),{min:-3,max:9});
 });
 test('tunnel cue is visible under sustained high load, recovers, and retains neutral legacy wire fields',()=>{
  const plane=p();for(let n=0;n<180;n++)advancePilotPhysiology(plane,9,1/60);

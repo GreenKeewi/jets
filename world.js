@@ -1,5 +1,5 @@
-import {AIRFIELDS,fieldCoordinates} from './missions.js?v=skybreak110-1028';
-import {valleyTerrain} from './arenas.js?v=skybreak110-1028';
+import {AIRFIELDS,fieldCoordinates} from './missions.js?v=skybreak111-1029';
+import {valleyTerrain} from './arenas.js?v=skybreak111-1029';
 export const SEA_LEVEL=-5;
 // Translate the whole authored island with its airfield, keeping runway relief coherent.
 export const NORTHPOINT_SHIFT=Object.freeze({x:AIRFIELDS.northpoint.x-4200,z:AIRFIELDS.northpoint.z-10300});

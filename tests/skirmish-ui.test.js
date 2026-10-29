@@ -6,6 +6,7 @@ import vm from 'node:vm';
 import {createMultiplayerRouter} from '../multiplayer-router.js';
 import * as simulation from '../sim.js';
 import * as controls from '../controls.js';
+import * as aircraftCapabilities from '../aircraft-capabilities.js';
 import * as keybindings from '../keybindings.js';
 import * as axes from '../view-axes.js';
 import * as guidance from '../guidance.js';
@@ -34,7 +35,7 @@ function app({storage,peerSettings={}}={}){
  const server={get state(){return serverState},subscribe(){return()=>{}},async connect(){remote=simulation.createGame({mode:'dogfight',skirmish:true,teamSizes:[3,3],seed:41});remote.pilots[0].id='server-pilot';remote.pilots[0].human=true;serverState={...serverState,role:'guest',connected:true,localId:'server-pilot'};serverCallbacks.onState(serverState);serverCallbacks.onControl({type:'start',config:remote.config||{mode:'dogfight',skirmish:true,teamSizes:[3,3],seed:41}});serverCallbacks.onSnapshot(simulation.snapshot(remote),{initial:true});},disconnect(){serverState={...serverState,role:'offline',connected:false,localId:null};serverCallbacks.onState(serverState)},getPlayerIds:()=>['server-pilot'],sampleSnapshot:()=>simulation.snapshot(remote),submitInput(input){sent.push({...input})},requestRespawn(){respawns++;return true}};
  const window={addEventListener:(type,fn)=>events[type]=fn};
  const source=readFileSync(new URL('../game.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
- vm.runInNewContext(source,{...simulation,...controls,...keybindings,...loadouts,mountKeybindings(){},matchMedia:()=>({matches:false}),...axes,...guidance,...missions,...combatMissions,...resupply,...arenas,...world,airportStatus,homeGuidance,RadarTerrain:class{draw(){}},Renderer,FlightAudio,drawCockpit(){},createMultiplayerRouter:callbacks=>createMultiplayerRouter(callbacks,{createPeer:callbacks=>{peerCallbacks=callbacks;return net},createServer:callbacks=>{serverCallbacks=callbacks;return server}}),mountNetworkUI(){},mountServerUI(){},window,document,localStorage:storage,location:{hostname:'localhost'},HTMLElement:Element,performance:{now:()=>0},requestAnimationFrame:fn=>raf.push(fn),innerWidth:1024,innerHeight:650,console,Math,Set},{filename:'game.js'});
+ vm.runInNewContext(source,{...simulation,...controls,...aircraftCapabilities,...keybindings,...loadouts,mountKeybindings(){},matchMedia:()=>({matches:false}),...axes,...guidance,...missions,...combatMissions,...resupply,...arenas,...world,airportStatus,homeGuidance,RadarTerrain:class{draw(){}},Renderer,FlightAudio,drawCockpit(){},createMultiplayerRouter:callbacks=>createMultiplayerRouter(callbacks,{createPeer:callbacks=>{peerCallbacks=callbacks;return net},createServer:callbacks=>{serverCallbacks=callbacks;return server}}),mountNetworkUI(){},mountServerUI(){},window,document,localStorage:storage,location:{hostname:'localhost'},HTMLElement:Element,performance:{now:()=>0},requestAnimationFrame:fn=>raf.push(fn),innerWidth:1024,innerHeight:650,console,Math,Set},{filename:'game.js'});
  return{get audio(){return audioFixture},joinPeer:peers=>peerCallbacks.onPeerChange(peers,net.state),api:window.__skybreak,nodes,net,events,server,sent,get remote(){return remote},get respawns(){return respawns},dropServer(){server.disconnect();serverCallbacks.onDisconnect('server-pilot','Server unavailable')},frame(time=1000/60){raf.shift()(time)},setRole:value=>role=value,keydown(code){events.keydown({code,repeat:false,target:nodes.get('world'),preventDefault(){}})}};
 }
 test('native menu controller starts requested asymmetric and capped custom bot squads',()=>{
@@ -105,4 +106,13 @@ test('late join preserves enemy AI in asymmetric co-op with reinforcements off',
 
 test('a user flight key restores audio after a pagehide disposal and resumed page',()=>{
  const a=app();a.nodes.get('launch').onclick();assert.equal(a.audio.activations,1);a.events.pagehide();assert.equal(a.audio.ctx,null);a.keydown('KeyW');assert.equal(a.audio.activations,2);assert.equal(a.audio.ctx.state,'running');assert.equal(a.api.running,true);
+});
+
+test('AoA status and controls identify only the two supported fighters with saved binding preserved',()=>{
+ for(const aircraftId of ['f16','fa18e','su37']){
+  const a=app();a.api.start({mode:'dogfight',skirmish:true,aircraftId});a.frame();
+  assert.equal(a.nodes.get('aoa-status').hidden,aircraftId==='f16');
+  a.keydown('KeyO');a.frame(50);assert.equal(a.api.state.pilots[0].aoaLimiterOff,aircraftId!=='f16');
+ }
+ const b=keybindings.defaultBindings();b.aoaLimiter=['KeyU'];const storage={getItem:key=>key===keybindings.BINDINGS_KEY?JSON.stringify(b):null,setItem(){}};assert.deepEqual(keybindings.loadBindings(storage).aoaLimiter,['KeyU']);assert.match(keybindings.BINDINGS.find(b=>b[0]==='aoaLimiter')[1],/F\/A-18E.*Su-37/);
 });

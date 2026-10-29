@@ -1,0 +1,35 @@
+TAP version 13
+# Subtest: Su-37 has Flanker proportions, forward low canopy, spaced nacelles and foreplanes in both LODs
+ok 1 - Su-37 has Flanker proportions, forward low canopy, spaced nacelles and foreplanes in both LODs
+  ---
+  duration_ms: 79.426403
+  ...
+# Subtest: all eight tank combinations keep baked ellipsoids at real station instances in menu and both LODs
+ok 2 - all eight tank combinations keep baked ellipsoids at real station instances in menu and both LODs
+  ---
+  duration_ms: 244.338106
+  ...
+# Subtest: Su-37 dorsal airbrake rises above the spine and follows canonical staged deployment exactly
+ok 3 - Su-37 dorsal airbrake rises above the spine and follows canonical staged deployment exactly
+  ---
+  duration_ms: 19.088696
+  ...
+# Subtest: Super Hornet brakes use exposed LEX spoilers, opposite rudder deflections and coordinated wing surfaces
+ok 4 - Super Hornet brakes use exposed LEX spoilers, opposite rudder deflections and coordinated wing surfaces
+  ---
+  duration_ms: 27.02782
+  ...
+# Subtest: variant braking remains bounded without growing the scene and legacy F-16/bomber boards remain intact
+ok 5 - variant braking remains bounded without growing the scene and legacy F-16/bomber boards remain intact
+  ---
+  duration_ms: 40.793933
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 454.021445
