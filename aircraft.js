@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.js';
-import {batchStatic} from './geometry.js?v=skybreak111-1029';
-import {aircraftDefinition,normalizeLoadout} from './loadouts.js?v=skybreak111-1029';
-import {usesSimulationAirbrakeDeployment} from './aircraft-capabilities.js?v=skybreak111-1029';
+import {batchStatic} from './geometry.js?v=skybreak112-1102';
+import {aircraftDefinition,normalizeLoadout} from './loadouts.js?v=skybreak112-1102';
+import {usesSimulationAirbrakeDeployment} from './aircraft-capabilities.js?v=skybreak112-1102';
 // Simplified original visual models. Layout cues only, not manufacturer geometry.
 // USAF: 183wg.ang.af.mil/RESOURCES/Fact-Sheets/Article/459577/f-16-fighting-falcon/
 // NAVAIR: navair.navy.mil/product/FA-18EF-Super-Hornet
@@ -62,9 +62,20 @@ function addEngine(root,x,y,z,metal,black,flames,nozzles,radius=.84){
  const plume=new THREE.Group();plume.position.z=-1;
  for(let ring=0;ring<3;ring++){const flame=new THREE.Mesh(new THREE.ConeGeometry(.67*(1-ring*.20),5.8-ring*.8,14),new THREE.MeshBasicMaterial({color:0x8ce7ff,transparent:true,opacity:.45,depthWrite:false}));flame.rotation.x=-Math.PI/2;flame.position.z=-2.6-ring*.3;plume.add(flame)}nozzle.add(plume);flames.push(plume);
 }
+function addAftStructure(root,id,material){
+ if(id==='su37')return; // Su-37 uses its long centre stinger.
+ if(id==='f16')for(const side of [-1,1]){const rail=body([[-15.6,.05,.08],[-13.6,.22,.2],[-10,.3,.35]],material);rail.position.set(side*1.05,.2,0);root.add(rail);}
+ else root.add(body([[-18.4,.04,.09,.4],[-16,.35,.3,.45],[-12,.65,.5,.5]],material));
+}
+function addFlightRudders(root,id,mat,surfaces){
+ for(const side of (id==='f16'?[0]:[-1,1])){
+  const pivot=new THREE.Group();pivot.position.set(side*(id==='su37'?3.65:2),1,id==='f16'?-10.5:id==='fa18e'?-10.8:-18.8);
+  pivot.add(block(.16,id==='su37'?4.3:3.8,1.25,mat,0,2,-.55));root.add(pivot);surfaces.push({node:pivot,side,kind:'rudder'});
+ }
+}
 function addSu37Center(root,upper,radome){
  // Flattened blended centre and the tail stinger between separated engines.
- root.add(body([[-20.6,.08,.12,.45],[-18.1,.43,.36,.5],[-12,1,.48,.55]],upper));
+ root.add(body([[-24.8,.04,.07,.45],[-22,.28,.24,.5],[-18.1,.53,.36,.5],[-12,1,.48,.55]],upper));
  root.add(body([[16.7,1.0,.85,.27],[20.1,.65,.55,.14],[23.2,.015,.015]],radome));
 }
 function addVariantBrakes(root,id,upper,metal,airbrakes){
@@ -82,7 +93,7 @@ function addVariantBrakes(root,id,upper,metal,airbrakes){
  }
 }
 function storeGeometry(type){
- const m=paint(0xc8d1d1),g=new THREE.Group(),tank=type==='tank',radius=tank?.7:type==='radar'?.21:.15,length=tank?6.8:type==='radar'?4.2:3.4;
+ const m=paint(0xc8d1d1),g=new THREE.Group(),tank=type==='tank',radius=tank?1.02:type==='radar'?.21:.15,length=tank?9.2:type==='radar'?4.2:3.4;
  // A one-mesh batch keeps its object transform. Bake the ellipsoid into the
  // buffer itself, because InstancedMesh receives geometry, not that object.
  if(tank){g.add(new THREE.Mesh(new THREE.SphereGeometry(1,20,12).scale(radius,radius,length*.5),m))}
@@ -117,6 +128,7 @@ export function createAircraft(team=0,bomber=false,aircraftId='f16'){
   root.add(body([[-6,2,.3,.55],[0,2.3,.55,1.1],[6,1.6,.4,1.1],[9,.1,.1,.65]],upper));
   for(const side of[-1,1]){const windshield=panel([[side*.12,9],[side*1.4,7],[side*1.8,5.9],[side*.12,6.1]],glass,.04);windshield.position.y=1.65;root.add(windshield);root.add(block(1.9,.12,3,black,side*3.2,1.05,0));root.add(block(2.5,.13,.8,metal,side*3.5,.65,-6.3));}
  }else{
+  addAftStructure(root,aircraftId,upper);addFlightRudders(root,aircraftId,upper,surfaces);
   if(aircraftId==='su37')addSu37Center(root,upper,paint(0xcbd2cd,{roughness:.8,metalness:.1}));else root.add(body([[-10,.5,.45,1],[-2,.65,.6,1.2],[5,.45,.3,1.2]],upper));
   const canopy=new THREE.Mesh(new THREE.SphereGeometry(1,28,18),glass);canopy.position.set(0,aircraftId==='su37'?1.95:1.7,aircraftId==='f16'?5.1:aircraftId==='su37'?11.3:7);canopy.scale.set(aircraftId==='f16'?1:aircraftId==='su37'?1.02:1.12,aircraftId==='su37'?.87:1.2,aircraftId==='su37'?3.0:3.35);root.add(canopy);
   // Bubble canopy: unobstructed forward glass, aft bow only.
@@ -146,6 +158,7 @@ export function createAircraft(team=0,bomber=false,aircraftId='f16'){
    const stripe=panel(mirrored([[profile.span-2.6,tipZ+2.5],[profile.span-.2,tipZ+.8],[profile.span-.3,tipZ-.1],[profile.span-2.6,tipZ+1.4]],side),accent,.03);stripe.position.y=.04;root.add(stripe);
   }
   const aileronPivot=new THREE.Group();aileronPivot.position.set(side*(bomber?20:profile.span-2.6),0,bomber?-7.3:aircraftId==='su37'?-7.7:-5.8);aileronPivot.add(block(bomber?8:3.5,.14,bomber?1.9:1.1,upper,0,0,bomber?-.85:-.45));root.add(aileronPivot);surfaces.push({node:aileronPivot,side,kind:'aileron'});
+  const flap=new THREE.Group();flap.position.set(side*(bomber?11:profile.span*.42),.04,bomber?-8:aircraftId==='su37'?-8.7:-6.4);flap.add(block(bomber?7:3.2,.13,1.45,upper,0,0,-.65));root.add(flap);surfaces.push({node:flap,side,kind:'flap'});
   // Fighter split aft speed brakes; flying wing split drag rudders at the tips.
   if(bomber||aircraftId==='f16')for(const vertical of[-1,1]){const hinge=new THREE.Group();hinge.position.set(side*(bomber?27:1.55),bomber?0:.05,bomber?-8.4:profile.engineZ+2.4);const brake=block(bomber?5.2:1.6,.10,bomber?2:2.6,upper,side*(bomber?0:.55),0,bomber?-.9:-1.15);hinge.add(brake);root.add(hinge);airbrakes.push({node:hinge,vertical,kind:bomber?'drag-rudder':'split-aft',axis:'x',rest:0,angle:vertical*(bomber?.65:.82)})}
   const light=new THREE.Mesh(new THREE.SphereGeometry(.14,7,5),new THREE.MeshBasicMaterial({color:side===1?0x72e7a4:0xff6f58}));light.position.set(side*(bomber?31.7:profile.span),.1,bomber?-7.8:aircraftId==='fa18e'?-3.7:aircraftId==='su37'?-6.5:-5.3);root.add(light);wingtips.push(light.position.clone());
@@ -155,15 +168,16 @@ export function createAircraft(team=0,bomber=false,aircraftId='f16'){
  const vapor=new THREE.Mesh(new THREE.ConeGeometry(bomber?24:10,11,24,1,true),new THREE.MeshBasicMaterial({color:0xe8f5f5,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false}));vapor.rotation.x=Math.PI/2;vapor.position.z=-3;vapor.visible=false;root.add(vapor);
  root.userData={flames,nozzles,gear,surfaces,wingtips,airbrakes,beacon,vapor,sharedControls,gearAmount:1,brakeAmount:0,bomber,team,aircraftId,visualModel:'Simplified original visual model',prototype:!bomber&&aircraftId==='su37'};batchStatic(gear);batchStatic(root,new Set([gear,beacon,vapor,...nozzles,...surfaces.map(s=>s.node),...airbrakes.map(s=>s.node)]));
  const detailed=new THREE.Group();for(const node of[...root.children])detailed.add(node);root.add(detailed);
- const distant=new THREE.Group();distant.add(body(bomber?bomberHull:profile.hull,main));for(const side of[-1,1]){distant.add(panel(wingOutline(side,bomber,aircraftId),main,.2));if(!bomber){const tail=panel([[side*profile.tailX,profile.tailZ+2],[side*(profile.tailX+profile.tailSpan),profile.tailZ-.8],[side*(profile.tailX+profile.tailSpan-.4),profile.tailZ-3],[side*profile.tailX,profile.tailZ-2]],upper,.15);distant.add(tail);distant.add(panel(mirrored(profile.lerx,side),upper,.1));if(aircraftId==='su37'){const canard=panel(mirrored(su37Canard.map(([x,z])=>[x+2.5,z+6.8]),side),upper,.15);canard.position.y=.6;distant.add(canard)}}}if(!bomber){addFins(distant,aircraftId,upper);addEnginePods(distant,aircraftId,belly,black);if(aircraftId==='su37')addSu37Center(distant,upper,paint(0xcbd2cd,{roughness:.8,metalness:.1}))}batchStatic(distant);distant.visible=false;root.add(distant);root.add(sharedControls);root.userData.detailed=detailed;root.userData.distant=distant;
+ const distant=new THREE.Group();distant.add(body(bomber?bomberHull:profile.hull,main));for(const side of[-1,1]){distant.add(panel(wingOutline(side,bomber,aircraftId),main,.2));if(!bomber){const tail=panel([[side*profile.tailX,profile.tailZ+2],[side*(profile.tailX+profile.tailSpan),profile.tailZ-.8],[side*(profile.tailX+profile.tailSpan-.4),profile.tailZ-3],[side*profile.tailX,profile.tailZ-2]],upper,.15);distant.add(tail);distant.add(panel(mirrored(profile.lerx,side),upper,.1));if(aircraftId==='su37'){const canard=panel(mirrored(su37Canard.map(([x,z])=>[x+2.5,z+6.8]),side),upper,.15);canard.position.y=.6;distant.add(canard)}}}if(!bomber){addAftStructure(distant,aircraftId,upper);addFins(distant,aircraftId,upper);addEnginePods(distant,aircraftId,belly,black);if(aircraftId==='su37')addSu37Center(distant,upper,paint(0xcbd2cd,{roughness:.8,metalness:.1}))}batchStatic(distant);distant.visible=false;root.add(distant);root.add(sharedControls);root.userData.detailed=detailed;root.userData.distant=distant;
  if(!bomber){root.userData.stores=buildStores(root,aircraftId,metal);syncAircraftStores(root)}return root;
 }
 export function animateAircraft(model,p,time,dt){
  const d=model.userData,power=aircraftPower(p),desiredGear=p.gearDown===undefined?(p.grounded?1:0):(p.gearDown?1:0);d.gearAmount+=(desiredGear-d.gearAmount)*Math.min(1,dt*2.5);d.gear.visible=d.gearAmount>.025;d.gear.scale.y=Math.max(.05,d.gearAmount);
  if(usesSimulationAirbrakeDeployment(d)&&Number.isFinite(p.airbrakeDeployment))d.brakeAmount=bounded(p.airbrakeDeployment);else d.brakeAmount+=((p.airbrake?1:0)-d.brakeAmount)*Math.min(1,Math.max(0,dt)*5);
  for(const brake of d.airbrakes)brake.node.rotation[brake.axis]=(brake.rest||0)+brake.angle*d.brakeAmount;
- for(const surface of d.surfaces){const target=surface.kind==='aileron'?(p.roll||0)*surface.side*.21-(d.bomber?(p.pitch||0)*.18:0)+(d.aircraftId==='fa18e'?d.brakeAmount*.46:0):(p.pitch||0)*(surface.kind==='canard'?.25:-.42);surface.node.rotation.x+=(target-surface.node.rotation.x)*Math.min(1,dt*9)}
+ const input=p.controlInput||{},pitch=bounded(input.pitch,-1,1),roll=bounded(input.roll,-1,1),yaw=bounded(input.yaw,-1,1);
+ for(const surface of d.surfaces){if(surface.kind==='rudder'){const target=yaw*.4+roll*.12;surface.node.rotation.y+=(target-surface.node.rotation.y)*Math.min(1,dt*9);continue;}const target=surface.kind==='flap'?(p.gearDown?-.42:0)-Math.max(0,pitch)*.12:surface.kind==='aileron'?roll*surface.side*.42-(d.bomber?pitch*.24:0)+(d.aircraftId==='fa18e'?d.brakeAmount*.46:0):pitch*(surface.kind==='canard'?.4:-.48);surface.node.rotation.x+=(target-surface.node.rotation.x)*Math.min(1,dt*9)}
  if(d.aircraftId==='su37')for(const nozzle of d.nozzles){const target=-bounded(p.controlInput?.pitch,-1,1)*.18;nozzle.rotation.x+=(target-nozzle.rotation.x)*Math.min(1,Math.max(0,dt)*6)}
- for(const plume of d.flames){const{burner,throttle}=power;plume.scale.set(1+burner*.17,1+burner*.17,.15+throttle*.24+burner*1.7+Math.sin(time*37)*.025);plume.visible=!p.dead&&throttle>.13;plume.children.forEach((f,j)=>{f.material.opacity=(.09-j*.02)+burner*.44;f.material.color.setHex(burner?[0x626aff,0xb9bcff,0xffe0bb][j]:[0x3d9fff,0x8ce7ff,0xe2f7ff][j])})}
+ for(const plume of d.flames){const{burner,throttle}=power;plume.scale.set(1+burner*.17,1+burner*.17,.15+throttle*.24+burner*1.7+Math.sin(time*37)*.025);plume.visible=!p.dead&&throttle>.13;plume.children.forEach((f,j)=>{f.material.opacity=(.09-j*.02)+burner*.44;f.material.color.setHex(burner?[0xff6c12,0xffa52b,0xffdc83][j]:[0x3d9fff,0x8ce7ff,0xe2f7ff][j])})}
  d.vapor.visible=power.vapor>.035;d.vapor.material.opacity=power.vapor*.14;d.vapor.scale.setScalar(.93+power.vapor*.13);d.beacon.visible=Math.sin(time*3.2)>.83;syncAircraftStores(model,p);
 }

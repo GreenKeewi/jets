@@ -1,5 +1,5 @@
-import {worldVelocity as velocity} from './arcade-travel.js?v=skybreak111-1029';
-import {FlightWarnings} from './flight-warnings.js?v=skybreak111-1029';
+import {worldVelocity as velocity} from './arcade-travel.js?v=skybreak112-1102';
+import {FlightWarnings} from './flight-warnings.js?v=skybreak112-1102';
 // Original procedural jet, wind and radio cues; no downloaded audio or media permissions.
 const clamp=(value,low,high)=>Math.max(low,Math.min(high,Number.isFinite(value)?value:0));
 const hidden=()=>!!globalThis.document?.hidden;
@@ -75,7 +75,7 @@ export class FlightAudio{
   this.warnings.update(p,{...warningContext,active:audible&&this.voiceEnabled});
   if(!this.ctx||!p){if(!active)this.suspend();return;}const a=this.ctx,t=a.currentTime;
   if(!audible&&this.wasAudible)this.stopTransients();this.wasAudible=audible;
-  const shots=p.gunShots||0;if(audible&&this.lastPilotId===p.id&&shots>this.lastGunShots)this.burst(5200,340,.075,view==='cockpit'?.17:.27,{attack:.002,highpass:90});this.lastGunShots=shots;this.lastPilotId=p.id;const sound=flightSound(p,view==='cockpit');
+  const shots=p.gunShots||0;if(audible&&this.lastPilotId===p.id&&shots>this.lastGunShots){this.burst(5200,340,.075,view==='cockpit'?.2:.3,{attack:.002,highpass:90});this.burst(260,65,.08,view==='cockpit'?.12:.18,{attack:.002,low:true});}this.lastGunShots=shots;this.lastPilotId=p.id;const sound=flightSound(p,view==='cockpit');
   this.master.gain.setTargetAtTime(audible?.42*this.volume:0,t,.025);this.jetGain.gain.setTargetAtTime(active?sound.jet:0,t,.55);this.jetFilter.frequency.setTargetAtTime(sound.jetFrequency,t,.65);this.jetFilter.Q.setTargetAtTime(sound.jetQ,t,.22);
   this.windGain.gain.setTargetAtTime(active?sound.wind:0,t,.18);this.windFilter.frequency.setTargetAtTime(sound.windFrequency,t,.25);this.engine.frequency.setTargetAtTime(sound.engineFrequency,t,.3);this.engineGain.gain.setTargetAtTime(active?sound.engine:0,t,.25);this.engineFilter.frequency.setTargetAtTime(sound.engineCutoff,t,.25);
   this.turbine.frequency.setTargetAtTime(sound.turbineFrequency,t,.85);this.turbineGain.gain.setTargetAtTime(active?sound.turbine:0,t,.5);
@@ -140,7 +140,7 @@ export class FlightAudio{
   if(!this.ctx||!this.enabled||!this.volume||!this.active||hidden()||this.voices.size>=TRANSIENT_LIMIT)return;const a=this.ctx,t=a.currentTime,source=a.createBufferSource(),filter=a.createBiquadFilter(),g=a.createGain(),high=a.createBiquadFilter();source.buffer=options.low?this.combustionBuffer:this.noiseBuffer;filter.type='lowpass';filter.Q.value=.5;filter.frequency.setValueAtTime(from,t);filter.frequency.exponentialRampToValueAtTime(Math.max(30,to),t+duration);high.type='highpass';high.frequency.value=options.highpass||25;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+(options.attack||.006));g.gain.exponentialRampToValueAtTime(.0001,t+duration);source.connect(high).connect(filter).connect(g).connect(this.master);this.voices.add(source);source.start(t,Math.random());source.stop(t+duration+.01);source.onended=()=>{this.voices.delete(source);source.disconnect();high.disconnect();filter.disconnect();g.disconnect()};
  }
  event(type){
-  if(type==='launch'){this.burst(6200,900,.12,.28,{attack:.003});this.burst(2100,130,.55,.31,{low:true});}
+  if(type==='launch'){this.burst(6200,900,.22,.32,{attack:.003});this.burst(2100,130,.7,.34,{low:true});}
   else if(type==='gun-hit')this.burst(4700,450,.07,.18,{attack:.002,highpass:150});
   else if(type==='counter')this.burst(7300,1700,.14,.21,{attack:.002,highpass:700});
   else if(type==='damage'){this.burst(2900,130,.16,.4,{attack:.002});this.burst(390,45,.55,.5,{low:true});}

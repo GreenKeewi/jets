@@ -1,5 +1,22 @@
 # Skybreak Jets
 
+
+## v1.1.2 · Visual flight setup and open exploration
+
+Aircraft selection now has actual model previews; illustrated map cards and the existing mode cards make the main choices visible. Detailed weapon stations, squad options, fuel, accessibility and friend-room choices remain available. The setup starts open.
+
+J toggles rear view, returning to the previous chase/cockpit camera; T drops all external tanks and their remaining fuel while airborne. Both have HUD buttons and customizable keys. Existing saved J/T assignments are preserved; new actions choose free keys. Dropped tanks fall away visibly and cannot be refitted in the same sortie. Fuel burns from external tanks first. Enlarged tanks retain the existing 20% internal-capacity fuel balance.
+
+Fighters have distinct longer aft structures, especially the Su-37 center stinger. Ailerons, elevators, rudders, canards and landing flaps animate from control inputs. Flaps deploy with gear; existing airbrake surfaces remain. Afterburner flames are orange. Gunfire has a mechanical low-frequency layer and missile ignition a longer rocket burst.
+
+F/A-18E and Su-37 limiter-off flight now has a sharper bounded envelope (17 G maximum versus 9 G with the limiter on) and stronger peripheral tunnel vision (up to 82% edge opacity, with a clear center). No blackouts, blood, redouts or control suppression are introduced. Comfort effects remain available. F-16 and bomber limiter behavior is unchanged.
+
+All airport pairs are farther apart: Coastal–Northpoint 22.49 km, Coastal–Westhaven 17.18 km and Northpoint–Westhaven 32.02 km. Remote terrain, shores, forest, roads, settlements and airfield objects move with their airports. Runways remain 2.5 km long. M shows navigation and ownership.
+
+Free Flight is open exploration: no gates, route objectives, completion award or time limit. L supplies optional cruise assistance; the map still shows airports. Any runway accepts a gear-down touchdown in either direction, with gentler limits: up to 145 m/s (282 knots), 30° bank/heading tolerance and 18 m/s descent. Hostile-airport landings destroy the aircraft. Neutral airports tell you to take off again and add up to 10% internal fuel once per airport per airframe, capped by internal capacity. HOME repairs, refueling and weapon resupply remain useful.
+
+Multiplayer compatibility is JETS11 / skybreak112-1102. Reload all clients and create fresh invites; separately hosted servers must use the matching build. See [verification and limits](evidence/v1.1.2/README.md).
+
 An original static 3D browser jet game, built for approachable keyboard flying. No build step, player accounts, microphone, camera or external runtime CDN. Solo and peer play remain independent of the optional, separately hosted authoritative server. Three.js is vendored with its MIT license.
 
 ## Current release: v1.1.1

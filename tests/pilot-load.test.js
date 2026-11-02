@@ -71,7 +71,7 @@ test('supported jets alone receive a finite override envelope and ignore stale u
    const plane={...p(),aircraftId,aoaLimiterOff:off},before={...plane};plane.pitch=.2;
    limitFlightEnvelope(plane,before,dt);
    const load=signedPilotLoad(physicalVelocity(before),physicalVelocity(plane),viewAxes(plane,plane.roll).up,dt);
-   assert(load<=(off?12:9)+1e-5);assert(load>(off?11.9:8.9));
+   assert(load<=(off?17:9)+1e-5);assert(load>(off?16.9:8.9));
    if(off)override=plane.pitch;else normal=plane.pitch;
   }
   assert(override>normal);

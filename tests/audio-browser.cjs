@@ -27,7 +27,7 @@ const assert=require('node:assert/strict');
    await new Promise(resolve=>setTimeout(resolve,300));const wave=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(wave);
    mixes.live={state:live.ctx.state,peak:Math.max(...wave.map(Math.abs)),finite:wave.every(Number.isFinite)};await live.ctx.close();return mixes;
   });
-  assert.equal(result.gun.initialBursts,0);assert.equal(result.gun.newBursts,1);assert(result.events.scheduledVoices>0);assert.equal(result.events.voices,0);
+  assert.equal(result.gun.initialBursts,0);assert.equal(result.gun.newBursts,2);assert(result.events.scheduledVoices>0);assert.equal(result.events.voices,0);
   assert.equal(result.live.state,'running');assert(result.live.peak>0);
   for(const [name,mix]of Object.entries(result)){if(['live','gun'].includes(name))continue;assert(mix.finite,name);assert(mix.peak<1,name+' clipped');if(['muted','dead'].includes(name))assert.equal(mix.peak,0,name);else assert(mix.rms>.0001,name+' silent');}
   assert(result.burner.rms>result.dry.rms);assert(result.cockpit.rms<result.dry.rms);

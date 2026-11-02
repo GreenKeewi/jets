@@ -1,8 +1,8 @@
-import {SUN_DIRECTION} from './seeker-environment.js?v=skybreak111-1029';
+import {SUN_DIRECTION} from './seeker-environment.js?v=skybreak112-1102';
 import * as THREE from './vendor/three.module.js';
-import {terrainHeight,worldNoise,coastPoint,northernRidgeHeight,NORTHPOINT_SHIFT,SEA_LEVEL,ISLANDS,TERRAIN_TILE_SIZE,TERRAIN_EDGE_SEGMENTS,TERRAIN_LOD_SEGMENTS} from './world.js?v=skybreak111-1029';
-import {createAircraft} from './aircraft.js?v=skybreak111-1029';
-import {AIRFIELDS,fieldPoint,fieldCoordinates,WORLD_BOUNDS} from './missions.js?v=skybreak111-1029';
+import {terrainHeight,worldNoise,coastPoint,northernRidgeHeight,NORTHPOINT_SHIFT,WESTHAVEN_SHIFT,SEA_LEVEL,ISLANDS,TERRAIN_TILE_SIZE,TERRAIN_EDGE_SEGMENTS,TERRAIN_LOD_SEGMENTS} from './world.js?v=skybreak112-1102';
+import {createAircraft} from './aircraft.js?v=skybreak112-1102';
+import {AIRFIELDS,fieldPoint,fieldCoordinates,WORLD_BOUNDS} from './missions.js?v=skybreak112-1102';
 const standard=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.88,metalness:.08,...extra});
 function box(w,h,d,mat,x=0,y=0,z=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);return m}
 function canvasTexture(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
@@ -103,7 +103,7 @@ export class Scenery{
   scene.add(ribbon([[-1430,-2500],[-1210,-1900],[-930,-820],[-480,220],[530,1070]],1.5,standard(0xd0c7a1),.8));
  }
  buildForests(){
-  const cells=new Map(),cellSize=2400,regions=[{x:-4300,z:-4600,w:8500,d:9200,count:2600,seed:0},{x:-4700+NORTHPOINT_SHIFT.x,z:4600+NORTHPOINT_SHIFT.z,w:13000,d:8700,count:3000,seed:10000},{x:-13200,z:800,w:7200,d:7600,count:2300,seed:20000},...ISLANDS.slice(3).filter(island=>island.biome!=='volcanic').map((island,index)=>({x:island.x-island.rx,z:island.z-island.rz,w:island.rx*2,d:island.rz*2,count:1200,seed:30000+index*10000}))];
+  const cells=new Map(),cellSize=2400,regions=[{x:-4300,z:-4600,w:8500,d:9200,count:2600,seed:0},{x:-4700+NORTHPOINT_SHIFT.x,z:4600+NORTHPOINT_SHIFT.z,w:13000,d:8700,count:3000,seed:10000},{x:-13200+WESTHAVEN_SHIFT.x,z:800+WESTHAVEN_SHIFT.z,w:7200,d:7600,count:2300,seed:20000},...ISLANDS.slice(3).filter(island=>island.biome!=='volcanic').map((island,index)=>({x:island.x-island.rx,z:island.z-island.rz,w:island.rx*2,d:island.rz*2,count:1200,seed:30000+index*10000}))];
   const palette=[0x345b49,0x426c50,0x52775a,0x638462];
   for(const region of regions)for(let n=0;n<region.count;n++){const i=n+region.seed,x=region.x+hash(i*3+1)*region.w,z=region.z+hash(i*3+2)*region.d,h=terrainHeight(x,z);if(h<9||h>950||worldNoise(x*2.7,z*2.7)<-.05||x>-1000&&x<1600&&z>-1600&&z<1500)continue;
    if(Object.values(AIRFIELDS).some(field=>{const p=fieldCoordinates(field,{x,z});return Math.abs(p.across-200)<970&&Math.abs(p.along)<field.halfLength+600}))continue;
@@ -196,8 +196,8 @@ export class Scenery{
  }
  buildRemoteLandmarks(){
   const s=this.scene,walls=standard(0xc5c4ae),roofMaterial=standard(0x7a8e83),street=standard(0x929d87),glass=standard(0x4e7b84);
-  for(const location of[{x:-9300,z:3500},{x:AIRFIELDS.northpoint.x+1200,z:AIRFIELDS.northpoint.z+600}]){for(let i=0;i<18;i++){const x=location.x+(i%6)*75,z=location.z+Math.floor(i/6)*85,base=terrainHeight(x,z),height=12+hash(i+7)*16;s.add(box(38,height,40,walls,x,base+height/2,z));const r=roof(42,44,8,roofMaterial);r.position.set(x,base+height,z);s.add(r);s.add(box(4,5,.6,glass,x,base+height*.6,z-20.3))}s.add(ribbon([[location.x-100,location.z-70],[location.x+250,location.z-70],[location.x+530,location.z+250]],13,street));}
-  s.add(ribbon([[-9900,4000],[-8800,4200],[-7800,5600],[-8800,6900]],15,street));s.add(ribbon([[500,0],[1300,500],[2200,1600]].map(([x,z])=>[AIRFIELDS.northpoint.x+x,AIRFIELDS.northpoint.z+z]),15,street));
+  for(const location of[{x:-9300+WESTHAVEN_SHIFT.x,z:3500+WESTHAVEN_SHIFT.z},{x:AIRFIELDS.northpoint.x+1200,z:AIRFIELDS.northpoint.z+600}]){for(let i=0;i<18;i++){const x=location.x+(i%6)*75,z=location.z+Math.floor(i/6)*85,base=terrainHeight(x,z),height=12+hash(i+7)*16;s.add(box(38,height,40,walls,x,base+height/2,z));const r=roof(42,44,8,roofMaterial);r.position.set(x,base+height,z);s.add(r);s.add(box(4,5,.6,glass,x,base+height*.6,z-20.3))}s.add(ribbon([[location.x-100,location.z-70],[location.x+250,location.z-70],[location.x+530,location.z+250]],13,street));}
+  s.add(ribbon([[-9900,4000],[-8800,4200],[-7800,5600],[-8800,6900]].map(([x,z])=>[x+WESTHAVEN_SHIFT.x,z+WESTHAVEN_SHIFT.z]),15,street));s.add(ribbon([[500,0],[1300,500],[2200,1600]].map(([x,z])=>[AIRFIELDS.northpoint.x+x,AIRFIELDS.northpoint.z+z]),15,street));
   const tip=coastPoint(1.15,-120,'northpoint'),base=terrainHeight(tip.x,tip.z),tower=new THREE.Mesh(new THREE.CylinderGeometry(6,9,38,14),walls);tower.position.set(tip.x,base+19,tip.z);s.add(tower);s.add(box(16,7,16,glass,tip.x,base+42,tip.z));
  }
  buildDepot(){const group=new THREE.Group(),concrete=standard(0x788276),roofMat=standard(0x976d55),metal=standard(0xb2b8a8);group.position.set(0,4,700);group.add(box(245,1,245,standard(0x6f7c70)));group.add(box(170,25,100,concrete,0,13,0));const top=roof(176,106,12,roofMat);top.position.y=26;group.add(top);for(let i=0;i<3;i++){const tank=new THREE.Mesh(new THREE.CylinderGeometry(22,22,35,18),metal);tank.position.set(-115+i*50,18,-95);group.add(tank)}for(let i=0;i<5;i++)group.add(box(14,6,14,standard(0x8b7e61),65+i%2*20,4,-70+Math.floor(i/2)*20));this.depot=group;this.scene.add(group)}

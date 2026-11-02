@@ -1,0 +1,63 @@
+{
+  "method": "Local Chromium WebGL. Native menu buttons, keyboard takeoff, gear, tank release, rear/cockpit camera and gun. Explicit airborne fixtures for missile lock, orange afterburner and high-G vision. AudioContext generated signal checks; no human listening. Narrow viewport inspection. Not a physical mobile or cross-network multiplayer test.",
+  "errors": [],
+  "nativeTakeoff": {
+    "time": 11.950000000000173,
+    "stage": "explore",
+    "grounded": false
+  },
+  "tanks": {
+    "count": 0,
+    "falling": true,
+    "fuel": 4942.653333333169
+  },
+  "surfaces": [
+    {
+      "kind": "rudder",
+      "x": 0,
+      "y": 0.10901925
+    },
+    {
+      "kind": "rudder",
+      "x": 0,
+      "y": 0.10901925
+    },
+    {
+      "kind": "elevator",
+      "x": -0.4001400000000014,
+      "y": 0
+    },
+    {
+      "kind": "aileron",
+      "x": -0.381567375,
+      "y": 0
+    },
+    {
+      "kind": "flap",
+      "x": -0.10003500000000441,
+      "y": 0
+    },
+    {
+      "kind": "elevator",
+      "x": -0.4001400000000014,
+      "y": 0
+    },
+    {
+      "kind": "aileron",
+      "x": 0.381567375,
+      "y": 0
+    },
+    {
+      "kind": "flap",
+      "x": -0.10003500000000441,
+      "y": 0
+    }
+  ],
+  "vision": "radial-gradient(rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 32%, rgba(0, 0, 0, 0.776) 100%)",
+  "launch": true,
+  "audio": {
+    "state": "running",
+    "launchPeak": 0.004069692455232143
+  },
+  "pass": true
+}

@@ -1,0 +1,13 @@
+# v1.1.2 verification · 2026-11-02
+
+Implemented in the separate GreenKeewi/jets checkout. The unrelated saved orca repository and GreenKeewi/games were not modified.
+
+- `npm test`: 338 passing deterministic simulation, geometry, input, network, terrain, menu-controller and gameplay tests. New rule checks cover tank fuel conservation and repeat jettison, falling-store lifetime, replicated state validation, saved-key migration, bidirectional landing tolerances, fatal hostile landing, neutral 10% fuel once per airport per airframe, respawn eligibility reset, HOME repairs/refueling, objective-free exploration, limiter-off turning/vision and input-driven control surfaces.
+- `npm test --prefix server`: 15 passing authoritative-server tests, after installing the locked dependency with npm's cache under `/tmp`.
+- `node --check` on root and server JavaScript; `git diff --check`: passed. This static application has no build or lint script.
+- `node tests/exploration-browser.cjs`: passed in local Chromium with WebGL. Native buttons select every fighter and map, switch bomber/fighter modes, configure a tank, and launch Free Flight. Native keys perform a real runway takeoff, retract gear, jettison a tank, fire a gun, change cameras and launch a missile. Explicit airborne fixtures establish the missile lock, burner and high-G conditions. Actual surface transforms, orange flame material, falling tanks, a severe clear-center vignette and previous-camera restoration were observed. A 390-pixel viewport and the HUD rear-view button were exercised.
+- `BASE=http://127.0.0.1:8201 node tests/audio-browser.cjs`: passed. Offline rendered PCM and a live AudioContext verify finite, non-clipped sound, active gun bursts and launch effects; muted/dead cases remain silent. `audio.json` contains measured values. No human listening test is claimed.
+
+Browser details and screenshots are in [browser/report.json](browser/report.json). [Desktop menu](browser/menu-desktop.png), [narrow menu](browser/menu-narrow.png), [rear view](browser/rear-view.png), [orange afterburner](browser/orange-afterburner.png) and [high-G vignette](browser/orange-burner-vision.png) are actual local rendered frames.
+
+Landing ownership, fuel assistance, repeated touchdown protection and both runway directions were verified with simulation fixtures, not a human landing playtest. This release does not establish physical mobile-device performance or cross-network multiplayer compatibility. JETS11 peers and the separately hosted authoritative server must reload/update together. No paid service, credential change or server deployment was performed. Public deployment evidence, when available, is reported separately after pushing.

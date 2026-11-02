@@ -1,12 +1,12 @@
 // Signed pilot-axis specific force, bounded tunnel vision and gentle airframe wear.
 // See flight-model.md for sources, envelopes and non-medical tuning assumptions.
-import {aoaOverrideActive,sanitizeAoaOverride} from './aircraft-capabilities.js?v=skybreak111-1029';
+import {aoaOverrideActive,sanitizeAoaOverride} from './aircraft-capabilities.js?v=skybreak112-1102';
 import {viewAxes,flightForward} from './view-axes.js';
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const dot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
 const G=9.81;
 // Cosmetic vignette and gently accumulated airframe wear, never physiology.
-export const G_EFFECTS=Object.freeze({maxVision:.5,wearPositive:7.5,wearNegative:-2,wearDelay:5,wearRate:.15,maxWear:10});
+export const G_EFFECTS=Object.freeze({maxVision:.82,wearPositive:7.5,wearNegative:-2,wearDelay:5,wearRate:.15,maxWear:10});
 const LEGACY_G=Object.freeze({blackedOut:false,gRedout:0,gBlackoutTime:0,gNeedsRelease:false,gUnloading:false,gExposure:0,gNegativeExposure:0});
 export const freshPilotG=()=>({...LEGACY_G,normalLoad:1,gLoad:1,gVision:0,contactLoad:0,gWearTime:0,airframeWear:0,gWearActive:false});
 export function sanitizePilotG(p){
@@ -24,7 +24,7 @@ export function signedPilotLoad(before,after,up,dt){
 }
 // Limit the commanded flight-path change BEFORE movement. HUD loads are never
 // clipped. The same controller protects normal, advanced and bot flight.
-export const flightEnvelopeFor=p=>p.bomber?{min:-1.5,max:3.5}:{min:-3,max:aoaOverrideActive(p)?12:9};
+export const flightEnvelopeFor=p=>p.bomber?{min:-1.5,max:3.5}:{min:-3,max:aoaOverrideActive(p)?17:9};
 export function limitFlightEnvelope(p,previous,dt){
  if(p.grounded||!(dt>0))return;
  const {min,max}=flightEnvelopeFor(p);
@@ -46,7 +46,7 @@ export function advancePilotPhysiology(p,load,dt){
  sanitizePilotG(p);if(!(dt>0))return;
  if(!Number.isFinite(p.gLoad))p.gLoad=1;
  p.gLoad+=(load-p.gLoad)*(1-Math.exp(-dt*5));
- const target=G_EFFECTS.maxVision*clamp((Math.abs(load)-5)/4,0,1);
+ const target=(aoaOverrideActive(p)?G_EFFECTS.maxVision:.5)*clamp((Math.abs(load)-5)/(aoaOverrideActive(p)?8:4),0,1);
  p.gVision+=(target-p.gVision)*(1-Math.exp(-dt*3));
  if(p.gVision<.001)p.gVision=0;
 }

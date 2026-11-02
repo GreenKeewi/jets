@@ -4,7 +4,7 @@ import {airportStatus,mapPoint,mapView,knownContacts,mapObjectives} from '../tac
 import {createGame,AIRFIELDS} from '../sim.js';
 test('airport ownership follows player team, valley bases and unique HOME service',()=>{
  for(const arenaId of ['coast','valley']){const g=createGame({arenaId,skirmish:true,teamSizes:[2,2,2]});for(const p of g.pilots){for(const f of Object.values(AIRFIELDS)){const s=airportStatus(g,p,f);assert.equal(s.kind==='home',f.id===p.homeBaseId);if(f.id!==p.homeBaseId)assert.equal(s.kind,'hostile');}}}
- const g=createGame({mode:'freeflight'}),p=g.pilots[0];assert.equal(airportStatus(g,p,AIRFIELDS.northpoint).kind,'friendly');assert.match(airportStatus(g,p,AIRFIELDS.northpoint).label,/no service/);
+ const g=createGame({mode:'freeflight'}),p=g.pilots[0];assert.equal(airportStatus(g,p,AIRFIELDS.northpoint).kind,'neutral');assert.match(airportStatus(g,p,AIRFIELDS.northpoint).label,/emergency fuel/);
 });
 test('map uses north-up world coordinates and bounds airports/player/objectives',()=>{
  const g=createGame({mode:'strike'}),p=g.pilots[0],v=mapView(g,p);

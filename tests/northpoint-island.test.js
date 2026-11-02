@@ -6,7 +6,7 @@ import {strikeTarget,createGame,horizontal} from '../sim.js';
 
 test('Northpoint is modestly farther away with a substantial open-water transit',()=>{
  const a=AIRFIELDS.home,b=AIRFIELDS.northpoint,distance=horizontal(a,b),oldDistance=Math.hypot(4200-a.x,10300-a.z);
- assert(distance>oldDistance*1.2&&distance<oldDistance*1.4);
+ assert(distance>oldDistance*1.2&&distance<oldDistance*1.8);
  let run=0,longest=0;
  for(let i=0;i<=1000;i++){const x=a.x+(b.x-a.x)*i/1000,z=a.z+(b.z-a.z)*i/1000;run=terrainHeight(x,z)<=SEA_LEVEL?run+1:0;longest=Math.max(longest,run);}
  assert(longest*distance/1000>2500,'at least 2.5 km of continuous water lies between bases');

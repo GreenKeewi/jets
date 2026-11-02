@@ -1,7 +1,7 @@
 // SI units: metres, seconds, kilograms. Mach uses a fixed 343 m/s reference.
 // This is an energy-based game model, not an aircraft certification simulator.
-import {aoaOverrideActive,usesSimulationAirbrakeDeployment} from './aircraft-capabilities.js?v=skybreak111-1029';
-import {aircraftDefinition,loadoutCapacity} from './loadouts.js?v=skybreak111-1029';
+import {aoaOverrideActive,usesSimulationAirbrakeDeployment} from './aircraft-capabilities.js?v=skybreak112-1102';
+import {aircraftDefinition,loadoutCapacity,normalizeLoadout} from './loadouts.js?v=skybreak112-1102';
 export const FLIGHT=Object.freeze({soundSpeed:343,maxFighterSpeed:686,cruiseSpeed:315,maxBomberSpeed:309,bomberCruiseSpeed:245,afterburnerThreshold:1.1,maxThrottle:1.1});
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const GRAVITY=9.81;
@@ -17,12 +17,13 @@ export function fighterTargetSpeed(throttle,{freeflight=false}={}){
  return interpolate(power,freeflight?[[0,0],[.7,147],[.78,315],[.82,420],[1,420],[1.1,686]]:[[0,0],[.55,115.5],[.72,280],[.78,315],[.82,420],[1,420],[1.1,686]]);
 }
 export function initializeFuel(p,fraction=1){
- const a=frame(p),internalFraction=clamp(Number.isFinite(fraction)?fraction:1,0,1);p.internalFuelCapacityKg=a.fuelCapacity;p.fuelCapacityKg=capacity(p);p.externalFuelCapacityKg=p.fuelCapacityKg-a.fuelCapacity;p.startingFuelFraction=internalFraction;p.fuelKg=a.fuelCapacity*internalFraction+p.externalFuelCapacityKg;p.fuelFraction=p.fuelKg/p.fuelCapacityKg;p.massKg=a.dryMass+p.fuelKg;
+ const a=frame(p),internalFraction=clamp(Number.isFinite(fraction)?fraction:1,0,1);p.internalFuelCapacityKg=a.fuelCapacity;p.fuelCapacityKg=capacity(p);p.externalFuelCapacityKg=p.fuelCapacityKg-a.fuelCapacity;p.externalFuelKg=p.externalFuelCapacityKg;p.startingFuelFraction=internalFraction;p.fuelKg=a.fuelCapacity*internalFraction+p.externalFuelCapacityKg;p.fuelFraction=p.fuelKg/p.fuelCapacityKg;p.massKg=a.dryMass+p.fuelKg;
  p.afterburnerActive=false;p.afterburnerRemaining=0;p.afterburnerCooldown=0;p.afterburnerNeedsRelease=false;p.fuelFlowKgPerSecond=0;return p;
 }
 function ensureFuel(p){
  if(!Number.isFinite(p.fuelKg))initializeFuel(p,Number.isFinite(p.fuelFraction)?p.fuelFraction:1);
  const a=frame(p);p.internalFuelCapacityKg=a.fuelCapacity;p.fuelCapacityKg=capacity(p);p.externalFuelCapacityKg=p.fuelCapacityKg-a.fuelCapacity;p.fuelKg=clamp(p.fuelKg,0,p.fuelCapacityKg);p.fuelFraction=p.fuelKg/p.fuelCapacityKg;p.massKg=a.dryMass+p.fuelKg;
+ p.externalFuelKg=clamp(Number.isFinite(p.externalFuelKg)?p.externalFuelKg:Math.min(p.externalFuelCapacityKg,p.fuelKg),0,Math.min(p.externalFuelCapacityKg,p.fuelKg));
  p.afterburnerRemaining=0;
  if(!Number.isFinite(p.afterburnerCooldown))p.afterburnerCooldown=0;
 }
@@ -30,8 +31,15 @@ function ensureFuel(p){
 export function fuelMassRatio(p){const a=frame(p),total=capacity(p),fuel=Number.isFinite(p.fuelKg)?clamp(p.fuelKg,0,total):total*clamp(p.fuelFraction??1,0,1);return(a.dryMass+a.fuelCapacity*.5)/(a.dryMass+fuel);}
 export function turnAuthority(speed,p={}){return Math.min(1,(280/Math.max(280,speed))**1.5)*fuelMassRatio(p)*controlFactor(p);}
 export function pitchRateLimit(p){
- const speed=Math.max(90,Number(p.speed)||0),load=p.bomber?2.5:aoaOverrideActive(p)?11:frame(p).turnLoad||8;
+ const speed=Math.max(90,Number(p.speed)||0),load=p.bomber?2.5:aoaOverrideActive(p)?16:frame(p).turnLoad||8;
  return Math.min(.9,GRAVITY*load/speed)*Math.min(1,fuelMassRatio(p))*controlFactor(p);
+}
+export function jettisonTanks(p){
+ ensureFuel(p);if(p.bomber||p.grounded||p.dead)return 0;
+ const loadout=normalizeLoadout(p.aircraftId,p.loadout),tanks=Object.keys(loadout.stations).filter(id=>loadout.stations[id]==='tank');
+ if(!tanks.length)return 0;
+ p.fuelKg=Math.max(0,p.fuelKg-p.externalFuelKg);p.externalFuelKg=0;
+ for(const id of tanks)loadout.stations[id]='empty';p.loadout=loadout;ensureFuel(p);return tanks.length;
 }
 export function advanceFuel(p,dt){
  ensureFuel(p);const seconds=clamp(Number(dt)||0,0,.1),throttle=clamp(Number(p.throttle)||0,0,1.1);
@@ -40,7 +48,7 @@ export function advanceFuel(p,dt){
  // from a full fighter tank). No timer or cooldown, only the fuel supply.
  const burn=frame(p).fuelBurn||1,dryRate=p.bomber?8+22*Math.min(1,throttle):(.6+3.2*Math.min(1,throttle))*burn;
  p.fuelFlowKgPerSecond=p.dead||p.fuelKg<=0?0:dryRate+(allowed?4.2*burn:0);
- p.fuelKg=Math.max(0,p.fuelKg-p.fuelFlowKgPerSecond*seconds);
+ const spent=Math.min(p.fuelKg,p.fuelFlowKgPerSecond*seconds);p.externalFuelKg=Math.max(0,p.externalFuelKg-spent);p.fuelKg-=spent;
  p.afterburnerActive=allowed&&p.fuelKg>0;
  p.afterburnerRemaining=0;p.afterburnerCooldown=0;p.afterburnerNeedsRelease=false;
  ensureFuel(p);return p.afterburnerActive?1:0;

@@ -11,7 +11,7 @@ test('Su-37 has Flanker proportions, forward low canopy, spaced nacelles and for
  const model=createAircraft(0,false,'su37');animateAircraft(model,pilot('su37'),0,1);
  for(const lod of ['detailed','distant']){
   model.userData.detailed.visible=lod==='detailed';model.userData.distant.visible=lod==='distant';const size=visibleBounds(model).getSize(new THREE.Vector3());
-  assert(size.z/size.x>1.45&&size.z/size.x<1.62,`${lod} length/span should read as a long Flanker, got ${size.z/size.x}`);
+  assert(size.z/size.x>1.65&&size.z/size.x<1.75,`${lod} length/span should read as a long Flanker, got ${size.z/size.x}`);
  }
  const nozzles=model.userData.nozzles;assert(nozzles[1].position.x-nozzles[0].position.x>6);
  const canards=model.userData.surfaces.filter(s=>s.kind==='canard');assert.equal(canards.length,2);assert(canards.every(s=>s.node.position.z>6));

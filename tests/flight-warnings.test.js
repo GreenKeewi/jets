@@ -27,7 +27,7 @@ test('terrain prediction detects rising terrain during level flight, not a blank
 });
 
 test('default prediction samples actual authored ridge and uses arcade movement velocity',()=>{
- const p=pilot({pos:{x:8000,y:500,z:6600},speed:300});
+ const p=pilot({pos:{x:11500,y:500,z:9600},speed:300});
  const actual=predictTerrain(p),bare=predictTerrain(p,{heightAt:flat});
  assert(actual.impactTime<3);assert.equal(bare.impactTime,Infinity);
  let furthest=0;predictTerrain(pilot(),{heightAt:(x,z)=>{furthest=Math.max(furthest,z);return 0;}});

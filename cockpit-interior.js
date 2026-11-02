@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js';
-import {normalizeAircraftId} from './loadouts.js?v=skybreak111-1029';
+import {normalizeAircraftId} from './loadouts.js?v=skybreak112-1102';
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,Number(n)||0));
 // Original low-poly cockpit. Eye-space rendering keeps near geometry independent
 // of the world's kilometre-scale depth range and the speed-dependent outside FOV.

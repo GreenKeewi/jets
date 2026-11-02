@@ -23,9 +23,9 @@ test('X airbrake, G gear and K maneuver pulses persist and are replicated',()=>{
  const clone=createGame();applySnapshot(clone,snapshot(g));assert.equal(clone.pilots[0].airbrake,true);assert.equal(clone.pilots[0].maneuverAssist,true);
  for(const k of ['toggleAirbrake','toggleGear','toggleManeuver']){assert(ACTIONS.includes(k));assert.equal(validateInput({[k]:true})[k],true);assert.equal(validateInput({[k]:1}),null);}
 });
-test('only owned runway with gear down qualifies for landing',()=>{
+test('gear-down runway touchdown is valid before ownership consequences',()=>{
  const p=createGame().pilots[0];Object.assign(p,{speed:90,roll:0,yaw:AIRFIELDS.home.heading,gearDown:true});
- assert(validTouchdown(p,AIRFIELDS.home,-3));p.gearDown=false;assert(!validTouchdown(p,AIRFIELDS.home,-3));p.gearDown=true;assert(!validTouchdown(p,AIRFIELDS.northpoint,-3));p.roll=Math.PI;assert(!validTouchdown(p,AIRFIELDS.home,-3));
+ assert(validTouchdown(p,AIRFIELDS.home,-3));p.gearDown=false;assert(!validTouchdown(p,AIRFIELDS.home,-3));p.gearDown=true;assert(validTouchdown(p,AIRFIELDS.northpoint,-3));p.roll=Math.PI;assert(!validTouchdown(p,AIRFIELDS.home,-3));
 });
 test('own-base resupply requires fresh entry and cooldown; enemy base does not service',()=>{
  const g=createGame(),p=airborne(g.pilots[0]);Object.assign(p,{gunAmmo:20,heat:0,radar:0});p.pos=fieldPoint(AIRFIELDS.northpoint,0,0,30);resupplyAtAirfield(g,p);assert.equal(p.gunAmmo,20);

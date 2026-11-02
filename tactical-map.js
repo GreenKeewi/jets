@@ -1,20 +1,20 @@
-import {AIRFIELDS,routeFor,approachFor,fieldPoint} from './missions.js?v=skybreak111-1029';
-import {airportForTeam} from './airport-operations.js?v=skybreak111-1029';
-import {terrainHeight,SEA_LEVEL} from './world.js?v=skybreak111-1029';
-import {strikeTarget,strikeEscape} from './sim.js?v=skybreak111-1029';
-import {relativePosition} from './view-axes.js?v=skybreak111-1029';
+import {AIRFIELDS,routeFor,approachFor,fieldPoint} from './missions.js?v=skybreak112-1102';
+import {airportForTeam} from './airport-operations.js?v=skybreak112-1102';
+import {terrainHeight,SEA_LEVEL} from './world.js?v=skybreak112-1102';
+import {strikeTarget,strikeEscape} from './sim.js?v=skybreak112-1102';
+import {relativePosition} from './view-axes.js?v=skybreak112-1102';
 
 export function airportStatus(g,p,field){
  if(field.id===p.homeBaseId)return{kind:'home',symbol:'H',label:'HOME · service',color:'#d5f58c'};
  const teams=[...new Set(g.pilots.map(q=>q.team))];
  const owners=teams.filter(team=>airportForTeam(g,team).id===field.id);
- if(g.mode==='freeflight'||owners.includes(p.team))return{kind:'friendly',symbol:'F',label:'FRIENDLY · no service',color:'#9de3df'};
- if(owners.length)return{kind:'hostile',symbol:'X',label:'HOSTILE · no service',color:'#ffb290'};
- return{kind:'neutral',symbol:'—',label:'UNASSIGNED · no service',color:'#c9ced0'};
+ if(owners.includes(p.team))return{kind:'friendly',symbol:'F',label:'FRIENDLY · no service',color:'#9de3df'};
+ if(owners.length)return{kind:'hostile',symbol:'X',label:'HOSTILE · landing is fatal',color:'#ffb290'};
+ return{kind:'neutral',symbol:'—',label:'NEUTRAL · emergency fuel once; take off again',color:'#c9ced0'};
 }
 export function mapObjectives(g){
  if(g.mode==='strike')return[{...(g.bombed?strikeEscape(g):strikeTarget(g)),label:g.bombed?'ESCAPE':'TARGET'}];
- if(g.mode==='freeflight'){const q=g.flightStage==='approach'?approachFor(g)[g.approachIndex]:routeFor(g)[g.routeIndex];return q?[{...q,label:'NEXT ROUTE GATE'}]:[];}
+ if(g.mode==='freeflight')return[];
  return g.pilots.filter(q=>q.objectiveRole==='transport'&&!q.dead).map(q=>({...q.pos,label:'TRANSPORT'}));
 }
 export function knownContacts(g,p){return g.pilots.filter(q=>q.id!==p.id&&!q.dead&&(q.team===p.team||q.id===p.targetId||Math.hypot(q.pos.x-p.pos.x,q.pos.z-p.pos.z)<=3280));}

@@ -1,9 +1,9 @@
 // Dedicated-server protocol, independent of the peer-to-peer transport.
 export const SERVER_PROTOCOL = 'SKYBREAK-SERVER-1';
-export const SIM_BUILD = 'skybreak111-1029';
+export const SIM_BUILD = 'skybreak112-1102';
 export const AXES = ['pitch', 'roll', 'yaw', 'throttle'];
 export const HELD = ['fireGun', 'brake', 'autopilot'];
-export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb', 'toggleAirbrake', 'toggleGear', 'toggleManeuver', 'toggleAoaLimiter'];
+export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb', 'toggleAirbrake', 'toggleGear', 'toggleManeuver', 'toggleAoaLimiter', 'jettisonTanks'];
 export const neutralInput = () => Object.fromEntries([...AXES.map(k => [k, 0]), ...[...HELD, ...ACTIONS].map(k => [k, false])]);
 const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 export function validateInput(value) {

@@ -1,13 +1,24 @@
-import {collisionRadius} from './aircraft-collision.js?v=skybreak111-1029';
-import {AIRFIELDS,fieldPoint,fieldCoordinates,fieldUnder} from './missions.js?v=skybreak111-1029';
+import {collisionRadius} from './aircraft-collision.js?v=skybreak112-1102';
+import {AIRFIELDS,fieldPoint,fieldCoordinates,fieldUnder} from './missions.js?v=skybreak112-1102';
 
 // Home-base runway operations. Gear is mandatory for a qualifying touchdown.
-export const AIRPORT=Object.freeze({takeoffSpeed:80,landingSpeed:115,repairSpeed:8,repairPower:.2,repairRate:8,repairDelay:3,queueDistance:240});
+export const AIRPORT=Object.freeze({takeoffSpeed:80,landingSpeed:145,repairSpeed:8,repairPower:.2,repairRate:8,repairDelay:3,queueDistance:240});
 const angle=v=>Math.atan2(Math.sin(v),Math.cos(v));
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export function airportForTeam(g,team){
  const ids=g.arenaId==='valley'?['northpoint','home','westhaven']:['home','northpoint','westhaven'];
  return AIRFIELDS[ids[team%ids.length]];
+}
+export function airportRelation(g,p,field){
+ if(field.id===p.homeBaseId)return 'friendly';
+ const owners=[...new Set(g.pilots.map(q=>q.team))].filter(team=>airportForTeam(g,team).id===field.id);
+ return owners.includes(p.team)?'friendly':owners.length?'enemy':'neutral';
+}
+// One emergency top-up per neutral airport per airframe, even after repeated touch-and-goes.
+export function neutralLandingFuel(p,field){
+ p.neutralFuelVisits??=[];if(p.neutralFuelVisits.includes(field.id))return 0;
+ p.neutralFuelVisits.push(field.id);const amount=Math.min(p.internalFuelCapacityKg*.1,Math.max(0,p.internalFuelCapacityKg-(p.fuelKg-(p.externalFuelKg||0))),Math.max(0,p.fuelCapacityKg-p.fuelKg));
+ p.fuelKg+=amount;p.fuelFraction=p.fuelKg/p.fuelCapacityKg;return amount;
 }
 export function groundSpawn(g,p,slot=p.slot||0){
  const field=g.mode==='freeflight'?AIRFIELDS.home:airportForTeam(g,p.team);
@@ -38,9 +49,9 @@ export function departureInput(g,p){
  return{roll:clamp(heading*2,-.3,.3),yaw:0,pitch:clamp((.22-p.pitch)*4,-.5,.7),throttle:p.throttle<(p.bomber?1:.82)?1:0};
 }
 export function validTouchdown(p,field,verticalSpeed){
- if(!field||!p.gearDown||field.id!==p.homeBaseId||p.speed<40||p.speed>AIRPORT.landingSpeed||Math.abs(p.roll)>.35||verticalSpeed< -12||verticalSpeed>4)return false;
+ if(!field||!p.gearDown||p.speed<28||p.speed>AIRPORT.landingSpeed||Math.abs(p.roll)>.52||verticalSpeed< -18||verticalSpeed>6)return false;
  const heading=Math.abs(angle(p.yaw-field.heading));
- return Math.min(heading,Math.abs(Math.PI-heading))<.35;
+ return Math.min(heading,Math.abs(Math.PI-heading))<.52;
 }
 // Recheck the actual runway, not just a stored flag. A low flyby never qualifies.
 export function onRunway(p){
@@ -51,7 +62,7 @@ export const missileImmune=p=>onRunway(p);
 export function repairAtAirport(g,p,dt){
  p.repairing=false;p.refueling=false;
  if(p.dead||p.hp<=0||!p.landed||!onRunway(p)||p.speed>AIRPORT.repairSpeed||p.throttle>AIRPORT.repairPower||g.time-(p.lastDamage?.t??-Infinity)<AIRPORT.repairDelay)return;
- if(p.fuelKg<p.fuelCapacityKg){p.fuelKg=Math.min(p.fuelCapacityKg,p.fuelKg+p.fuelCapacityKg*.025*dt);p.fuelFraction=p.fuelKg/p.fuelCapacityKg;p.refueling=true;}
+ if(p.fuelKg<p.fuelCapacityKg){p.fuelKg=Math.min(p.fuelCapacityKg,p.fuelKg+p.fuelCapacityKg*.025*dt);p.externalFuelKg=Math.max(p.externalFuelKg||0,p.fuelKg-p.internalFuelCapacityKg);p.fuelFraction=p.fuelKg/p.fuelCapacityKg;p.refueling=true;}
  if(p.hp<100||(p.airframeWear||0)>0||(p.engineHealth??1)<1||(p.controlHealth??1)<1){p.airframeWear=Math.max(0,(p.airframeWear||0)-AIRPORT.repairRate*dt);p.gWearTime=0;p.gWearActive=false;p.hp=Math.min(100,p.hp+AIRPORT.repairRate*dt);p.engineHealth=Math.min(1,(p.engineHealth??1)+.08*dt);p.controlHealth=Math.min(1,(p.controlHealth??1)+.08*dt);p.repairing=true;}
 }
 

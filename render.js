@@ -1,14 +1,14 @@
-import {CockpitInterior} from './cockpit-interior.js?v=skybreak111-1029';
-import {viewAxes,gunMuzzle} from './view-axes.js?v=skybreak111-1029';
-import {GUN} from './guns.js?v=skybreak111-1029';
+import {CockpitInterior} from './cockpit-interior.js?v=skybreak112-1102';
+import {viewAxes,gunMuzzle} from './view-axes.js?v=skybreak112-1102';
+import {GUN} from './guns.js?v=skybreak112-1102';
 import * as THREE from './vendor/three.module.js';
-import {RUNWAY,ROUTE,TARGET,ESCAPE,strikeTarget,strikeEscape,forward,bombSolution,canBomb,clamp} from './sim.js?v=skybreak111-1029';
-import {surfaceHeight} from './world.js?v=skybreak111-1029';
-import {routeFor,destinationFor,fieldPoint} from './missions.js?v=skybreak111-1029';
-import {Scenery} from './scenery.js?v=skybreak111-1029';
-import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak111-1029';
-import {normalizeAircraftId} from './loadouts.js?v=skybreak111-1029';
-import {batchStatic} from './geometry.js?v=skybreak111-1029';
+import {RUNWAY,ROUTE,TARGET,ESCAPE,strikeTarget,strikeEscape,forward,bombSolution,canBomb,clamp} from './sim.js?v=skybreak112-1102';
+import {surfaceHeight} from './world.js?v=skybreak112-1102';
+import {routeFor,destinationFor,fieldPoint} from './missions.js?v=skybreak112-1102';
+import {Scenery} from './scenery.js?v=skybreak112-1102';
+import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak112-1102';
+import {normalizeAircraftId} from './loadouts.js?v=skybreak112-1102';
+import {batchStatic} from './geometry.js?v=skybreak112-1102';
 export const makeJet=createAircraft;
 const COLORS={mint:0x9cead6,orange:0xffac7a};
 function canvasTexture(width,height,draw){const c=document.createElement('canvas');c.width=width;c.height=height;draw(c.getContext('2d'),width,height);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return tex}
@@ -191,7 +191,8 @@ export class Renderer{
  updateCamera(p,dt){
   if(this.menuPreview){this.menuTime+=dt;const pose=menuCameraPose(p,this.menuTime,this.reducedMotion);this.camera.position.set(pose.position.x,pose.position.y,pose.position.z);this.camera.up.set(0,1,0);this.camera.lookAt(pose.target.x,pose.target.y,pose.target.z);this.camera.fov=pose.fov;this.camera.updateProjectionMatrix();this.followReady=false;return;}
   const f=forward(p),desired=new THREE.Vector3(),look=new THREE.Vector3();
-  if(this.view==='cockpit'){desired.set(p.pos.x+f.x*7,p.pos.y+3.1+f.y*7,p.pos.z+f.z*7);look.copy(desired).addScaledVector(new THREE.Vector3(f.x,f.y,f.z),200)}
+  if(this.view==='rear'){const distance=p.bomber?70:52;desired.set(p.pos.x+f.x*distance,p.pos.y+14+f.y*distance,p.pos.z+f.z*distance);look.set(p.pos.x-f.x*160,p.pos.y-f.y*160,p.pos.z-f.z*160)}
+  else if(this.view==='cockpit'){desired.set(p.pos.x+f.x*7,p.pos.y+3.1+f.y*7,p.pos.z+f.z*7);look.copy(desired).addScaledVector(new THREE.Vector3(f.x,f.y,f.z),200)}
   else{const distance=p.bomber?64:45;desired.set(p.pos.x-f.x*distance,p.pos.y+12-f.y*distance,p.pos.z-f.z*distance);look.set(p.pos.x+f.x*95,p.pos.y+f.y*95+2,p.pos.z+f.z*95)}
   if(!this.followReady||this.lastFollowId!==p.id){this.camera.position.copy(desired);this.followReady=true}else{this.camera.position.x+=p.pos.x-this.lastFollowPosition.x;this.camera.position.y+=p.pos.y-this.lastFollowPosition.y;this.camera.position.z+=p.pos.z-this.lastFollowPosition.z;this.camera.position.lerp(desired,1-Math.exp(-dt*(this.view==='cockpit'?28:6)))}
   this.lastFollowId=p.id;this.lastFollowPosition={...p.pos};const tilt=this.view==='cockpit'?p.roll:0;const up=viewAxes(p,tilt).up;this.camera.up.set(up.x,up.y,up.z);this.camera.lookAt(look);const desiredFov=flightFov(p.speed,this.view,this.reducedMotion);this.camera.fov+=(desiredFov-this.camera.fov)*Math.min(1,dt*4);this.camera.updateProjectionMatrix();
@@ -214,8 +215,8 @@ export class Renderer{
   const live=new Set();for(const missile of g.missiles){const key='missile'+missile.id;live.add(key);const node=this.effectObject(key,'missile');node.position.set(missile.pos.x,missile.pos.y,missile.pos.z);node.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(missile.dir.x,missile.dir.y,missile.dir.z));node.material.color.setHex(missile.type==='radar'?0xc9e5e5:0xf3dbc1);const lineKey='trail'+missile.id;live.add(lineKey);const line=this.effectObject(lineKey,'line'),a=line.geometry.attributes.position;a.setXYZ(0,missile.pos.x,missile.pos.y,missile.pos.z);a.setXYZ(1,missile.pos.x-missile.dir.x*125,missile.pos.y-missile.dir.y*125,missile.pos.z-missile.dir.z*125);a.needsUpdate=true;line.geometry.computeBoundingSphere();}
   for(const c of g.countermeasures.slice(-240)){const key='counter'+c.id;live.add(key);const node=this.effectObject(key,'dot');node.position.set(c.pos.x,c.pos.y,c.pos.z);if(c.type==='flare')node.scale.set(2.5,2.5,2.5);else node.scale.set(1.2+c.age*2,.6+c.age*.5,1.2+c.age*2);node.material.color.setHex(c.type==='flare'?0xffd681:0xb7d9e8);node.material.opacity=(c.type==='flare'?1:.65)*(1-c.age/c.life)}
   for(const b of g.bombs){const key='bomb'+b.id;live.add(key);const node=this.effectObject(key,'dot');node.position.set(b.pos.x,b.pos.y,b.pos.z);node.scale.set(1.2,1.2,3);node.material.color.setHex(0x3b4b4c)}
-  for(const e of g.effects){if(e.type==='gun-hit'&&!this.reducedMotion)continue;const key='effect'+e.id;live.add(key);const node=this.effectObject(key,'explosion'),size=(e.type==='target'?210:e.type==='gun-hit'?10:65)*Math.min(1,e.age*3);node.position.set(e.pos.x,e.pos.y,e.pos.z);node.scale.set(size,size,1);node.material.opacity=Math.max(0,1-e.age/e.life);node.material.color.setHex(e.age>e.life*.5?0x7d8b83:0xffffff)}
-  for(const[key,node]of this.effects)if(!live.has(key)){node.removeFromParent();node.material.dispose();if(node.isLine)node.geometry.dispose();this.effects.delete(key)}
+  for(const e of g.effects){if(e.type==='tank-drop'){const key='tank'+e.id;live.add(key);let node=this.effects.get(key);if(!node){node=new THREE.Mesh(new THREE.SphereGeometry(1,16,8),new THREE.MeshStandardMaterial({color:0xc7d1d0,roughness:.67}));node.scale.set(1.02,1.02,4.6);this.scene.add(node);this.effects.set(key,node);}node.position.set(e.pos.x,e.pos.y,e.pos.z);node.rotation.set(e.age*.3,e.yaw,e.age*.15);continue;}if(e.type==='gun-hit'&&!this.reducedMotion)continue;const key='effect'+e.id;live.add(key);const node=this.effectObject(key,'explosion'),size=(e.type==='target'?210:e.type==='gun-hit'?10:65)*Math.min(1,e.age*3);node.position.set(e.pos.x,e.pos.y,e.pos.z);node.scale.set(size,size,1);node.material.opacity=Math.max(0,1-e.age/e.life);node.material.color.setHex(e.age>e.life*.5?0x7d8b83:0xffffff)}
+  for(const[key,node]of this.effects)if(!live.has(key)){node.removeFromParent();node.material.dispose();if(node.geometry)node.geometry.dispose();this.effects.delete(key)}
  }
  updateQuality(seconds){
   // Ignore resume/loading gaps. Sustained sub-30 fps eases resolution one small
@@ -235,8 +236,8 @@ export class Renderer{
  render(g,localId='host',dt=1/60,frameSeconds=dt){
   this.updateQuality(frameSeconds);
   if(this.lastGameTime!==undefined&&g.time<this.lastGameTime-.2)for(const pair of this.vortices.values())for(const item of pair){item.points=[];item.last=-1}this.lastGameTime=g.time;for(const[id,pair]of this.vortices)if(!g.pilots.some(p=>p.id===id)){pair.forEach(item=>{item.line.removeFromParent();item.line.geometry.dispose();item.line.material.dispose()});this.vortices.delete(id)}this.updateRoute(g);const p=g.pilots.find(q=>q.id===localId)||g.pilots[0];this.updateAircraft(g,p,dt);this.updateCamera(p,dt);this.scenery.update(g.time,this.camera,this.adaptiveQuality);this.airMotion.update(p,this.camera,g.time,this.reducedMotion,this.adaptiveQuality);this.updateEffects(g);this.damageVisuals.update(g,this.camera,this.reducedMotion,this.adaptiveQuality,this.canvas.height);
-  this.rings.forEach((ring,index)=>{ring.visible=g.mode==='freeflight'&&g.flightStage==='route'&&index>=g.routeIndex&&index<=g.routeIndex+1;ring.children[0].material.opacity=index===g.routeIndex?.85:.13;ring.lookAt(this.camera.position.x,ring.position.y,this.camera.position.z)});
-  const strikePoint=strikeTarget(g),escapePoint=strikeEscape(g);this.targetMarker.position.set(strikePoint.x,strikePoint.y+4,strikePoint.z);this.escapeMarker.position.set(escapePoint.x,escapePoint.y,escapePoint.z);this.scenery.depot.position.set(strikePoint.x,strikePoint.y,strikePoint.z);this.targetMarker.visible=g.mode==='strike'&&!g.bombed;this.escapeMarker.visible=g.mode==='strike'&&g.bombed;this.landingMarker.visible=g.mode==='freeflight'&&['approach','landed'].includes(g.flightStage);this.scenery.depot.scale.y=g.bombed?.25:1;
+  this.rings.forEach((ring,index)=>{ring.visible=false&&g.mode==='freeflight'&&g.flightStage==='route'&&index>=g.routeIndex&&index<=g.routeIndex+1;ring.children[0].material.opacity=index===g.routeIndex?.85:.13;ring.lookAt(this.camera.position.x,ring.position.y,this.camera.position.z)});
+  const strikePoint=strikeTarget(g),escapePoint=strikeEscape(g);this.targetMarker.position.set(strikePoint.x,strikePoint.y+4,strikePoint.z);this.escapeMarker.position.set(escapePoint.x,escapePoint.y,escapePoint.z);this.scenery.depot.position.set(strikePoint.x,strikePoint.y,strikePoint.z);this.targetMarker.visible=g.mode==='strike'&&!g.bombed;this.escapeMarker.visible=g.mode==='strike'&&g.bombed;this.landingMarker.visible=false;this.scenery.depot.scale.y=g.bombed?.25:1;
   this.aim.visible=g.mode==='strike'&&p.bomber&&!g.bombed;if(this.aim.visible){const impact=bombSolution(p);this.aim.position.set(impact.x,Math.max(4,surfaceHeight(impact.x,impact.z))+.65,impact.z);this.aim.material.color.setHex(canBomb(g,p)?COLORS.mint:COLORS.orange)}
   this.renderer.render(this.scene,this.camera);if(this.view==='cockpit'&&!this.menuPreview&&!p.dead)this.cockpitInterior.render(this.renderer,p,this.camera.aspect,dt);this.needsRender=false;return p;
  }

@@ -1,16 +1,16 @@
-import {AIRCRAFT_DEFINITIONS,validLoadout} from './loadouts.js?v=skybreak111-1029';
+import {AIRCRAFT_DEFINITIONS,validLoadout} from './loadouts.js?v=skybreak112-1102';
 import {assignTeam,fillTeams,validAssignments} from './lobby-teams.js';
 // Data-only WebRTC. Room codes use PeerJS Cloud signaling and public STUN.
 // Advanced manual LAN pairing stays available without external services.
 // Protocol: ordered reliable control/actions; unordered zero-retransmit axes/snapshots.
-export const PROTOCOL = 'JETS10';
+export const PROTOCOL = 'JETS11';
 // Room handshake compatibility changes only when the transport/game protocol changes.
-export const ROOM_BUILD = 'skybreak111-1029';
+export const ROOM_BUILD = 'skybreak112-1102';
 // Asset versions stay separate so fresh invites load the current page without
 // rejecting an already connected player using compatible gameplay packets.
 export const CLIENT_BUILD = new URL(import.meta.url).searchParams.get('v') || 'rooms3-1019';
-export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb', 'toggleAirbrake', 'toggleGear', 'toggleManeuver', 'toggleAoaLimiter'];
-export { mountNetworkUI } from './network-ui.js?v=skybreak111-1029';
+export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb', 'toggleAirbrake', 'toggleGear', 'toggleManeuver', 'toggleAoaLimiter', 'jettisonTanks'];
+export { mountNetworkUI } from './network-ui.js?v=skybreak112-1102';
 // PeerJS 1.5.5 registers its pass-through serializer as 'raw' (not 'none').
 const ROOM_SERIALIZATION = 'raw';
 const ROOM_ICE = { iceServers: [{ urls: 'stun:stun.cloudflare.com:3478' }] };
@@ -39,7 +39,7 @@ export function roomInviteLink(code, href = globalThis.location?.href) {
 const HELD = ['fireGun'];
 const GUN_INPUT_EXPIRY = 250;
 const AXES = ['pitch', 'roll', 'yaw', 'throttle'];
-const COOLDOWN = { fireHeat: 250, fireRadar: 400, flare: 0, chaff: 0, bomb: 300, toggleAirbrake: 150, toggleGear: 150, toggleManeuver: 150, toggleAoaLimiter:150 };
+const COOLDOWN = { fireHeat: 250, fireRadar: 400, flare: 0, chaff: 0, bomb: 300, toggleAirbrake: 150, toggleGear: 150, toggleManeuver: 150, toggleAoaLimiter:150,jettisonTanks:250 };
 const MAX_PACKET = 60000;
 const HIGH_WATER = 131072;
 const neutral = () => Object.fromEntries([...AXES.map(k => [k, 0]), ...[...ACTIONS, ...HELD].map(k => [k, false]), ['brake', false], ['autopilot',false]]);

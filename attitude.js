@@ -1,5 +1,6 @@
 // Body-axis attitude controls. The orthonormal basis avoids Euler pole clamps,
 // so a pilot can roll through 360 degrees and remain inverted in either mode.
+import {aoaOverrideActive} from './aircraft-capabilities.js';
 import {viewAxes} from './view-axes.js';
 import {limitFlightEnvelope} from './pilot-g.js';
 import {pitchRateLimit,turnAuthority,fuelMassRatio} from './flight.js';
@@ -16,7 +17,7 @@ export function advanceAttitude(p,i,dt){
  const pitch=clamp(Number(i.pitch)||0,-1,1)*pitchRateLimit(p)*clamp(p.speed/95,.18,1);
  f=rotate(f,right,pitch*dt);u=rotate(u,right,pitch*dt);
  // A modest coordinated-turn aid keeps bank-only steering approachable.
- const yaw=(Math.sin(p.roll)*.5*turnAuthority(p.speed,p)+clamp(Number(i.yaw)||0,-1,1)*.2)*dt;
+ const yaw=(Math.sin(p.roll)*(aoaOverrideActive(p)?.85:.5)*turnAuthority(p.speed,p)+clamp(Number(i.yaw)||0,-1,1)*.2)*dt;
  f=rotate(f,{x:0,y:1,z:0},yaw);u=rotate(u,{x:0,y:1,z:0},yaw);
  p.pitch=Math.asin(clamp(f.y,-1,1));p.yaw=Math.atan2(f.x,f.z);
  const levelRight={x:-Math.cos(p.yaw),y:0,z:Math.sin(p.yaw)},levelUp={x:-Math.sin(p.yaw)*Math.sin(p.pitch),y:Math.cos(p.pitch),z:-Math.cos(p.yaw)*Math.sin(p.pitch)};

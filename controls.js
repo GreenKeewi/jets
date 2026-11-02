@@ -1,12 +1,12 @@
 import {fillTeams,validAssignments} from './lobby-teams.js';
 // World-positive yaw/roll turns toward +X, which is screen-left when looking +Z.
 // Keep that simulation/AI convention; translate pilot-facing keys at this boundary.
-export const ACTION_KEYS={Space:'fireGun',KeyQ:'fireHeat',KeyE:'fireRadar',KeyF:'flare',KeyC:'chaff',KeyB:'bomb',KeyX:'toggleAirbrake',KeyG:'toggleGear',KeyK:'toggleManeuver',KeyO:'toggleAoaLimiter'};
-export const NEUTRAL_INPUT={pitch:0,roll:0,yaw:0,throttle:0,brake:false,fireGun:false,fireHeat:false,fireRadar:false,flare:false,chaff:false,bomb:false,toggleAirbrake:false,toggleGear:false,toggleManeuver:false,toggleAoaLimiter:false};
+export const ACTION_KEYS={Space:'fireGun',KeyQ:'fireHeat',KeyE:'fireRadar',KeyF:'flare',KeyC:'chaff',KeyB:'bomb',KeyX:'toggleAirbrake',KeyG:'toggleGear',KeyK:'toggleManeuver',KeyO:'toggleAoaLimiter',KeyT:'jettisonTanks'};
+export const NEUTRAL_INPUT={pitch:0,roll:0,yaw:0,throttle:0,brake:false,fireGun:false,fireHeat:false,fireRadar:false,flare:false,chaff:false,bomb:false,toggleAirbrake:false,toggleGear:false,toggleManeuver:false,toggleAoaLimiter:false,jettisonTanks:false};
 export function keyboardInput(keys,pulses=new Set()){
  return{pitch:+keys.has('KeyW')-+keys.has('KeyS'),roll:+(keys.has('KeyA')||keys.has('ArrowLeft'))-+(keys.has('KeyD')||keys.has('ArrowRight')),yaw:0,
  throttle:+(keys.has('ArrowUp')||keys.has('ShiftLeft')||keys.has('ShiftRight'))-+(keys.has('ArrowDown')||keys.has('KeyZ')||keys.has('Minus')),brake:false,
- fireGun:keys.has('Space')||pulses.has('fireGun'),fireHeat:pulses.has('fireHeat'),fireRadar:pulses.has('fireRadar'),flare:pulses.has('flare'),chaff:pulses.has('chaff'),bomb:keys.has('KeyB')||pulses.has('bomb'),toggleAirbrake:pulses.has('toggleAirbrake'),toggleGear:pulses.has('toggleGear'),toggleManeuver:pulses.has('toggleManeuver'),toggleAoaLimiter:pulses.has('toggleAoaLimiter')};
+ fireGun:keys.has('Space')||pulses.has('fireGun'),fireHeat:pulses.has('fireHeat'),fireRadar:pulses.has('fireRadar'),flare:pulses.has('flare'),chaff:pulses.has('chaff'),bomb:keys.has('KeyB')||pulses.has('bomb'),toggleAirbrake:pulses.has('toggleAirbrake'),toggleGear:pulses.has('toggleGear'),toggleManeuver:pulses.has('toggleManeuver'),toggleAoaLimiter:pulses.has('toggleAoaLimiter'),jettisonTanks:pulses.has('jettisonTanks')};
 }
 export function rosterConfig(config,playerIds=[],requestedTeams){
  config={...config,enemyRespawnSeconds:[120,180,300].includes(config.enemyRespawnSeconds)?30:config.enemyRespawnSeconds};
