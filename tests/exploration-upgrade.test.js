@@ -53,7 +53,7 @@ test('free flight has no map objectives, route advancement, landing award or tim
 });
 test('limiter off increases turn authority and severe tunnel vision without blackout or control suppression',()=>{
  for(const aircraftId of ['fa18e','su37']){const normal={aircraftId,speed:250,controlHealth:1,fuelFraction:.5},off={...normal,aoaLimiterOff:true};assert(pitchRateLimit(off)>pitchRateLimit(normal)*1.6);
-  for(let n=0;n<180;n++){advancePilotPhysiology(normal,9,1/60);advancePilotPhysiology(off,16,1/60);}assert(normal.gVision<=.5);assert(off.gVision>.8);assert(!off.blackedOut);assert.equal(off.gRedout,0);
+  for(let n=0;n<180;n++){advancePilotPhysiology(normal,9,1/60);advancePilotPhysiology(off,9,1/60);}assert(normal.gVision<=.5);assert(off.gVision>.8);assert(!off.blackedOut);assert.equal(off.gRedout,0);
  }
 });
 test('surfaces follow input even in attitude hold, and afterburner is orange',()=>{

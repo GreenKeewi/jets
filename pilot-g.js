@@ -46,7 +46,7 @@ export function advancePilotPhysiology(p,load,dt){
  sanitizePilotG(p);if(!(dt>0))return;
  if(!Number.isFinite(p.gLoad))p.gLoad=1;
  p.gLoad+=(load-p.gLoad)*(1-Math.exp(-dt*5));
- const target=(aoaOverrideActive(p)?G_EFFECTS.maxVision:.5)*clamp((Math.abs(load)-5)/(aoaOverrideActive(p)?8:4),0,1);
+ const target=(aoaOverrideActive(p)?G_EFFECTS.maxVision:.5)*clamp((Math.abs(load)-5)/4,0,1);
  p.gVision+=(target-p.gVision)*(1-Math.exp(-dt*3));
  if(p.gVision<.001)p.gVision=0;
 }
