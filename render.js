@@ -1,15 +1,15 @@
-import {CameraLook} from './camera-look.js?v=skybreak120-1104';
-import {CockpitInterior} from './cockpit-interior.js?v=skybreak120-1104';
-import {viewAxes,gunMuzzle} from './view-axes.js?v=skybreak120-1104';
-import {GUN} from './guns.js?v=skybreak120-1104';
+import {CameraLook} from './camera-look.js?v=skybreak122-1104';
+import {CockpitInterior} from './cockpit-interior.js?v=skybreak122-1104';
+import {viewAxes,gunMuzzle} from './view-axes.js?v=skybreak122-1104';
+import {GUN} from './guns.js?v=skybreak122-1104';
 import * as THREE from './vendor/three.module.js';
-import {RUNWAY,ROUTE,TARGET,ESCAPE,strikeTarget,strikeEscape,forward,bombSolution,canBomb,clamp} from './sim.js?v=skybreak120-1104';
-import {surfaceHeight} from './world.js?v=skybreak120-1104';
-import {routeFor,destinationFor,fieldPoint} from './missions.js?v=skybreak120-1104';
-import {Scenery} from './scenery.js?v=skybreak120-1104';
-import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak121-1104';
-import {normalizeAircraftId} from './loadouts.js?v=skybreak120-1104';
-import {batchStatic} from './geometry.js?v=skybreak120-1104';
+import {RUNWAY,ROUTE,TARGET,ESCAPE,strikeTarget,strikeEscape,forward,bombSolution,canBomb,clamp} from './sim.js?v=skybreak122-1104';
+import {surfaceHeight} from './world.js?v=skybreak122-1104';
+import {routeFor,destinationFor,fieldPoint} from './missions.js?v=skybreak122-1104';
+import {Scenery} from './scenery.js?v=skybreak122-1104';
+import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak122-1104';
+import {normalizeAircraftId} from './loadouts.js?v=skybreak122-1104';
+import {batchStatic} from './geometry.js?v=skybreak122-1104';
 export const makeJet=createAircraft;
 const COLORS={mint:0x9cead6,orange:0xffac7a};
 function canvasTexture(width,height,draw){const c=document.createElement('canvas');c.width=width;c.height=height;draw(c.getContext('2d'),width,height);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return tex}

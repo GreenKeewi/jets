@@ -1,4 +1,4 @@
-import {lobbyMatch} from './lobby-match.js?v=skybreak120-1104';
+import {lobbyMatch} from './lobby-match.js?v=skybreak122-1104';
 
 // Room codes are the default. Manual, data-only LAN pairing is an advanced fallback.
 export function mountNetworkUI(container, network, { onLaunch, sortieSettings } = {}) {

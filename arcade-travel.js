@@ -1,5 +1,5 @@
-import {maximumAirspeed} from './aerodynamics.js?v=skybreak120-1104';
-import {flightForward} from './view-axes.js?v=skybreak120-1104';
+import {maximumAirspeed} from './aerodynamics.js?v=skybreak122-1104';
+import {flightForward} from './view-axes.js?v=skybreak122-1104';
 // Intentional arcade world travel, NOT indicated airspeed or simulated G.
 // Takeoff, gear-down flight and free-flight final approach retain normal distances.
 export const TRAVEL=Object.freeze({maxMultiplier:1.5,blendStart:120,blendEnd:220});

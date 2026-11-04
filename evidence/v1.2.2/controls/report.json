@@ -1,0 +1,39 @@
+{
+  "method": "Local Chromium WebGL; explicit airborne free-flight fixtures followed by native keyboard controls. Not a physical mobile or Internet WebRTC test.",
+  "errors": [],
+  "turns": [
+    {
+      "roll": 0.4017970412400973,
+      "yaw": 0.17229483518440486,
+      "pitch": 0,
+      "advanced": false
+    },
+    {
+      "roll": -0.5115804657219731,
+      "yaw": -0.17312652174825688,
+      "pitch": 0,
+      "advanced": false
+    }
+  ],
+  "pitch": [
+    {
+      "roll": 0,
+      "yaw": 0,
+      "pitch": 0.1112285983579432,
+      "advanced": false
+    },
+    {
+      "roll": 0,
+      "yaw": 0,
+      "pitch": -0.10741883999729757,
+      "advanced": false
+    }
+  ],
+  "advanced": {
+    "roll": 1.4752874697504472,
+    "yaw": 0.3222829836699145,
+    "pitch": 0,
+    "advanced": true
+  },
+  "pass": true
+}

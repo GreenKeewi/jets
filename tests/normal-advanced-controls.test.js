@@ -21,6 +21,10 @@ test('normal home touchdown automatically deploys gear and brakes at low power',
  assert.equal(p.dead,false);assert.equal(p.grounded,true);assert.equal(p.landed,true);assert.equal(p.gearDown,true);
  step(g,{host:{}},1/60);assert.equal(p.braking,true);assert.equal(p.airbrake,false);
 });
-test('both handling modes retain a bank on release and allow complete rolls',()=>{
- for(const maneuverAssist of [false,true]){const {g,p}=flying();p.maneuverAssist=maneuverAssist;for(let n=0;n<40;n++)step(g,{host:{roll:1}});const bank=p.roll,yaw=p.yaw;for(let n=0;n<60;n++)step(g,{host:{}});assert(Math.abs(p.roll-bank)<1e-8);assert(Math.abs(p.yaw-yaw)<1e-8);assert.equal(p.dead,false);}
+test('normal flight self levels while advanced mode allows continuous full rolls',()=>{
+ const normal=flying(),advanced=flying();advanced.p.maneuverAssist=true;
+ for(let n=0;n<120;n++){step(normal.g,{host:{roll:1}},1/60);step(advanced.g,{host:{roll:1}},1/60);}
+ assert(Math.abs(normal.p.roll)<=1.01);assert(Math.abs(advanced.p.roll-normal.p.roll)>.5);
+ for(let n=0;n<180;n++)step(normal.g,{host:{}},1/60);
+ assert(Math.abs(normal.p.roll)<.01);assert.equal(normal.p.dead,false);
 });

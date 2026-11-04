@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.js';
-import {batchStatic} from './geometry.js?v=skybreak120-1104';
-import {aircraftDefinition,normalizeLoadout} from './loadouts.js?v=skybreak120-1104';
-import {usesSimulationAirbrakeDeployment} from './aircraft-capabilities.js?v=skybreak120-1104';
+import {batchStatic} from './geometry.js?v=skybreak122-1104';
+import {aircraftDefinition,normalizeLoadout} from './loadouts.js?v=skybreak122-1104';
+import {usesSimulationAirbrakeDeployment} from './aircraft-capabilities.js?v=skybreak122-1104';
 // Simplified original visual models. Layout cues only, not manufacturer geometry.
 // USAF: 183wg.ang.af.mil/RESOURCES/Fact-Sheets/Article/459577/f-16-fighting-falcon/
 // NAVAIR: navair.navy.mil/product/FA-18EF-Super-Hornet

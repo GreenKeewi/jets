@@ -1,4 +1,4 @@
-import {fillTeams,validAssignments} from './lobby-teams.js?v=skybreak120-1104';
+import {fillTeams,validAssignments} from './lobby-teams.js?v=skybreak122-1104';
 // World-positive yaw/roll turns toward +X, which is screen-left when looking +Z.
 // Keep that simulation/AI convention; translate pilot-facing keys at this boundary.
 export const ACTION_KEYS={Space:'fireGun',KeyQ:'fireHeat',KeyE:'fireRadar',KeyF:'flare',KeyC:'chaff',KeyB:'bomb',KeyX:'toggleAirbrake',KeyG:'toggleGear',KeyK:'toggleManeuver',KeyO:'toggleAoaLimiter',KeyT:'jettisonTanks',BracketLeft:'sweepOut',BracketRight:'sweepIn'};

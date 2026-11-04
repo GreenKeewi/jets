@@ -1,4 +1,4 @@
-import {aircraftDefinition} from './loadouts.js?v=skybreak120-1104';
+import {aircraftDefinition} from './loadouts.js?v=skybreak122-1104';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export function sweepFraction(p){return p.aircraftId==='f14'?clamp(Number(p.wingSweep)||0,0,1):0;}
 export function sweepHandling(p){if(p.aircraftId!=='f14')return 1;const s=sweepFraction(p),fast=clamp(((p.speed||0)-220)/180,0,1);return (1-s)*(.99-.28*fast)+s*(.65+.47*fast);}

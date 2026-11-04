@@ -1,4 +1,4 @@
-import {aircraftDefinition} from './loadouts.js?v=skybreak120-1104';
+import {aircraftDefinition} from './loadouts.js?v=skybreak122-1104';
 const stores={empty:{name:'Empty',symbol:'—',detail:'Leave this station clear.'},heat:{name:'Heat missile',symbol:'↗',detail:'Q · short lock, infrared seeker.'},radar:{name:'Radar missile',symbol:'◎',detail:'E · full lock, radar seeker.'},tank:{name:'Fuel tank',symbol:'◒',detail:'Extra range · starts full · T drops tanks.'},bomb:{name:'Twin bomb rack',symbol:'◆',detail:'2 bombs · B releases bombs in Strike.'}};
 export function stationLayout(id){return aircraftDefinition(id).stations.map((s,index)=>({...s,label:id==='f14'?s.label.replace('Wingtip','Glove rail').replace('Outer wing','Glove pylon').replace('Mid wing','Belly rack').replace('Inner tank','Nacelle tank'):s.label,number:index+1}));}
 export function mountLoadoutEditor({getAircraftId,getForcedStations=()=>[],onPreset}){

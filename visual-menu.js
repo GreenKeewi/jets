@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.js';
-import {createAircraft} from './aircraft.js?v=skybreak121-1104';
-import {AIRCRAFT_DEFINITIONS} from './loadouts.js?v=skybreak120-1104';
+import {createAircraft} from './aircraft.js?v=skybreak122-1104';
+import {AIRCRAFT_DEFINITIONS} from './loadouts.js?v=skybreak122-1104';
 
 // Native buttons mirror the canonical selects: the lobby, saved preferences and
 // launch configuration all continue to use one source of truth.

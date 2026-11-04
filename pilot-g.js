@@ -1,8 +1,8 @@
 // Signed pilot-axis specific force, bounded tunnel vision and gentle airframe wear.
 // See flight-model.md for sources, envelopes and non-medical tuning assumptions.
-import {aoaEnvelope} from './aerodynamics.js?v=skybreak120-1104';
-import {aoaOverrideActive,sanitizeAoaOverride} from './aircraft-capabilities.js?v=skybreak120-1104';
-import {viewAxes,flightForward} from './view-axes.js?v=skybreak120-1104';
+import {aoaEnvelope} from './aerodynamics.js?v=skybreak122-1104';
+import {aoaOverrideActive,sanitizeAoaOverride} from './aircraft-capabilities.js?v=skybreak122-1104';
+import {viewAxes,flightForward} from './view-axes.js?v=skybreak122-1104';
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const dot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
 const G=9.81;

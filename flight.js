@@ -1,8 +1,8 @@
 // SI units: metres, seconds, kilograms. Mach uses a fixed 343 m/s reference.
 // This is an energy-based game model, not an aircraft certification simulator.
-import {aoaEnvelope,estimatedAoa,maximumAirspeed,sweepFraction,sweepHandling} from './aerodynamics.js?v=skybreak120-1104';
-import {aoaOverrideActive,usesSimulationAirbrakeDeployment} from './aircraft-capabilities.js?v=skybreak120-1104';
-import {aircraftDefinition,loadoutCapacity,normalizeLoadout} from './loadouts.js?v=skybreak120-1104';
+import {aoaEnvelope,estimatedAoa,maximumAirspeed,sweepFraction,sweepHandling} from './aerodynamics.js?v=skybreak122-1104';
+import {aoaOverrideActive,usesSimulationAirbrakeDeployment} from './aircraft-capabilities.js?v=skybreak122-1104';
+import {aircraftDefinition,loadoutCapacity,normalizeLoadout} from './loadouts.js?v=skybreak122-1104';
 export const FLIGHT=Object.freeze({soundSpeed:343,maxFighterSpeed:686,cruiseSpeed:315,maxBomberSpeed:309,bomberCruiseSpeed:245,afterburnerThreshold:1.1,maxThrottle:1.1});
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const GRAVITY=9.81;

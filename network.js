@@ -1,17 +1,17 @@
-import {validEquipment,copyEquipment,validEquipmentRoster} from './pilot-equipment.js?v=skybreak120-1104';
-import {AIRCRAFT_DEFINITIONS,validLoadout} from './loadouts.js?v=skybreak120-1104';
-import {assignTeam,fillTeams,validAssignments} from './lobby-teams.js?v=skybreak120-1104';
+import {validEquipment,copyEquipment,validEquipmentRoster} from './pilot-equipment.js?v=skybreak122-1104';
+import {AIRCRAFT_DEFINITIONS,validLoadout} from './loadouts.js?v=skybreak122-1104';
+import {assignTeam,fillTeams,validAssignments} from './lobby-teams.js?v=skybreak122-1104';
 // Data-only WebRTC. Room codes use PeerJS Cloud signaling and public STUN.
 // Advanced manual LAN pairing stays available without external services.
 // Protocol: ordered reliable control/actions; unordered zero-retransmit axes/snapshots.
 export const PROTOCOL = 'JETS12';
 // Room handshake compatibility changes only when the transport/game protocol changes.
-export const ROOM_BUILD = 'skybreak120-1104';
+export const ROOM_BUILD = 'skybreak122-1104';
 // Asset versions stay separate so fresh invites load the current page without
 // rejecting an already connected player using compatible gameplay packets.
 export const CLIENT_BUILD = new URL(import.meta.url).searchParams.get('v') || 'rooms3-1019';
 export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb', 'toggleAirbrake', 'toggleGear', 'toggleManeuver', 'toggleAoaLimiter', 'jettisonTanks', 'sweepOut', 'sweepIn'];
-export { mountNetworkUI } from './network-ui.js?v=skybreak120-1104';
+export { mountNetworkUI } from './network-ui.js?v=skybreak122-1104';
 // PeerJS 1.5.5 registers its pass-through serializer as 'raw' (not 'none').
 const ROOM_SERIALIZATION = 'raw';
 const ROOM_ICE = { iceServers: [{ urls: 'stun:stun.cloudflare.com:3478' }] };

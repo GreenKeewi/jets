@@ -27,8 +27,8 @@ test('per-jet published speed approximations cap indicated and actual world spee
 test('AoA is lift/airspeed dependent rather than pitch angle; override helps low-speed alpha without 17 G turns',()=>{
  for(const aircraftId of ['fa18e','su27']){const p=initializeFuel({aircraftId,speed:120,pos:{y:1000},pitch:0,normalLoad:4,grounded:false},.5);const normal=aoaEnvelope(p);p.aoaLimiterOff=true;const off=aoaEnvelope(p);assert(off.max>normal.max);assert(off.max<=off.structural);assert(estimatedAoa(p)>15);const alpha=estimatedAoa(p);p.pitch=1.4;assert.equal(estimatedAoa(p),alpha);p.speed=400;assert(estimatedAoa(p)<alpha);assert(aoaEnvelope(p).max<=9);}
 });
-test('A/D only roll; W pitches through the bank without automatic yaw',()=>{
- for(const direction of [-1,1]){const g=createGame({mode:'freeflight'}),p=air(g.pilots[0]);for(let n=0;n<35;n++)step(g,{host:{roll:direction}},1/60);assert(Math.abs(p.roll)>.6);assert(Math.abs(p.yaw)<1e-8);const roll=p.roll;for(let n=0;n<30;n++)step(g,{});assert(Math.abs(p.roll-roll)<1e-7);for(let n=0;n<60;n++)step(g,{host:{pitch:1}});assert(Math.abs(p.yaw)>.1);assert(p.yaw*direction>0);}
+test('A/D restores coordinated turns in either direction without needing W',()=>{
+ for(const direction of [-1,1]){const g=createGame({mode:'freeflight'}),p=air(g.pilots[0]);for(let n=0;n<60;n++)step(g,{host:{roll:direction}},1/60);assert(p.yaw*direction>.1);assert(p.roll*direction>.5);for(let n=0;n<180;n++)step(g,{});assert(Math.abs(p.roll)<.01);}
 });
 test('trackpad/drag camera look is bounded and smoothly recenters after interaction stops',()=>{
  let now=0;const look=new CameraLook(()=>now);look.nudge(200,-80);const previous=look.yaw;look.update(.1);assert.equal(look.yaw,previous);now=300;for(let n=0;n<120;n++)look.update(1/60);assert.equal(look.yaw,0);assert.equal(look.pitch,0);look.dragging=true;look.nudge(999999,999999);assert(Math.abs(look.yaw)<=1.5);look.update(3);assert.equal(Math.abs(look.yaw),1.5);look.reset();assert.equal(look.dragging,false);

@@ -1,7 +1,7 @@
 import {validEquipment} from '../pilot-equipment.js';
 // Dedicated-server protocol, independent of the peer-to-peer transport.
 export const SERVER_PROTOCOL = 'SKYBREAK-SERVER-1';
-export const SIM_BUILD = 'skybreak120-1104';
+export const SIM_BUILD = 'skybreak122-1104';
 export const AXES = ['pitch', 'roll', 'yaw', 'throttle'];
 export const HELD = ['fireGun', 'brake', 'autopilot'];
 export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb', 'toggleAirbrake', 'toggleGear', 'toggleManeuver', 'toggleAoaLimiter', 'jettisonTanks', 'sweepOut', 'sweepIn'];

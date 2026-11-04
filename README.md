@@ -1,5 +1,11 @@
 # Skybreak Jets
 
+## v1.2.2 · Restore coordinated controls
+
+Restores the controls from before v1.2.0: **A/D or left/right arrows bank and turn together**. Normal mode self-levels on release; **W/S** controls climb/descent and returns toward level pitch. **K** toggles advanced flight with attitude hold, full rolls, body-axis pitch and the earlier coordinated-turn aid. Other aircraft, missions, loadout customization and camera features remain.
+
+Reload all multiplayer clients and create fresh invitations: simulation compatibility is now **JETS12 / skybreak122-1104**. See [control verification](evidence/v1.2.2/README.md). Older release notes below describe historical behavior.
+
 ## v1.2.1 · Tomcat model and visual loadouts
 
 The F-14 now has nacelle-mounted fins and animated rudders, revised wing proportions and sweep pivots, wing-mounted roll spoilers, forward inlet mouths, tandem canopy framing, ventral fins and a broad aft beavertail. These are original simplified game meshes, informed by aircraft references.
