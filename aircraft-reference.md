@@ -34,3 +34,8 @@ The [Heatblur developer manual](https://f14.manuals.heatblur.se/f14ab/systems/fl
 A/D (or left/right arrows) now command roll only. W/S rotates pitch about the banked body axis, so banking first and pulling W creates the turn. Both handling modes hold attitude when released; K changes roll response. Aircraft systems, weapons and other bindings remain available. Trackpad wheel gestures over the flight canvas, or pointer drag, provide temporary camera look; idle/release smoothly recenters without pointer lock.
 
 The transcript's ambiguous “take out the respect” phrase was not used to justify deleting unrelated features or assets.
+
+
+## v1.2.1 Tomcat visual corrections
+
+The [Smithsonian F-14D(R) collection reference](https://airandspace.si.edu/collection-objects/grumman-f-14dr-tomcat/nasm_A20040156000) informs the twin nacelles, tandem canopy, twin tails and variable-span silhouette. The game retains the F-14B identity and simplified original geometry; the museum D airframe is a shape reference rather than an assertion of identical variant equipment. Revised pivots keep the wing skins, spoilers, flaps and navigation lights together through the existing 20–68° sweep. The [Heatblur developer wing-sweep manual](https://f14.manuals.heatblur.se/f14ab/systems/flight_controls_gear/wing_sweep.html) supports that flight range. No proprietary game assets were imported. Flight rules and multiplayer equipment definitions are unchanged in this release.

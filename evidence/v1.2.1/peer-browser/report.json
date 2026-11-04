@@ -1,0 +1,83 @@
+{
+  "method": "Local Chromium WebGL. Native hangar/menu, keyboard takeoff, roll/pitch, sweep, wheel-look, bomb release and actual ballistic impacts. Explicit airborne and landing fixtures for mission checks. Two rendered documents linked by deterministic data-channel fixture, not a physical-network WebRTC test.",
+  "errors": [],
+  "su27": {
+    "id": "su27",
+    "camo": "Original procedural blue-grey Flanker pattern",
+    "canards": 0,
+    "nozzles": [
+      0,
+      0
+    ]
+  },
+  "nativeTakeoff": 11.466666666666816,
+  "roll": {
+    "yaw": 0,
+    "roll": 0.5384292225766716
+  },
+  "sweep": {
+    "target": 1,
+    "value": 0.9833333333333311,
+    "angles": [
+      -0.8237954069413216,
+      0.8237954069413216
+    ]
+  },
+  "look": {
+    "yaw": -0.54,
+    "pitch": -0.24
+  },
+  "attack": {
+    "winner": 0,
+    "title": "Strike complete · aircraft home",
+    "text": "Three airfield hits confirmed and a safe friendly landing completed."
+  },
+  "multiplayer": [
+    {
+      "id": "host",
+      "aircraftId": "f14",
+      "stations": {
+        "wingtip-l": "heat",
+        "wingtip-r": "heat",
+        "outerwing-l": "heat",
+        "outerwing-r": "heat",
+        "midwing-l": "radar",
+        "midwing-r": "radar",
+        "belly-l": "radar",
+        "belly-r": "radar",
+        "innerwing-l": "empty",
+        "innerwing-r": "empty",
+        "centerline": "empty"
+      },
+      "heat": 4,
+      "radar": 4
+    },
+    {
+      "id": "p1",
+      "aircraftId": "su27",
+      "stations": {
+        "wingtip-l": "heat",
+        "wingtip-r": "heat",
+        "outerwing-l": "empty",
+        "outerwing-r": "heat",
+        "midwing-l": "radar",
+        "midwing-r": "radar",
+        "belly-l": "radar",
+        "belly-r": "radar"
+      },
+      "heat": 3,
+      "radar": 4
+    }
+  ],
+  "defend": {
+    "playerGrounded": true,
+    "attackers": [
+      {
+        "aircraftId": "su27",
+        "grounded": false,
+        "bombs": 4
+      }
+    ]
+  },
+  "pass": true
+}

@@ -1,5 +1,13 @@
 # Skybreak Jets
 
+## v1.2.1 · Tomcat model and visual loadouts
+
+The F-14 now has nacelle-mounted fins and animated rudders, revised wing proportions and sweep pivots, wing-mounted roll spoilers, forward inlet mouths, tandem canopy framing, ventral fins and a broad aft beavertail. These are original simplified game meshes, informed by aircraft references.
+
+**Aircraft & loadout** now opens a visual station editor: pick a hardpoint, choose a compatible store card, or apply Air combat, Long range and Clear stations presets. Departure fuel cards live in the hangar. Strike bomb reservations and sortie locks remain visible; keyboard navigation, narrow screens and independent friend loadouts are preserved. Wire protocol and simulation build remain JETS12 / skybreak120-1104. Reload to obtain the new menu and models.
+
+See [verification and browser screenshots](evidence/v1.2.1/README.md).
+
 
 ## v1.2.0 · Flanker, Tomcat and personal hangars
 

@@ -7,7 +7,7 @@ import {RUNWAY,ROUTE,TARGET,ESCAPE,strikeTarget,strikeEscape,forward,bombSolutio
 import {surfaceHeight} from './world.js?v=skybreak120-1104';
 import {routeFor,destinationFor,fieldPoint} from './missions.js?v=skybreak120-1104';
 import {Scenery} from './scenery.js?v=skybreak120-1104';
-import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak120-1104';
+import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak121-1104';
 import {normalizeAircraftId} from './loadouts.js?v=skybreak120-1104';
 import {batchStatic} from './geometry.js?v=skybreak120-1104';
 export const makeJet=createAircraft;
