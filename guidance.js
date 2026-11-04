@@ -1,6 +1,6 @@
-import {gunIntercept} from './guns.js?v=skybreak112-1102';
-import {turnHint} from './view-axes.js?v=skybreak112-1102';
-import {angle,dist,horizontal,clamp} from './sim.js?v=skybreak112-1102';
+import {gunIntercept} from './guns.js?v=skybreak120-1104';
+import {turnHint} from './view-axes.js?v=skybreak120-1104';
+import {angle,dist,horizontal,clamp} from './sim.js?v=skybreak120-1104';
 export function waypointScreenPosition(projected,forwardDot,width,height,cockpit=false){
  let x=forwardDot>0?clamp(projected.x,80,width-80):width/2,y=forwardDot>0?clamp(projected.y,140,height-190):height*.7;
  // Keep edge-clamped guidance clear of the task card and essential flight instruments.
@@ -9,14 +9,14 @@ export function waypointScreenPosition(projected,forwardDot,width,height,cockpit
  return{x,y};
 }
 export function combatCue(game,p){
- if(game.mode==='freeflight'||p.dead||game.mode==='strike'&&p.bomber)return null;
+ if(game.mode==='freeflight'||p.dead||game.mode==='strike'&&p.strikeAttacker)return null;
  const enemies=game.pilots.filter(q=>q.team!==p.team&&!q.dead);if(!enemies.length)return null;
- const target=enemies.find(q=>q.id===p.targetId)||enemies.find(q=>game.mode==='strike'&&q.bomber)||enemies.sort((a,b)=>dist(a.pos,p.pos)-dist(b.pos,p.pos))[0];
+ const target=enemies.find(q=>q.id===p.targetId)||enemies.find(q=>game.mode==='strike'&&q.strikeAttacker)||enemies.sort((a,b)=>dist(a.pos,p.pos)-dist(b.pos,p.pos))[0];
  if(target.id===p.targetId&&p.lock>.45)return null;
  const heading=angle(Math.atan2(target.pos.x-p.pos.x,target.pos.z-p.pos.z)-p.yaw),vertical=Math.atan2(target.pos.y-p.pos.y,Math.max(1,horizontal(target.pos,p.pos)))-p.pitch;
  const range=dist(target.pos,p.pos),distance=range>=1000?`${(range/1000).toFixed(1)} km`:`${Math.round(range/10)*10} m`;
- if(Math.abs(heading)>.48)return{...turnHint(p,target.pos),distance,kind:target.bomber?'BOMBER':'BANDIT'};
- if(Math.abs(vertical)>.28)return{key:vertical>0?'W':'S',text:vertical>0?'Climb toward target':'Descend toward target',distance,kind:target.bomber?'BOMBER':'BANDIT'};
+ if(Math.abs(heading)>.48)return{...turnHint(p,target.pos),distance,kind:target.strikeAttacker?'STRIKER':target.bomber?'BOMBER':'BANDIT'};
+ if(Math.abs(vertical)>.28)return{key:vertical>0?'W':'S',text:vertical>0?'Climb toward target':'Descend toward target',distance,kind:target.strikeAttacker?'STRIKER':target.bomber?'BOMBER':'BANDIT'};
  return null;
 }
 export function nearestThreat(game,p){

@@ -1,7 +1,8 @@
 // SI units: metres, seconds, kilograms. Mach uses a fixed 343 m/s reference.
 // This is an energy-based game model, not an aircraft certification simulator.
-import {aoaOverrideActive,usesSimulationAirbrakeDeployment} from './aircraft-capabilities.js?v=skybreak112-1102';
-import {aircraftDefinition,loadoutCapacity,normalizeLoadout} from './loadouts.js?v=skybreak112-1102';
+import {aoaEnvelope,estimatedAoa,maximumAirspeed,sweepFraction,sweepHandling} from './aerodynamics.js?v=skybreak120-1104';
+import {aoaOverrideActive,usesSimulationAirbrakeDeployment} from './aircraft-capabilities.js?v=skybreak120-1104';
+import {aircraftDefinition,loadoutCapacity,normalizeLoadout} from './loadouts.js?v=skybreak120-1104';
 export const FLIGHT=Object.freeze({soundSpeed:343,maxFighterSpeed:686,cruiseSpeed:315,maxBomberSpeed:309,bomberCruiseSpeed:245,afterburnerThreshold:1.1,maxThrottle:1.1});
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const GRAVITY=9.81;
@@ -29,10 +30,10 @@ function ensureFuel(p){
 }
 // Reference mass is half fuel. Fuel affects both acceleration and turn authority.
 export function fuelMassRatio(p){const a=frame(p),total=capacity(p),fuel=Number.isFinite(p.fuelKg)?clamp(p.fuelKg,0,total):total*clamp(p.fuelFraction??1,0,1);return(a.dryMass+a.fuelCapacity*.5)/(a.dryMass+fuel);}
-export function turnAuthority(speed,p={}){return Math.min(1,(280/Math.max(280,speed))**1.5)*fuelMassRatio(p)*controlFactor(p);}
+export function turnAuthority(speed,p={}){return Math.min(1,(280/Math.max(280,speed))**1.5)*fuelMassRatio(p)*controlFactor(p)*sweepHandling(p);}
 export function pitchRateLimit(p){
- const speed=Math.max(90,Number(p.speed)||0),load=p.bomber?2.5:aoaOverrideActive(p)?16:frame(p).turnLoad||8;
- return Math.min(.9,GRAVITY*load/speed)*Math.min(1,fuelMassRatio(p))*controlFactor(p);
+ const speed=Math.max(90,Number(p.speed)||0),load=p.bomber?2.5:Math.min(frame(p).turnLoad||8,aoaEnvelope(p).max);
+ return Math.min(.9,GRAVITY*load/speed)*Math.min(1,fuelMassRatio(p))*controlFactor(p)*sweepHandling(p);
 }
 export function jettisonTanks(p){
  ensureFuel(p);if(p.bomber||p.grounded||p.dead)return 0;
@@ -61,7 +62,7 @@ function advanceAirbrakeDeployment(p,deployed,seconds){
 export function advanceFlightEnergy(p,input={},dt){
  const seconds=clamp(Number(dt)||0,0,.1);if(seconds<=0){p.speedAcceleration=0;return;}
  const burnerDuty=advanceFuel(p,seconds),a=frame(p),mass=fuelMassRatio(p);
- const maxSpeed=p.bomber?FLIGHT.maxBomberSpeed:a.maxSpeed||FLIGHT.maxFighterSpeed;
+ const maxSpeed=p.bomber?FLIGHT.maxBomberSpeed:maximumAirspeed(p);
  const speed=clamp(Number(p.speed)||0,0,maxSpeed),throttle=clamp(Number(p.throttle)||0,0,1);
  const dryPower=p.bomber?interpolate(throttle,[[0,0],[.55,.28],[.78,.63],[1,1]]):interpolate(throttle,[[0,0],[.32,.045],[.55,.19],[.7,.42],[.78,.55],[.82,1],[1,1]]);
  const altitude=clamp(Number(p.pos?.y)||0,0,6000),density=Math.exp(-altitude/16000),pressure=density*speed*speed;
@@ -81,7 +82,8 @@ export function advanceFlightEnergy(p,input={},dt){
  }
  const measuredLoad=Number.isFinite(p.normalLoad)?p.normalLoad:Number.isFinite(p.gLoad)?p.gLoad:1;
  const load=clamp(Math.abs(measuredLoad),0,45),lift=Math.min(1,pressure/(a.stallSpeed*a.stallSpeed));
- const parasite=a.parasite*pressure*mass,baseInduced=a.induced*lift*lift*Math.min(1,load*load)/Math.max(1,pressure)/mass;
+ const sweep=sweepFraction(p),waveDrag=p.aircraftId==='f14'?Math.max(0,speed-240)*.045*(1-sweep):0,alpha=estimatedAoa(p),postStallDrag=Math.max(0,Math.abs(alpha)-24)*.28;
+ const parasite=a.parasite*pressure*mass+waveDrag+postStallDrag,baseInduced=a.induced*lift*lift*Math.min(1,load*load)/Math.max(1,pressure)/mass;
  const extra=a.turnInduced*Math.max(0,load*load-1)/Math.max(a.stallSpeed*a.stallSpeed*.5,pressure)/mass;
  const turnDrag=a.turnDragLimit*extra/(a.turnDragLimit+extra);
  // Airbrake drag builds smoothly and eases near approach speed. Wheel brakes
@@ -91,7 +93,7 @@ export function advanceFlightEnergy(p,input={},dt){
  const gravity=-GRAVITY*Math.sin(Number(p.pitch)||0),gearDrag=p.gearDown?2.5*(speed/150)**2:0;
  p.speed=clamp(speed+(thrust-parasite-baseInduced-turnDrag+gravity-airbrake-gearDrag)*seconds,0,maxSpeed);
  p.speedAcceleration=(p.speed-speed)/seconds;
- p.stallSpeed=a.stallSpeed*Math.sqrt(clamp(load,1,3)/(density*mass));
+ p.angleOfAttack=alpha;p.stallSpeed=a.stallSpeed*(p.aircraftId==='f14'?1+sweep*.32:1)*Math.sqrt(clamp(load,1,3)/(density*mass));
  const sink=Math.max(0,p.stallSpeed-p.speed)*.48,previous=Number.isFinite(p.stallSink)?Math.max(0,p.stallSink):0;
  p.stallSink=previous+(sink-previous)*(1-Math.exp(-seconds*3));
 }

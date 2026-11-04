@@ -1,7 +1,7 @@
 // Optional authoritative multiplayer transport. No endpoints are active by default.
 // Populate only with verified, deployed endpoints. A label alone is not a server region.
-import {SERVER_PROTOCOL, SIM_BUILD, validateInput, ACTIONS, AXES, HELD} from './server/protocol.js?v=skybreak112-1102';
-import {interpolateSnapshots} from './network.js?v=skybreak112-1102';
+import {SERVER_PROTOCOL, SIM_BUILD, validateInput, ACTIONS, AXES, HELD} from './server/protocol.js?v=skybreak120-1104';
+import {interpolateSnapshots} from './network.js?v=skybreak120-1104';
 export const SERVER_ENDPOINTS = Object.freeze([]);
 
 export function normalizeEndpoints(endpoints) {
@@ -61,7 +61,7 @@ export function createServerClient(callbacks = {}, {WebSocketImpl = globalThis.W
     get state() { return {...state,latencyMs}; },
     subscribe(fn) { listeners.add(fn); fn({...state,latencyMs}); return () => listeners.delete(fn); },
     disconnect,
-    async connect(endpoint, {pool = 'regional',arenaId = 'coast',team='auto',match='versus',timeoutMs = 15000} = {}) {
+    async connect(endpoint, {pool = 'regional',arenaId = 'coast',team='auto',match='versus',equipment,timeoutMs = 15000} = {}) {
       const target = normalizeEndpoints([endpoint])[0];
       if (!['regional','global'].includes(pool) || !['coast','valley'].includes(arenaId)) throw new Error('Invalid matchmaking choice.');
       if(!['auto',0,1].includes(team)||!['versus','coop'].includes(match)||(match==='coop'&&team===1))throw new Error('Invalid team choice.');
@@ -73,7 +73,7 @@ export function createServerClient(callbacks = {}, {WebSocketImpl = globalThis.W
         try { ws = new WebSocketImpl(`${target.url.replace(/^http/,'ws')}/play`); } catch (error) { disconnect(error.message); fail(error.message); return; }
         const socket = ws;
         connectionTimer = setTimeout(() => { if (current !== epoch) return; disconnect('Server connection timed out.'); fail('Server connection timed out.'); },timeoutMs);
-        socket.addEventListener('open', () => { if (current === epoch) send({t:'join',protocol:SERVER_PROTOCOL,build:SIM_BUILD,pool,region:target.id,arenaId,team,match}); });
+        socket.addEventListener('open', () => { if (current === epoch) send({t:'join',protocol:SERVER_PROTOCOL,build:SIM_BUILD,pool,region:target.id,arenaId,team,match,...(equipment?{equipment}:{})}); });
         socket.addEventListener('message', event => {
           if (current !== epoch) return;
           let packet; try { packet = JSON.parse(event.data); } catch { disconnect('Invalid server response.'); fail('Invalid server response.'); return; }

@@ -1,5 +1,5 @@
 import {randomUUID, randomInt} from 'node:crypto';
-import {createGame, step, snapshot, respawnPilot} from '../sim.js';
+import {createGame, step, snapshot, respawnPilot,equipPilot} from '../sim.js';
 import {placePilotOnRunway} from '../airport-operations.js';
 import {createInputBuffer} from './protocol.js';
 
@@ -15,7 +15,7 @@ export function createRoomManager({region = 'local', maxRooms = 8, playersPerRoo
   }
   return {
     rooms,
-    join(client, {pool, arenaId,team:requestedTeam='auto',match='versus'}) {
+    join(client, {pool, arenaId,team:requestedTeam='auto',match='versus',equipment}) {
       if (client.room) return null;
       client.joinError = null;
       if(!['auto',0,1].includes(requestedTeam)||!['coop','versus'].includes(match)||(match==='coop'&&requestedTeam===1))return null;
@@ -42,7 +42,7 @@ export function createRoomManager({region = 'local', maxRooms = 8, playersPerRoo
       }
       const oldId = seat.id;
       client.id = `pilot-${randomUUID()}`; client.input = createInputBuffer(); client.room = room;
-      seat.id = client.id; seat.human = true;
+      seat.id = client.id; seat.human = true;if(equipment)equipPilot(room.game,seat,equipment);
       for (const p of room.game.pilots) if (p.targetId === oldId) p.targetId = client.id;
       for (const m of room.game.missiles) { if (m.targetId === oldId) m.targetId = client.id; if (m.ownerId === oldId) m.ownerId = client.id; }
       room.clients.set(client.id, client); return room;

@@ -1,6 +1,21 @@
 # Skybreak Jets
 
 
+## v1.2.0 · Flanker, Tomcat and personal hangars
+
+Su-37 is replaced by a rebuilt **Su-27 Flanker** in original blue/grey camouflage, with a conventional center stick, no canards and fixed nozzles. Existing Su-37 preferences migrate. **F-14B Tomcat** adds manual 20°–68° sweep: [ extends, ] sweeps aft, with HUD buttons. Wings forward favor slow flight; wings aft reduce high-speed drag and improve high-speed response. Gear down returns the wings forward.
+
+**A/D roll without automatic turning; W/S pitches the nose through the bank.** Both modes hold attitude when released; K changes roll response. Trackpad scrolling or dragging the flight canvas temporarily looks around and smoothly returns to the default view when interaction stops. Existing rear view, tank dropping, free exploration and airport ownership/service rules remain.
+
+The separate **Aircraft & loadout** hangar has four visual previews, station choices and a fuel/store summary. Every friend chooses their own aircraft/loadout before the host launches. Choices synchronize and lock for the sortie, remain isolated between pilots, and survive respawns. Friend rooms remain peer-to-peer; no Cloudflare backend configuration or deployment is involved.
+
+Strike uses fighters carrying **four bombs on two replaced missile stations**. **Three actual bomb hits** destroy the enemy airfield; then **land at your friendly HOME runway** to succeed. HOME replenishes bombs after misses. In Intercept, enemy strike aircraft begin airborne while you depart the runway; stop them before three hits destroy your field. No bomber aircraft or airborne escape circle is used.
+
+Per-jet top-speed caps now apply to indicated speed and actual world motion, including dives, burner and arcade travel. The alpha limiter uses a lift/airspeed estimate instead of a 17 G override. Low-speed override increases alpha authority at an energy/stall cost while retaining structural G limits. See [aircraft references and explicit approximations](aircraft-reference.md) and [verification/screenshots](evidence/v1.2.0/README.md).
+
+Multiplayer requires **JETS12 / skybreak120-1104**. Reload clients and create fresh invitations. Older release notes below describe historical behavior where superseded by this release.
+
+
 ## v1.1.2 · Visual flight setup and open exploration
 
 Aircraft selection now has actual model previews; illustrated map cards and the existing mode cards make the main choices visible. Detailed weapon stations, squad options, fuel, accessibility and friend-room choices remain available. The setup starts open.

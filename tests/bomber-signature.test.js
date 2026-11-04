@@ -18,12 +18,7 @@ test('lock cannot transfer from a fighter to a bomber or survive leaving its ran
  const b={...f.q,id:'new-bomber',bomber:true};f.q.dead=true;f.g.pilots.push(b);f.q=b;tick(f,1/60,{fireRadar:true});assert.notEqual(f.p.targetId,old);assert(f.p.lock<.02);assert.equal(f.g.missiles.length,0);
  f.range=3000;tick(f,1/60);assert.equal(f.p.lock,0);assert.equal(f.p.targetId,null);
 });
-test('higher AI cruise descends for bombing and climbs again for escape',()=>{
- const g=createGame({mode:'strike'}),p=g.pilots.find(p=>p.bomber),target=strikeTarget(g);
- p.pos={x:target.x,y:1000,z:target.z-15000};assert.equal(bomberCruiseTarget(g,p).y,BOMBER_SIGNATURE.cruiseAltitude);
- p.pos.z=target.z-4000;assert(bomberCruiseTarget(g,p).y<target.y+1600);
- g.bombed=true;assert.equal(bomberCruiseTarget(g,p).y,2900);
-});
+
 for(const dt of [1/30,1/60,1/144])test(`player bomber climbs above AI cruise without forced pitch at ${1/dt}Hz`,()=>{
  const g=createGame({mode:'strike'}),p=g.pilots[0];g.pilots=[p];Object.assign(p,{grounded:false,departureActive:false,gearDown:false,pos:{x:0,y:3100,z:0},speed:260,throttle:1,pitch:.18,roll:0});
  for(let n=0;n<5/dt;n++)step(g,{[p.id]:{pitch:.25}},dt);

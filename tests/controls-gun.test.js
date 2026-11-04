@@ -8,11 +8,10 @@ import {createInputGuard,serializePacket} from '../network.js';
 const dot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
 function air(g){g.pilots.forEach((p,i)=>Object.assign(p,{human:true,pos:{x:0,y:3000,z:i?8000:0},yaw:0,pitch:0,roll:0,speed:110,throttle:.6,grounded:false}));return g;}
 function run(g,seconds,input){for(let n=0;n<seconds*60&&g.status==='playing';n++)step(g,input,1/60);}
-test('A/D and horizontal arrows turn to the matching screen side at every cardinal heading',()=>{
- for(const yaw of [0,Math.PI/2,Math.PI,-Math.PI/2])for(const [key,sign] of [['KeyA',-1],['ArrowLeft',-1],['KeyD',1],['ArrowRight',1]]){
-  const g=air(createGame()),p=g.pilots[0];p.yaw=yaw;const right=viewAxes(p).right;run(g,.65,{host:keyboardInput(new Set([key]))});assert(dot(flightForward(p),right)*sign>.08,`${yaw} ${key}`);assert(p.roll*sign<0);
- }
+test('A/D and horizontal arrows roll without yaw at every cardinal heading, then W turns through the bank',()=>{
+ for(const yaw of [0,Math.PI/2,Math.PI,-Math.PI/2])for(const [key,sign] of [['KeyA',-1],['ArrowLeft',-1],['KeyD',1],['ArrowRight',1]]){const g=air(createGame()),p=g.pilots[0];p.yaw=yaw;const right=viewAxes(p).right;run(g,.45,{host:keyboardInput(new Set([key]))});assert(Math.abs(Math.atan2(Math.sin(p.yaw-yaw),Math.cos(p.yaw-yaw)))<1e-8);assert(p.roll*sign<0);run(g,.65,{host:keyboardInput(new Set(['KeyW']))});assert(dot(flightForward(p),right)*sign>.04);}
 });
+
 test('Up/Down change only power, W/S pitch, and Q/E never become axes or held missile fire',()=>{
  assert.equal(keyboardInput(new Set(['ArrowUp'])).throttle,1);assert.equal(keyboardInput(new Set(['ArrowUp'])).pitch,0);assert.equal(keyboardInput(new Set(['ArrowDown'])).throttle,-1);assert.equal(keyboardInput(new Set(['KeyW'])).pitch,1);assert.equal(keyboardInput(new Set(['KeyS'])).pitch,-1);
  for(const key of ['KeyQ','KeyE']){const held=keyboardInput(new Set([key]));assert.equal(held.roll,0);assert.equal(held.yaw,0);assert.equal(held.throttle,0);assert.equal(held.fireHeat,false);assert.equal(held.fireRadar,false);}

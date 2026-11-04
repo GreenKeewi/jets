@@ -35,7 +35,7 @@ function app({storage,peerSettings={}}={}){
  const server={get state(){return serverState},subscribe(){return()=>{}},async connect(){remote=simulation.createGame({mode:'dogfight',skirmish:true,teamSizes:[3,3],seed:41});remote.pilots[0].id='server-pilot';remote.pilots[0].human=true;serverState={...serverState,role:'guest',connected:true,localId:'server-pilot'};serverCallbacks.onState(serverState);serverCallbacks.onControl({type:'start',config:remote.config||{mode:'dogfight',skirmish:true,teamSizes:[3,3],seed:41}});serverCallbacks.onSnapshot(simulation.snapshot(remote),{initial:true});},disconnect(){serverState={...serverState,role:'offline',connected:false,localId:null};serverCallbacks.onState(serverState)},getPlayerIds:()=>['server-pilot'],sampleSnapshot:()=>simulation.snapshot(remote),submitInput(input){sent.push({...input})},requestRespawn(){respawns++;return true}};
  const window={addEventListener:(type,fn)=>events[type]=fn};
  const source=readFileSync(new URL('../game.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
- vm.runInNewContext(source,{...simulation,...controls,...aircraftCapabilities,...keybindings,...loadouts,mountKeybindings(){},mountVisualMenu:()=>()=>{},matchMedia:()=>({matches:false}),...axes,...guidance,...missions,...combatMissions,...resupply,...arenas,...world,airportStatus,homeGuidance,RadarTerrain:class{draw(){}},Renderer,FlightAudio,drawCockpit(){},createMultiplayerRouter:callbacks=>createMultiplayerRouter(callbacks,{createPeer:callbacks=>{peerCallbacks=callbacks;return net},createServer:callbacks=>{serverCallbacks=callbacks;return server}}),mountNetworkUI(){},mountServerUI(){},window,document,localStorage:storage,location:{hostname:'localhost'},HTMLElement:Element,performance:{now:()=>0},requestAnimationFrame:fn=>raf.push(fn),innerWidth:1024,innerHeight:650,console,Math,Set},{filename:'game.js'});
+ vm.runInNewContext(source,{...simulation,...controls,...aircraftCapabilities,...keybindings,...loadouts,mountKeybindings(){},mountVisualMenu:()=>()=>{},mountCameraLook(){},matchMedia:()=>({matches:false}),...axes,...guidance,...missions,...combatMissions,...resupply,...arenas,...world,airportStatus,homeGuidance,RadarTerrain:class{draw(){}},Renderer,FlightAudio,drawCockpit(){},createMultiplayerRouter:callbacks=>createMultiplayerRouter(callbacks,{createPeer:callbacks=>{peerCallbacks=callbacks;return net},createServer:callbacks=>{serverCallbacks=callbacks;return server}}),mountNetworkUI(){},mountServerUI(){},window,document,localStorage:storage,location:{hostname:'localhost'},HTMLElement:Element,performance:{now:()=>0},requestAnimationFrame:fn=>raf.push(fn),innerWidth:1024,innerHeight:650,console,Math,Set},{filename:'game.js'});
  return{get audio(){return audioFixture},joinPeer:peers=>peerCallbacks.onPeerChange(peers,net.state),api:window.__skybreak,nodes,net,events,server,sent,get remote(){return remote},get respawns(){return respawns},dropServer(){server.disconnect();serverCallbacks.onDisconnect('server-pilot','Server unavailable')},frame(time=1000/60){raf.shift()(time)},setRole:value=>role=value,keydown(code){events.keydown({code,repeat:false,target:nodes.get('world'),preventDefault(){}})}};
 }
 test('native menu controller starts requested asymmetric and capped custom bot squads',()=>{
@@ -48,18 +48,18 @@ test('native aircraft stations expose compatibility, preserve each fighter choic
  const tip=a.nodes.get('loadout-wingtip-l');assert.deepEqual(tip.options.map(o=>o.value),['empty','heat']);
  a.nodes.get('starting-fuel').value='25';a.nodes.get('starting-fuel').onchange();
  for(const id of ['innerwing-l','innerwing-r','centerline']){const control=a.nodes.get(`loadout-${id}`);control.value='tank';control.onchange();}
- assert.match(a.nodes.get('loadout-summary').textContent,/4 heat · 2 radar · 3\/3 tanks · 2,720 kg fuel/);
+ assert.match(a.nodes.get('loadout-summary').textContent,/4 heat · 2 radar · 0 bombs · 3\/3 tanks · 2,720 kg fuel/);
  variant.value='fa18e';variant.onchange();assert.equal(a.nodes.get('loadout-stations').querySelectorAll('select').length,11);assert.match(a.nodes.get('aircraft-description').textContent,/Twin-engine naval/);
  variant.value='f16';variant.onchange();assert.equal(a.nodes.get('loadout-centerline').value,'tank');
- variant.value='su37';variant.onchange();assert.equal(a.nodes.get('loadout-stations').querySelectorAll('select').length,8);assert.match(a.nodes.get('aircraft-description').textContent,/prototype/);assert(!a.nodes.get('loadout-stations').querySelectorAll('select').some(s=>s.options.some(o=>o.value==='tank')));
- a.api.setMode('strike');assert.equal(a.nodes.get('aircraft-config').hidden,true);a.nodes.get('strike-role').value='defend';a.nodes.get('strike-role').onchange();assert.equal(a.nodes.get('aircraft-config').hidden,false);
+ variant.value='su27';variant.onchange();assert.equal(a.nodes.get('loadout-stations').querySelectorAll('select').length,8);assert.match(a.nodes.get('aircraft-description').textContent,/Flanker/);assert(!a.nodes.get('loadout-stations').querySelectorAll('select').some(s=>s.options.some(o=>o.value==='tank')));
+ a.api.setMode('strike');assert.equal(a.nodes.get('aircraft-config').hidden,false);a.nodes.get('strike-role').value='defend';a.nodes.get('strike-role').onchange();assert.equal(a.nodes.get('aircraft-config').hidden,false);
 });
 test('browser aircraft preferences roundtrip normalized choices and malformed stored assignments stay bounded',()=>{
  const data=new Map(),storage={getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value)},first=app({storage});
  first.nodes.get('aircraft-select').value='fa18e';first.nodes.get('aircraft-select').onchange();first.nodes.get('loadout-centerline').value='tank';first.nodes.get('loadout-centerline').onchange();first.nodes.get('starting-fuel').value='50';first.nodes.get('starting-fuel').onchange();
  const second=app({storage});assert.equal(second.nodes.get('aircraft-select').value,'fa18e');assert.equal(second.nodes.get('loadout-centerline').value,'tank');assert.equal(second.nodes.get('starting-fuel').value,'50');
  storage.setItem('skybreak-aircraft-loadouts-v1',JSON.stringify({aircraftId:'f16',startingFuel:900,loadouts:{f16:{stations:{'wingtip-l':'radar',centerline:'tank',extra:'heat'},heat:99}}}));
- const safe=app({storage});assert.equal(safe.nodes.get('loadout-wingtip-l').value,'empty');assert.equal(safe.nodes.get('loadout-centerline').value,'tank');assert.match(safe.nodes.get('loadout-summary').textContent,/0 heat · 0 radar · 1\/3 tanks/);
+ const safe=app({storage});assert.equal(safe.nodes.get('loadout-wingtip-l').value,'empty');assert.equal(safe.nodes.get('loadout-centerline').value,'tank');assert.match(safe.nodes.get('loadout-summary').textContent,/0 heat · 0 radar · 0 bombs · 1\/3 tanks/);
 });
 test('R and respawn button rejoin without menu, preserve the match clock and score',()=>{
  for(const useButton of [false,true]){const a=app();a.nodes.get('launch').onclick();const s=a.api.state;s.time=20;s.scores=[3,1];Object.assign(s.pilots[0],{dead:true,hp:0,respawnAt:19});a.api.setState(s);a.frame();assert.equal(a.nodes.get('respawn-panel').hidden,false);assert.equal(a.nodes.get('respawn-button').disabled,false);if(useButton)a.nodes.get('respawn-button').onclick();else a.keydown('KeyR');assert.equal(a.api.state.pilots[0].dead,false);assert.equal(a.nodes.get('menu').hidden,true);assert(a.api.state.time>=20);assert.deepEqual(a.api.state.scores,[3,1]);a.frame(33);assert.equal(a.nodes.get('respawn-panel').hidden,true);assert.equal(a.api.state.pilots[0].grounded,true)}
@@ -109,10 +109,10 @@ test('a user flight key restores audio after a pagehide disposal and resumed pag
 });
 
 test('AoA status and controls identify only the two supported fighters with saved binding preserved',()=>{
- for(const aircraftId of ['f16','fa18e','su37']){
+ for(const aircraftId of ['f16','fa18e','su27']){
   const a=app();a.api.start({mode:'dogfight',skirmish:true,aircraftId});a.frame();
   assert.equal(a.nodes.get('aoa-status').hidden,aircraftId==='f16');
   a.keydown('KeyO');a.frame(50);assert.equal(a.api.state.pilots[0].aoaLimiterOff,aircraftId!=='f16');
  }
- const b=keybindings.defaultBindings();b.aoaLimiter=['KeyU'];const storage={getItem:key=>key===keybindings.BINDINGS_KEY?JSON.stringify(b):null,setItem(){}};assert.deepEqual(keybindings.loadBindings(storage).aoaLimiter,['KeyU']);assert.match(keybindings.BINDINGS.find(b=>b[0]==='aoaLimiter')[1],/F\/A-18E.*Su-37/);
+ const b=keybindings.defaultBindings();b.aoaLimiter=['KeyU'];const storage={getItem:key=>key===keybindings.BINDINGS_KEY?JSON.stringify(b):null,setItem(){}};assert.deepEqual(keybindings.loadBindings(storage).aoaLimiter,['KeyU']);assert.match(keybindings.BINDINGS.find(b=>b[0]==='aoaLimiter')[1],/F\/A-18E.*Su-27/);
 });

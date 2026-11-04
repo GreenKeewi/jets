@@ -1,5 +1,5 @@
-import {createNetwork} from './network.js?v=skybreak112-1102';
-import {createServerClient} from './server-client.js?v=skybreak112-1102';
+import {createNetwork} from './network.js?v=skybreak120-1104';
+import {createServerClient} from './server-client.js?v=skybreak120-1104';
 
 // Exactly one simulation transport owns the game at a time. Friend-room UI retains
 // its original API, while dedicated matches reuse the existing guest render path.
@@ -33,13 +33,13 @@ export function createMultiplayerRouter(callbacks = {}, {createPeer = createNetw
     async connectServer(endpoint,options) {
       if (peers.peer.state.role !== 'offline' || peers.peer.state.connecting) throw new Error('Leave your friend room before joining the shared sky.');
       const current = ++operation; active = 'server'; notify();
-      try { return await peers.server.connect(endpoint,options); }
+      try { return await peers.server.connect(endpoint,{...options,equipment:peers.peer.getEquipment?.().host}); }
       catch (error) { if (current === operation) { peers.server.disconnect(error.message); active = 'peer'; notify(); } throw error; }
     },
     disconnect() { operation++; peers[active].disconnect(); active = 'peer'; notify(); },
     selectPeer,
   };
-  for (const key of ['getPlayerIds','getTeams','getEnemyRespawn','setEnemyRespawn','setMatchSettings','consumeInputs','broadcastControl','broadcastSnapshot','sampleSnapshot','submitInput','requestRespawn']) {
+  for (const key of ['getEquipment','setEquipment','getPlayerIds','getTeams','getEnemyRespawn','setEnemyRespawn','setMatchSettings','consumeInputs','broadcastControl','broadcastSnapshot','sampleSnapshot','submitInput','requestRespawn']) {
     api[key] = (...args) => peers[active][key]?.(...args);
   }
   return api;

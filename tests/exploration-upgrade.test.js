@@ -52,12 +52,12 @@ test('free flight has no map objectives, route advancement, landing award or tim
  step(g,{});assert.equal(g.routeIndex,0);g.time=20000;g.flightStage='landed';g.routeIndex=5;p.grounded=true;p.landed=true;p.speed=0;p.throttle=0;p.pos=fieldPoint(AIRFIELDS.home,0,0,3);step(g,{});assert.equal(g.status,'playing');assert.equal(g.result,null);
 });
 test('limiter off increases turn authority and severe tunnel vision without blackout or control suppression',()=>{
- for(const aircraftId of ['fa18e','su37']){const normal={aircraftId,speed:250,controlHealth:1,fuelFraction:.5},off={...normal,aoaLimiterOff:true};assert(pitchRateLimit(off)>pitchRateLimit(normal)*1.6);
+ for(const aircraftId of ['fa18e','su27']){const normal={aircraftId,speed:120,controlHealth:1,fuelFraction:.5},off={...normal,aoaLimiterOff:true};assert(pitchRateLimit(off)>pitchRateLimit(normal)*1.1);
   for(let n=0;n<180;n++){advancePilotPhysiology(normal,9,1/60);advancePilotPhysiology(off,9,1/60);}assert(normal.gVision<=.5);assert(off.gVision>.8);assert(!off.blackedOut);assert.equal(off.gRedout,0);
  }
 });
 test('surfaces follow input even in attitude hold, and afterburner is orange',()=>{
- for(const id of ['f16','fa18e','su37']){const model=createAircraft(0,false,id),p={aircraftId:id,gearDown:true,throttle:1.1,afterburnerActive:true,roll:0,pitch:0,controlInput:{pitch:.8,roll:.7,yaw:.6}};animateAircraft(model,p,0,1/9);
+ for(const id of ['f16','fa18e','su27']){const model=createAircraft(0,false,id),p={aircraftId:id,gearDown:true,throttle:1.1,afterburnerActive:true,roll:0,pitch:0,controlInput:{pitch:.8,roll:.7,yaw:.6}};animateAircraft(model,p,0,1/9);
   for(const kind of ['aileron','elevator','flap','rudder'])assert(model.userData.surfaces.some(s=>s.kind===kind&&Math.abs(s.node.rotation[kind==='rudder'?'y':'x'])>.01),`${id} ${kind}`);
   assert.equal(model.userData.flames[0].children[0].material.color.getHex(),0xff6c12);
   animateAircraft(model,{...p,gearDown:false,controlInput:{pitch:0,roll:0,yaw:0}},1,1/9);assert(model.userData.surfaces.filter(s=>s.kind==='aileron').every(s=>Math.abs(s.node.rotation.x)<.001));

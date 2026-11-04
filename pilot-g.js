@@ -1,7 +1,8 @@
 // Signed pilot-axis specific force, bounded tunnel vision and gentle airframe wear.
 // See flight-model.md for sources, envelopes and non-medical tuning assumptions.
-import {aoaOverrideActive,sanitizeAoaOverride} from './aircraft-capabilities.js?v=skybreak112-1102';
-import {viewAxes,flightForward} from './view-axes.js';
+import {aoaEnvelope} from './aerodynamics.js?v=skybreak120-1104';
+import {aoaOverrideActive,sanitizeAoaOverride} from './aircraft-capabilities.js?v=skybreak120-1104';
+import {viewAxes,flightForward} from './view-axes.js?v=skybreak120-1104';
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const dot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
 const G=9.81;
@@ -24,7 +25,7 @@ export function signedPilotLoad(before,after,up,dt){
 }
 // Limit the commanded flight-path change BEFORE movement. HUD loads are never
 // clipped. The same controller protects normal, advanced and bot flight.
-export const flightEnvelopeFor=p=>p.bomber?{min:-1.5,max:3.5}:{min:-3,max:aoaOverrideActive(p)?17:9};
+export const flightEnvelopeFor=p=>{if(p.bomber)return{min:-1.5,max:3.5};const {min,max}=aoaEnvelope(p);return{min,max};};
 export function limitFlightEnvelope(p,previous,dt){
  if(p.grounded||!(dt>0))return;
  const {min,max}=flightEnvelopeFor(p);

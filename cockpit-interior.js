@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js';
-import {normalizeAircraftId} from './loadouts.js?v=skybreak112-1102';
+import {normalizeAircraftId} from './loadouts.js?v=skybreak120-1104';
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,Number(n)||0));
 // Original low-poly cockpit. Eye-space rendering keeps near geometry independent
 // of the world's kilometre-scale depth range and the speed-dependent outside FOV.
@@ -46,8 +46,8 @@ export class CockpitInterior{
  }
  setAircraft(id){
   const aircraftId=normalizeAircraftId(id);if(this.aircraftId===aircraftId)return;
-  // MAKS' Su-37 prototype retrospective also identifies a side stick.
-  this.aircraftId=aircraftId;const sideStick=aircraftId==='f16'||aircraftId==='su37',x=sideStick?.65:0;
+  // Conventional Su-27 and F-14 controls use a centre stick.
+  this.aircraftId=aircraftId;const sideStick=aircraftId==='f16',x=sideStick?.65:0;
   this.stick.position.x=x;this.stickBase.position.x=x;this.stick.name=sideStick?'right-side-stick':'center-stick';this.controlLayout=sideStick?'right-side-stick':'center-stick';
   this.fighterRoot.userData={aircraftId,controlLayout:this.controlLayout,visualModel:'Simplified original cockpit'};
  }

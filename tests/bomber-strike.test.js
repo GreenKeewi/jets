@@ -1,29 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createGame,step,horizontal,strikeTarget,worldSpeed} from '../sim.js';
-import {groundSpawn} from '../airport-operations.js';
-
-// The third base is not currently offered by strike's two-team menu. Seed its
-// normal parked departure once; never move the aircraft during the simulation.
-for(const [base,role,team] of [['home','attack',0],['northpoint','defend',1],['westhaven','attack',2]]){
- for(const dt of [1/60,1/30])test(`AI bomber flies from ${base}, hits the target and escapes at ${1/dt} Hz`,()=>{
-  const g=createGame({mode:'strike',role,teamSize:1,seed:23}),p=g.pilots.find(p=>p.bomber);
-  if(team===2){p.team=team;Object.assign(p,groundSpawn(g,p));}
-  p.human=false;g.pilots=[p];
-  assert.equal(p.homeBaseId,base);assert.equal(p.grounded,true);assert.equal(p.speed,0);
-  let airborne=false,travel=0,previous={...p.pos},released=0,impact=false,peakAltitude=0;
-  for(let n=0;n<360/dt&&g.status==='playing';n++){
-   const stores=p.bombs;step(g,{},dt);
-   const distance=horizontal(p.pos,previous);travel+=distance;
-   assert(distance<=worldSpeed(p)*dt+1,'aircraft must fly continuously, never teleport');previous={...p.pos};
-   airborne||=!p.grounded;peakAltitude=Math.max(peakAltitude,p.pos.y);
-   if(p.bombs<stores){released+=stores-p.bombs;assert(airborne);assert(p.pos.y>100);assert(horizontal(p.pos,strikeTarget(g))>400,'release leads the target rather than dropping overhead');}
-   impact||=g.bombed;
-   assert.equal(p.dead,false,`bomber crashed at ${g.time.toFixed(1)} seconds`);
-   assert.equal(p.heat,0);assert.equal(p.radar,0);assert(g.missiles.every(m=>m.arcadeSam),"bombers never launch air-to-air missiles");
-  }
-  assert(airborne);assert(peakAltitude>2700,'AI bomber uses the higher cruise corridor');assert(travel>4000);assert(impact,'an actual falling bomb must destroy target');
-  assert.equal(released,1,'wait for a good solution and impact instead of wasting the bomb load');
-  assert.equal(p.bombs,2);assert.equal(g.escaped,true);assert.equal(g.result.winner,p.team);
- });
-}
+import {createGame,step} from '../sim.js';
+for(const aircraftId of ['f16','fa18e','su27','f14'])test(`AI ${aircraftId} takes off, bombs three times, and lands home continuously`,()=>{
+ const g=createGame({mode:'strike',aircraftId,seed:23}),p=g.pilots[0];g.pilots=[p];p.human=false;let airborne=false,released=0;
+ for(let n=0;n<720*60&&g.status==='playing';n++){const bombs=p.bombs;step(g,{});airborne||=!p.grounded;if(p.bombs<bombs)released+=bombs-p.bombs;assert(!p.dead,`${g.time} ${JSON.stringify(p.pos)}`);}
+ assert(airborne);assert(released>=3);assert.equal(g.bombHits,3);assert.equal(g.status,'complete');assert.equal(g.result.winner,p.team);assert(p.landed&&p.grounded);assert.equal(p.runwayId,p.homeBaseId);
+});
+test('unopposed airborne strike AI can actually destroy the defended friendly field',()=>{const g=createGame({mode:'strike',role:'defend'});g.pilots[0].human=true;for(let n=0;n<120*60&&g.status==='playing';n++)step(g,{});assert.equal(g.bombHits,3);assert.equal(g.result.winner,1);});

@@ -1,6 +1,6 @@
-import {AIRFIELDS,fieldCoordinates} from './missions.js?v=skybreak112-1102';
-import {GUN} from './guns.js?v=skybreak112-1102';
-import {loadoutStores} from './loadouts.js?v=skybreak112-1102';
+import {AIRFIELDS,fieldCoordinates} from './missions.js?v=skybreak120-1104';
+import {GUN} from './guns.js?v=skybreak120-1104';
+import {loadoutStores} from './loadouts.js?v=skybreak120-1104';
 
 export const AIRFIELD_RESUPPLY=Object.freeze({radius:250,exitRadius:350,cooldown:12,repair:18});
 const fields=Object.values(AIRFIELDS);
@@ -25,7 +25,7 @@ export function nearestAirfield(point,homeBaseId=null){
 }
 export function fullWeaponStores(p){
  const loadout=p.bomber?{heat:0,radar:0}:loadoutStores(p.aircraftId||'f16',p.loadout);
- return{gunAmmo:GUN.capacity,heat:loadout.heat,radar:loadout.radar,flares:p.bomber?120:60,chaff:p.bomber?120:60,bombs:p.bomber&&p.objectiveRole!=='transport'?3:0};
+ return{gunAmmo:GUN.capacity,heat:loadout.heat,radar:loadout.radar,flares:p.bomber?120:60,chaff:p.bomber?120:60,bombs:p.bomber&&p.objectiveRole!=='transport'?3:loadout.bombs||0};
 }
 export function freshAirfieldResupply(point){
  return{resupplyLatched:nearestAirfield(point).distance<=AIRFIELD_RESUPPLY.exitRadius,resupplyReadyAt:0,resuppliedAt:null};

@@ -7,7 +7,7 @@ test('F-16 bounded stations carry at most six compatible missiles and three tank
  const a=aircraftDefinition('f16'),loadout=tanks('f16'),stores=loadoutStores('f16',loadout);
  assert.equal(a.maxMissiles,6);assert.equal(stores.heat,4);assert.equal(stores.radar,2);assert.equal(stores.missiles,6);assert.equal(stores.tanks,3);
  for(const station of a.hardpoints.filter(s=>s.id.startsWith('wingtip')))assert.deepEqual(station.allowed,['empty','heat']);
- for(const station of a.hardpoints.filter(s=>s.id.startsWith('outerwing')||s.id.startsWith('midwing')))assert.deepEqual(station.allowed,['empty','heat','radar']);
+ for(const station of a.hardpoints.filter(s=>s.id.startsWith('outerwing')||s.id.startsWith('midwing')))assert.deepEqual(station.allowed,['empty','heat','radar','bomb']);
 });
 test('normalization drops arbitrary counts, unknown station IDs, nested objects and incompatible stores',()=>{
  const malformed={heat:100,radar:100,tanks:100,stations:{'wingtip-l':'radar','wingtip-r':{type:'heat',count:20},'outerwing-l':'radar','midwing-l':'tank',centerline:'tank',extra:'heat'}};
@@ -21,13 +21,13 @@ test('remote validation rejects malformed maps before canonical normalization',(
  assert.equal(validLoadout('bad',defaultLoadout('f16')),false);
 });
 test('new aircraft are distinct and every simplified layout has bounded compatible tank positions',()=>{
- assert.equal(normalizeAircraftId('fa18e'),'fa18e');assert.equal(normalizeAircraftId('su37'),'su37');assert.equal(normalizeAircraftId('__proto__'),'f16');assert.equal(aircraftDefinition(null).id,'f16');
+ assert.equal(normalizeAircraftId('fa18e'),'fa18e');assert.equal(normalizeAircraftId('su27'),'su27');assert.equal(normalizeAircraftId('__proto__'),'f16');assert.equal(aircraftDefinition(null).id,'f16');
  for(const id of Object.keys(AIRCRAFT_DEFINITIONS)){
   const a=aircraftDefinition(id),stores=loadoutStores(id,tanks(id));assert.equal(stores.tanks,a.maxTanks);assert(stores.missiles<=a.maxMissiles);assert(a.dryMass>0);assert(a.internalFuelCapacity>0);
   assert.equal(new Set(a.hardpoints.map(s=>s.id)).size,a.hardpoints.length);for(const s of a.hardpoints)for(const coordinate of Object.values(s.position))assert(Number.isFinite(coordinate));
  }
- assert.notEqual(aircraftDefinition('fa18e').dryMass,aircraftDefinition('su37').dryMass);assert.notEqual(aircraftDefinition('fa18e').tuning.maxSpeed,aircraftDefinition('f16').tuning.maxSpeed);
- assert.equal(aircraftDefinition('su37').maxTanks,0);assert.match(aircraftDefinition('su37').description,/prototype/);
+ assert.notEqual(aircraftDefinition('fa18e').dryMass,aircraftDefinition('su27').dryMass);assert.notEqual(aircraftDefinition('fa18e').tuning.maxSpeed,aircraftDefinition('f16').tuning.maxSpeed);
+ assert.equal(aircraftDefinition('su27').maxTanks,0);assert.match(aircraftDefinition('su27').description,/Flanker/);
 });
 test('each tank adds exactly twenty percent internal capacity; selected internal fuel and full tanks add separately',()=>{
  for(const id of Object.keys(AIRCRAFT_DEFINITIONS))for(let count=0;count<=aircraftDefinition(id).maxTanks;count++){
@@ -44,15 +44,15 @@ test('burning and refueling preserve external capacity and include extra fuel in
 });
 test('fighter tuning is distinct while bombers ignore fighter type and external tank assignments',()=>{
  const speeds=[];for(const id of Object.keys(AIRCRAFT_DEFINITIONS)){const p=initializeFuel({aircraftId:id,loadout:defaultLoadout(id),pos:{y:1000},speed:240,pitch:0,throttle:1.1},.5);advanceFlightEnergy(p,{},.1);speeds.push(p.speed);}
- assert.equal(new Set(speeds).size,3);
- const bomber=initializeFuel({bomber:true,aircraftId:'su37',loadout:tanks('su37'),throttle:1.1},.25);assert.equal(bomber.fuelCapacityKg,65000);assert.equal(bomber.fuelKg,16250);assert.equal(bomber.massKg,72000+16250);advanceFuel(bomber,.1);assert.equal(bomber.afterburnerActive,false);
+ assert.equal(new Set(speeds).size,4);
+ const bomber=initializeFuel({bomber:true,aircraftId:'su27',loadout:tanks('su27'),throttle:1.1},.25);assert.equal(bomber.fuelCapacityKg,65000);assert.equal(bomber.fuelKg,16250);assert.equal(bomber.massKg,72000+16250);advanceFuel(bomber,.1);assert.equal(bomber.afterburnerActive,false);
 });
-test('limiter override affects only F/A-18E and Su-37 while advanced mode stays independent',()=>{
- for(const aircraftId of ['fa18e','su37']){
-  const p=initializeFuel({aircraftId,speed:300},.5),normal=pitchRateLimit(p);p.maneuverAssist=true;assert.equal(pitchRateLimit(p),normal);
+test('limiter override affects only F/A-18E and Su-27 while advanced mode stays independent',()=>{
+ for(const aircraftId of ['fa18e','su27']){
+  const p=initializeFuel({aircraftId,speed:120},.5),normal=pitchRateLimit(p);p.maneuverAssist=true;assert.equal(pitchRateLimit(p),normal);
   p.aoaLimiterOff=true;assert(pitchRateLimit(p)>normal);assert(pitchRateLimit(p)<=.9);
  }
- for(const extra of [{aircraftId:'f16'},{},{aircraftId:'unknown'},{aircraftId:'fa18e',bomber:true},{aircraftId:'su37',bomber:true}]){
+ for(const extra of [{aircraftId:'f16'},{},{aircraftId:'unknown'},{aircraftId:'fa18e',bomber:true},{aircraftId:'su27',bomber:true}]){
   const p=initializeFuel({...extra,speed:300},.5),normal=pitchRateLimit(p);p.aoaLimiterOff=true;assert.equal(pitchRateLimit(p),normal);
  }
 });

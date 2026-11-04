@@ -23,7 +23,7 @@ for(const dt of [1/30,1/60,1/120])test(`bomber flares always defeat cinematic SA
   // The guarantee is independent of range, random seed and bomber power.
   p.throttle=1;const hp=p.hp,flares=p.flares;step(g,{[p.id]:{flare:true}},dt);
   assert.equal(m.decoyed,true);assert.equal(p.hp,hp);assert.equal(p.flares,flares-1);
-  assert.equal(p.heat,0);assert.equal(p.radar,0);assert.equal(p.bombs,3);
+  assert(p.heat+p.radar>0);assert.equal(p.bombs,4);
  }
 });
 

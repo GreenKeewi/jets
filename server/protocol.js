@@ -1,9 +1,10 @@
+import {validEquipment} from '../pilot-equipment.js';
 // Dedicated-server protocol, independent of the peer-to-peer transport.
 export const SERVER_PROTOCOL = 'SKYBREAK-SERVER-1';
-export const SIM_BUILD = 'skybreak112-1102';
+export const SIM_BUILD = 'skybreak120-1104';
 export const AXES = ['pitch', 'roll', 'yaw', 'throttle'];
 export const HELD = ['fireGun', 'brake', 'autopilot'];
-export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb', 'toggleAirbrake', 'toggleGear', 'toggleManeuver', 'toggleAoaLimiter', 'jettisonTanks'];
+export const ACTIONS = ['fireHeat', 'fireRadar', 'flare', 'chaff', 'bomb', 'toggleAirbrake', 'toggleGear', 'toggleManeuver', 'toggleAoaLimiter', 'jettisonTanks', 'sweepOut', 'sweepIn'];
 export const neutralInput = () => Object.fromEntries([...AXES.map(k => [k, 0]), ...[...HELD, ...ACTIONS].map(k => [k, false])]);
 const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 export function validateInput(value) {
@@ -27,8 +28,9 @@ export function validateJoin(packet, region) {
   if (packet.team!==undefined&&!['auto',0,1].includes(packet.team)) return null;
   if(packet.match!==undefined&&!['versus','coop'].includes(packet.match))return null;
   if(packet.match==='coop'&&packet.team!==undefined&&!['auto',0].includes(packet.team))return null;
-  if (Object.keys(packet).some(key => !['t', 'protocol', 'build', 'pool', 'arenaId', 'region','team','match'].includes(key))) return null;
-  return {pool: packet.pool, arenaId: packet.arenaId,...(packet.team!==undefined?{team:packet.team}:{}),...(packet.match!==undefined?{match:packet.match}:{})};
+  if(packet.equipment!==undefined&&!validEquipment(packet.equipment))return null;
+  if (Object.keys(packet).some(key => !['t', 'protocol', 'build', 'pool', 'arenaId', 'region','team','match','equipment'].includes(key))) return null;
+  return {pool: packet.pool, arenaId: packet.arenaId,...(packet.equipment?{equipment:packet.equipment}:{}),...(packet.team!==undefined?{team:packet.team}:{}),...(packet.match!==undefined?{match:packet.match}:{})};
 }
 export function createInputBuffer() {
   let sequence = -1, at = -Infinity, held = neutralInput(), pending = neutralInput(), last = {}, tokens = 100, tokenAt = 0;

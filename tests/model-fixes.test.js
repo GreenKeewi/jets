@@ -7,16 +7,16 @@ import {aircraftDefinition,defaultLoadout} from '../loadouts.js';
 const visibleBounds=model=>{const box=new THREE.Box3();model.updateMatrixWorld(true);function visit(node){if(!node.visible)return;if(node.isMesh){node.geometry.computeBoundingBox();box.union(node.geometry.boundingBox.clone().applyMatrix4(node.matrixWorld))}for(const child of node.children)visit(child)}visit(model);return box;};
 const pilot=(id,extra={})=>({aircraftId:id,throttle:0,speed:250,grounded:false,gearDown:false,loadout:{stations:{}},heat:0,radar:0,...extra});
 
-test('Su-37 has Flanker proportions, forward low canopy, spaced nacelles and foreplanes in both LODs',()=>{
- const model=createAircraft(0,false,'su37');animateAircraft(model,pilot('su37'),0,1);
+test('Su-27 has Flanker proportions, forward low canopy, spaced nacelles and foreplanes in both LODs',()=>{
+ const model=createAircraft(0,false,'su27');animateAircraft(model,pilot('su27'),0,1);
  for(const lod of ['detailed','distant']){
   model.userData.detailed.visible=lod==='detailed';model.userData.distant.visible=lod==='distant';const size=visibleBounds(model).getSize(new THREE.Vector3());
-  assert(size.z/size.x>1.65&&size.z/size.x<1.75,`${lod} length/span should read as a long Flanker, got ${size.z/size.x}`);
+  assert(size.z/size.x>1.45&&size.z/size.x<1.55,`${lod} length/span should read as a long Flanker, got ${size.z/size.x}`);
  }
  const nozzles=model.userData.nozzles;assert(nozzles[1].position.x-nozzles[0].position.x>6);
- const canards=model.userData.surfaces.filter(s=>s.kind==='canard');assert.equal(canards.length,2);assert(canards.every(s=>s.node.position.z>6));
+ const canards=model.userData.surfaces.filter(s=>s.kind==='canard');assert.equal(canards.length,0);
  let canopy;model.userData.detailed.traverse(n=>{if(n.material?.color?.getHex()===0x26586c)canopy=n});assert(canopy);assert(canopy.position.z>10.5);assert(canopy.scale.y<1);
- assert(model.userData.nozzles.every(n=>n.position.z< -18));assert.equal(model.userData.stores.stations.some(s=>s.allowed.includes('tank')),false);
+ assert(model.userData.nozzles.every(n=>n.position.z< -17));assert.equal(model.userData.stores.stations.some(s=>s.allowed.includes('tank')),false);
 });
 
 test('all eight tank combinations keep baked ellipsoids at real station instances in menu and both LODs',()=>{
@@ -31,12 +31,12 @@ test('all eight tank combinations keep baked ellipsoids at real station instance
  }
 });
 
-test('Su-37 dorsal airbrake rises above the spine and follows canonical staged deployment exactly',()=>{
- const model=createAircraft(0,false,'su37'),brakes=model.userData.airbrakes;assert.equal(brakes.length,1);assert.equal(brakes[0].kind,'dorsal');const board=brakes[0];
- for(const amount of [0,.25,.5,1]){animateAircraft(model,pilot('su37',{airbrake:false,airbrakeDeployment:amount}),0,1/144);assert.equal(model.userData.brakeAmount,amount);assert(Math.abs(board.node.rotation.x-board.rest-board.angle*amount)<1e-10)}
+test('Su-27 dorsal airbrake rises above the spine and follows canonical staged deployment exactly',()=>{
+ const model=createAircraft(0,false,'su27'),brakes=model.userData.airbrakes;assert.equal(brakes.length,1);assert.equal(brakes[0].kind,'dorsal');const board=brakes[0];
+ for(const amount of [0,.25,.5,1]){animateAircraft(model,pilot('su27',{airbrake:false,airbrakeDeployment:amount}),0,1/144);assert.equal(model.userData.brakeAmount,amount);assert(Math.abs(board.node.rotation.x-board.rest-board.angle*amount)<1e-10)}
  model.updateMatrixWorld(true);const rear=new THREE.Vector3(0,0,-6).applyMatrix4(board.node.matrixWorld);assert(rear.y>6.5,'trailing edge must lift clear of the fuselage');
  model.userData.detailed.visible=false;model.userData.distant.visible=true;assert.equal(board.node.parent,model.userData.sharedControls);assert.equal(board.node.parent.visible,true);
- animateAircraft(model,pilot('su37',{airbrake:true,airbrakeDeployment:0}),0,1/60);assert.equal(board.node.rotation.x,board.rest);
+ animateAircraft(model,pilot('su27',{airbrake:true,airbrakeDeployment:0}),0,1/60);assert.equal(board.node.rotation.x,board.rest);
 });
 
 test('Super Hornet brakes use exposed LEX spoilers, opposite rudder deflections and coordinated wing surfaces',()=>{
@@ -51,7 +51,7 @@ test('Super Hornet brakes use exposed LEX spoilers, opposite rudder deflections 
 });
 
 test('variant braking remains bounded without growing the scene and legacy F-16/bomber boards remain intact',()=>{
- for(const id of ['fa18e','su37']){
+ for(const id of ['fa18e','su27']){
   const model=createAircraft(0,false,id),before=[];model.traverse(n=>before.push(n.uuid));
   for(const amount of [999,-999,0,.5,1,0])animateAircraft(model,pilot(id,{airbrakeDeployment:amount}),0,1/60);
   const after=[];model.traverse(n=>after.push(n.uuid));assert.deepEqual(after,before);assert.equal(model.userData.brakeAmount,0);

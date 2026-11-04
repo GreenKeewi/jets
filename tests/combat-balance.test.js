@@ -17,13 +17,13 @@ const seeded=(seed=17)=>()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;retur
 test('both missile types intercept sustained maximum-afterburner world-speed tail chases',()=>{
  for(const type of ['heat','radar'])for(const dt of [1/30,1/60,1/144])for(const distance of [900,2500,3500]){
   const g=airborne(),[shooter,target]=g.pilots;shooter.pos.z-=distance;shooter.targetId=target.id;shooter.lock=3;
-  assert.equal(worldSpeed(target),FLIGHT.maxFighterSpeed*1.5);
+  assert.equal(worldSpeed(target),670.56);
   step(g,{host:{[type==='heat'?'fireHeat':'fireRadar']:true}},dt);assert.equal(g.missiles.length,1);
   const missile=g.missiles[0];
   while(g.time<10&&target.hp===100)step(g,{},dt);
   assert.equal(target.hp,100-MISSILE[type].damage,`${type} ${distance}m ${dt}s`);
   assert(g.time<7,`${type} should close before its motor expires`);assert(g.time>1);
-  assert.equal(target.afterburnerActive,true);assert.equal(target.speed,FLIGHT.maxFighterSpeed);
+  assert.equal(target.afterburnerActive,true);assert.equal(target.speed,670.56);
   assert(missile.speed<=MISSILE[type].maxSpeed);
  }
 });

@@ -1,4 +1,4 @@
-import {lobbyMatch} from './lobby-match.js?v=skybreak112-1102';
+import {lobbyMatch} from './lobby-match.js?v=skybreak120-1104';
 
 // Room codes are the default. Manual, data-only LAN pairing is an advanced fallback.
 export function mountNetworkUI(container, network, { onLaunch, sortieSettings } = {}) {
@@ -20,8 +20,8 @@ export function mountNetworkUI(container, network, { onLaunch, sortieSettings } 
       <div class="net-actions"><button type="submit" data-net="join-room">Join room</button></div>
     </form>
     <p data-net="status" role="status" aria-live="polite"></p>
-    <fieldset data-net="match-options" hidden><legend>Match &amp; teams</legend>
-      <p data-net="settings-owner">The host configures the sortie. Every pilot can choose their own team before launch.</p>
+    <button data-net="hangar" type="button">Your aircraft &amp; loadout →</button><fieldset data-net="match-options" hidden><legend>Match &amp; teams</legend>
+      <p data-net="settings-owner">The host configures the sortie. Every pilot chooses their own team, aircraft and loadout before launch.</p>
       <div data-net="sortie-settings"></div>
       <div class="net-team-settings"><label>Enemy AI aircraft<select data-net="enemy-count" aria-describedby="net-match-help"><option value="1">1 aircraft</option><option value="2">2 aircraft</option><option value="3">3 aircraft</option><option value="4" selected>4 aircraft</option></select></label></div>
       <p id="net-match-help" data-net="match-help">Choose the same team to fight together against AI. Allied aircraft includes your human pilots; vacant allied seats are AI. Up to three human pilots per team.</p>
@@ -155,6 +155,7 @@ export function mountNetworkUI(container, network, { onLaunch, sortieSettings } 
     try { await navigator.clipboard.writeText(code); message('Room code copied. Friends paste it into Join room.'); }
     catch { el('invite').value = code; el('invite').focus(); el('invite').select(); message('Room code selected. Press Ctrl+C to copy.'); }
   };
+  el('hangar').onclick=()=>document.getElementById('hangar-open').click();
   el('launch').onclick = () => onLaunch?.();
   el('enemy-count').onchange=()=>{network.setMatchSettings?.({enemyTeamSize:Number(el('enemy-count').value)});refresh();};
   el('respawn-enabled').onchange=()=>{network.setEnemyRespawn(el('respawn-enabled').checked?Number(el('respawn-delay').value):0);refresh()};el('respawn-delay').onchange=()=>{network.setEnemyRespawn(Number(el('respawn-delay').value));refresh()};
@@ -168,7 +169,7 @@ export function mountNetworkUI(container, network, { onLaunch, sortieSettings } 
   };
   el('select').onclick = () => { el('outgoing').focus(); el('outgoing').select(); };
   el('copy').onclick = () => run(() => copy(el('outgoing').value, el('outgoing'), 'Code copied. Give it to the intended player.'));
-  function teamChoice(row,id,state){const select=document.createElement('select');select.setAttribute('aria-label',`Team for ${id}`);select.dataset.teamPilot=id;for(const [value,label] of [[0,'Alpha'],[1,'Bravo']]){const option=document.createElement('option');option.value=value;option.textContent=label;select.append(option);}select.value=String(state.teams?.[id]??0);select.disabled=state.teamsLocked||!(state.role==='host'||id===state.localId);select.onchange=()=>{if(!network.setTeam(id,Number(select.value))){select.value=String(network.state.teams?.[id]??0);message('Team is full or the sortie has started. Return to the lobby to switch.');}};row.append(select);}
+  function teamChoice(row,id,state){const select=document.createElement('select');select.setAttribute('aria-label',`Team for ${id}`);select.dataset.teamPilot=id;for(const [value,label] of [[0,'Alpha'],[1,'Bravo']]){const option=document.createElement('option');option.value=value;option.textContent=label;select.append(option);}select.value=String(state.teams?.[id]??0);select.disabled=state.teamsLocked||!(state.role==='host'||id===state.localId);select.onchange=()=>{if(!network.setTeam(id,Number(select.value))){select.value=String(network.state.teams?.[id]??0);message('Team is full or the sortie has started. Return to the lobby to switch.');}};const choice=state.equipment?.[id];if(choice){const text=document.createElement('span');text.textContent=` · ${choice.aircraftId.toUpperCase()} · personal loadout`;row.append(text);}row.append(select);}
   const unsubscribe = network.subscribe(state => {
     message(`${state.role === 'offline' ? 'Solo' : state.role === 'host' ? 'Host' : state.localId ? `Pilot ${state.localId}` : 'Joining'} · ${state.diagnostic}`);
     el('roster').replaceChildren();

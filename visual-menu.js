@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.js';
-import {createAircraft} from './aircraft.js?v=skybreak112-1102';
-import {AIRCRAFT_DEFINITIONS} from './loadouts.js?v=skybreak112-1102';
+import {createAircraft} from './aircraft.js?v=skybreak120-1104';
+import {AIRCRAFT_DEFINITIONS} from './loadouts.js?v=skybreak120-1104';
 
 // Native buttons mirror the canonical selects: the lobby, saved preferences and
 // launch configuration all continue to use one source of truth.
@@ -16,7 +16,7 @@ export function mountVisualMenu(){
   }
   groups.push({select,host});return host;
  }
- const aircraft=choices('aircraft-select',Object.values(AIRCRAFT_DEFINITIONS).map(a=>({id:a.id,name:a.name,description:a.id==='f16'?'Light & agile · single engine':a.id==='fa18e'?'Naval fighter · twin engines':'Canard prototype · thrust vectoring',aircraft:true})),'Choose aircraft');
+ const aircraft=choices('aircraft-select',Object.values(AIRCRAFT_DEFINITIONS).map(a=>({id:a.id,name:a.name,description:a.id==='f16'?'Light & agile · single engine':a.id==='fa18e'?'Naval fighter · twin engines':a.id==='f14'?'Manual sweep · 20°–68°':'Blue camouflage · conventional Flanker',aircraft:true})),'Choose aircraft');
  choices('arena-select',[{id:'coast',name:'Coastal sky',description:'Open water & island airfields',art:'coast'},{id:'valley',name:'Northern valley',description:'Winding low-altitude mountain corridor',art:'valley'}],'Choose battle map');
  function refresh(){for(const {select,host} of groups){host.hidden=select.id==='arena-select'&&select.parentElement.hidden||select.id==='aircraft-select'&&document.getElementById('aircraft-config').hidden;for(const button of host.children){const selected=select.value===button.dataset.value;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));button.disabled=select.disabled;button.querySelector('.choice-check').textContent=selected?'✓ SELECTED':'SELECT';}}}
  const observer=new MutationObserver(refresh);for(const {select} of groups){observer.observe(select,{attributes:true,attributeFilter:['disabled']});observer.observe(select.parentElement,{attributes:true,attributeFilter:['hidden']});select.addEventListener('change',refresh);}

@@ -13,9 +13,9 @@ test('F-16 has only a right side stick; right hand follows it and left hand foll
  assert(c.leftArm.hand.position.distanceTo(leftBefore)>.19);assert(c.rightArm.hand.position.distanceTo(rightHeld)<1e-6);
  assert.equal(c.rightArm.control,'stick');assert.equal(c.leftArm.control,'throttle');assert(c.fighterRoot.position.y<0);
 });
-test('cockpit selection preserves Super Hornet center stick and Su-37 prototype side stick',()=>{
+test('cockpit selection preserves Super Hornet center stick and Su-27 prototype side stick',()=>{
  const c=new CockpitInterior();c.update({aircraftId:'fa18e'},1/60);assert.equal(c.stick.position.x,0);assert.equal(c.controlLayout,'center-stick');
- c.update({aircraftId:'su37'},1/60);assert(c.stick.position.x>.6);assert.equal(c.aircraftId,'su37');
+ c.update({aircraftId:'su27'},1/60);assert.equal(c.stick.position.x,0);assert.equal(c.aircraftId,'su27');
  c.update({aircraftId:'f16',bomber:true},1/60);assert.equal(c.activeType,'bomber');assert(c.bomber.sticks.every(s=>s.position.x===0||s.position.x>1));
 });
 test('cockpit follows live stick, rudder and throttle; neutral controls recover',()=>{

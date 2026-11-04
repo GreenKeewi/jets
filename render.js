@@ -1,14 +1,15 @@
-import {CockpitInterior} from './cockpit-interior.js?v=skybreak112-1102';
-import {viewAxes,gunMuzzle} from './view-axes.js?v=skybreak112-1102';
-import {GUN} from './guns.js?v=skybreak112-1102';
+import {CameraLook} from './camera-look.js?v=skybreak120-1104';
+import {CockpitInterior} from './cockpit-interior.js?v=skybreak120-1104';
+import {viewAxes,gunMuzzle} from './view-axes.js?v=skybreak120-1104';
+import {GUN} from './guns.js?v=skybreak120-1104';
 import * as THREE from './vendor/three.module.js';
-import {RUNWAY,ROUTE,TARGET,ESCAPE,strikeTarget,strikeEscape,forward,bombSolution,canBomb,clamp} from './sim.js?v=skybreak112-1102';
-import {surfaceHeight} from './world.js?v=skybreak112-1102';
-import {routeFor,destinationFor,fieldPoint} from './missions.js?v=skybreak112-1102';
-import {Scenery} from './scenery.js?v=skybreak112-1102';
-import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak112-1102';
-import {normalizeAircraftId} from './loadouts.js?v=skybreak112-1102';
-import {batchStatic} from './geometry.js?v=skybreak112-1102';
+import {RUNWAY,ROUTE,TARGET,ESCAPE,strikeTarget,strikeEscape,forward,bombSolution,canBomb,clamp} from './sim.js?v=skybreak120-1104';
+import {surfaceHeight} from './world.js?v=skybreak120-1104';
+import {routeFor,destinationFor,fieldPoint} from './missions.js?v=skybreak120-1104';
+import {Scenery} from './scenery.js?v=skybreak120-1104';
+import {createAircraft,animateAircraft} from './aircraft.js?v=skybreak120-1104';
+import {normalizeAircraftId} from './loadouts.js?v=skybreak120-1104';
+import {batchStatic} from './geometry.js?v=skybreak120-1104';
 export const makeJet=createAircraft;
 const COLORS={mint:0x9cead6,orange:0xffac7a};
 function canvasTexture(width,height,draw){const c=document.createElement('canvas');c.width=width;c.height=height;draw(c.getContext('2d'),width,height);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return tex}
@@ -172,7 +173,7 @@ export class Renderer{
   this.canvas=canvas;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});this.maxPixelRatio=Math.min(devicePixelRatio,1.5);this.pixelRatio=this.maxPixelRatio;this.renderer.setPixelRatio(this.pixelRatio);this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.04;
   this.cockpitInterior=new CockpitInterior();this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(68,1,.8,45000);this.scenery=new Scenery(this.scene);
   batchStatic(this.scene,new Set([this.scenery.sky,this.scenery.water,this.scenery.depot,...this.scenery.terrainTiles,...this.scenery.animated.map(o=>o.node)]),2800);
-  this.jets=new Map();this.effects=new Map();this.vortices=new Map();this.view='chase';this.menuPreview=false;this.menuTime=0;this.followReady=false;this.frameAverage=1/60;this.slowSeconds=0;this.fastSeconds=0;this.qualityCooldown=4;this.adaptiveQuality=1;this.reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  this.cameraLook=new CameraLook();this.jets=new Map();this.effects=new Map();this.vortices=new Map();this.view='chase';this.menuPreview=false;this.menuTime=0;this.followReady=false;this.frameAverage=1/60;this.slowSeconds=0;this.fastSeconds=0;this.qualityCooldown=4;this.adaptiveQuality=1;this.reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   this.gunGeometry=new THREE.BufferGeometry();this.gunGeometry.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(GUN.maxRounds*6),3).setUsage(THREE.DynamicDrawUsage));this.gunGeometry.setDrawRange(0,0);this.gunTracers=new THREE.LineSegments(this.gunGeometry,new THREE.LineBasicMaterial({color:0xffed9c,transparent:true,opacity:1,toneMapped:false,depthWrite:false}));this.gunTracers.frustumCulled=false;this.scene.add(this.gunTracers);
   this.airMotion=new FlightAirMotion(this.scene);this.damageVisuals=new DamageVisuals(this.scene);this.muzzleFlashes=new Map();this.effectsGroup=new THREE.Group();this.scene.add(this.effectsGroup);this.dotGeometry=new THREE.SphereGeometry(1,10,7);this.missileGeometry=new THREE.CylinderGeometry(.45,.45,5.2,8);this.missileGeometry.rotateX(Math.PI/2);
   this.effectTexture=canvasTexture(128,128,(c,w,h)=>{const g=c.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,'rgba(255,248,217,1)');g.addColorStop(.27,'rgba(255,180,72,.95)');g.addColorStop(.65,'rgba(229,91,35,.65)');g.addColorStop(1,'rgba(118,67,42,0)');c.fillStyle=g;c.fillRect(0,0,w,h)});
@@ -195,7 +196,7 @@ export class Renderer{
   else if(this.view==='cockpit'){desired.set(p.pos.x+f.x*7,p.pos.y+3.1+f.y*7,p.pos.z+f.z*7);look.copy(desired).addScaledVector(new THREE.Vector3(f.x,f.y,f.z),200)}
   else{const distance=p.bomber?64:45;desired.set(p.pos.x-f.x*distance,p.pos.y+12-f.y*distance,p.pos.z-f.z*distance);look.set(p.pos.x+f.x*95,p.pos.y+f.y*95+2,p.pos.z+f.z*95)}
   if(!this.followReady||this.lastFollowId!==p.id){this.camera.position.copy(desired);this.followReady=true}else{this.camera.position.x+=p.pos.x-this.lastFollowPosition.x;this.camera.position.y+=p.pos.y-this.lastFollowPosition.y;this.camera.position.z+=p.pos.z-this.lastFollowPosition.z;this.camera.position.lerp(desired,1-Math.exp(-dt*(this.view==='cockpit'?28:6)))}
-  this.lastFollowId=p.id;this.lastFollowPosition={...p.pos};const tilt=this.view==='cockpit'?p.roll:0;const up=viewAxes(p,tilt).up;this.camera.up.set(up.x,up.y,up.z);this.camera.lookAt(look);const desiredFov=flightFov(p.speed,this.view,this.reducedMotion);this.camera.fov+=(desiredFov-this.camera.fov)*Math.min(1,dt*4);this.camera.updateProjectionMatrix();
+  this.lastFollowId=p.id;this.lastFollowPosition={...p.pos};const tilt=this.view==='cockpit'?p.roll:0;const up=viewAxes(p,tilt).up;this.camera.up.set(up.x,up.y,up.z);const lookOffset=this.cameraLook.update(dt);if(lookOffset.yaw||lookOffset.pitch){const offset=look.clone().sub(this.camera.position),right=new THREE.Vector3().crossVectors(offset, this.camera.up).normalize();offset.applyAxisAngle(this.camera.up,lookOffset.yaw).applyAxisAngle(right,lookOffset.pitch);look.copy(this.camera.position).add(offset);}this.camera.lookAt(look);const desiredFov=flightFov(p.speed,this.view,this.reducedMotion);this.camera.fov+=(desiredFov-this.camera.fov)*Math.min(1,dt*4);this.camera.updateProjectionMatrix();
  }
  updateAircraft(g,p,dt){
   for(const pilot of g.pilots){const aircraftId=normalizeAircraftId(pilot.aircraftId);let model=this.jets.get(pilot.id);if(model&&(model.userData.bomber!==pilot.bomber||model.userData.team!==pilot.team||model.userData.aircraftId!==aircraftId)){this.disposeAircraft(model);this.jets.delete(pilot.id);model=null}if(!model){model=createAircraft(pilot.team,pilot.bomber,aircraftId);this.scene.add(model);this.jets.set(pilot.id,model)}model.visible=!pilot.dead&&!(pilot.id===p.id&&this.view==='cockpit'&&!this.menuPreview);model.position.set(pilot.pos.x,pilot.pos.y+(pilot.grounded?4.08:0),pilot.pos.z);model.rotation.set(-pilot.pitch,pilot.yaw,-pilot.roll,'YXZ');animateAircraft(model,pilot,g.time,dt);const detailed=pilot.id===p.id||Math.hypot(pilot.pos.x-p.pos.x,pilot.pos.y-p.pos.y,pilot.pos.z-p.pos.z)<1600;model.userData.detailed.visible=detailed;model.userData.distant.visible=!detailed;this.updateVortex(pilot,model,g.time)}
@@ -238,7 +239,7 @@ export class Renderer{
   if(this.lastGameTime!==undefined&&g.time<this.lastGameTime-.2)for(const pair of this.vortices.values())for(const item of pair){item.points=[];item.last=-1}this.lastGameTime=g.time;for(const[id,pair]of this.vortices)if(!g.pilots.some(p=>p.id===id)){pair.forEach(item=>{item.line.removeFromParent();item.line.geometry.dispose();item.line.material.dispose()});this.vortices.delete(id)}this.updateRoute(g);const p=g.pilots.find(q=>q.id===localId)||g.pilots[0];this.updateAircraft(g,p,dt);this.updateCamera(p,dt);this.scenery.update(g.time,this.camera,this.adaptiveQuality);this.airMotion.update(p,this.camera,g.time,this.reducedMotion,this.adaptiveQuality);this.updateEffects(g);this.damageVisuals.update(g,this.camera,this.reducedMotion,this.adaptiveQuality,this.canvas.height);
   this.rings.forEach((ring,index)=>{ring.visible=false&&g.mode==='freeflight'&&g.flightStage==='route'&&index>=g.routeIndex&&index<=g.routeIndex+1;ring.children[0].material.opacity=index===g.routeIndex?.85:.13;ring.lookAt(this.camera.position.x,ring.position.y,this.camera.position.z)});
   const strikePoint=strikeTarget(g),escapePoint=strikeEscape(g);this.targetMarker.position.set(strikePoint.x,strikePoint.y+4,strikePoint.z);this.escapeMarker.position.set(escapePoint.x,escapePoint.y,escapePoint.z);this.scenery.depot.position.set(strikePoint.x,strikePoint.y,strikePoint.z);this.targetMarker.visible=g.mode==='strike'&&!g.bombed;this.escapeMarker.visible=g.mode==='strike'&&g.bombed;this.landingMarker.visible=false;this.scenery.depot.scale.y=g.bombed?.25:1;
-  this.aim.visible=g.mode==='strike'&&p.bomber&&!g.bombed;if(this.aim.visible){const impact=bombSolution(p);this.aim.position.set(impact.x,Math.max(4,surfaceHeight(impact.x,impact.z))+.65,impact.z);this.aim.material.color.setHex(canBomb(g,p)?COLORS.mint:COLORS.orange)}
+  this.aim.visible=g.mode==='strike'&&p.strikeAttacker&&!g.bombed;if(this.aim.visible){const impact=bombSolution(p);this.aim.position.set(impact.x,Math.max(4,surfaceHeight(impact.x,impact.z))+.65,impact.z);this.aim.material.color.setHex(canBomb(g,p)?COLORS.mint:COLORS.orange)}
   this.renderer.render(this.scene,this.camera);if(this.view==='cockpit'&&!this.menuPreview&&!p.dead)this.cockpitInterior.render(this.renderer,p,this.camera.aspect,dt);this.needsRender=false;return p;
  }
  project(point){const v=new THREE.Vector3(point.x,point.y,point.z).project(this.camera);return{x:(v.x*.5+.5)*innerWidth,y:(-.5*v.y+.5)*innerHeight,visible:v.z<1&&v.z>-1&&Math.abs(v.x)<1.2&&Math.abs(v.y)<1.2,z:v.z}}

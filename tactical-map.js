@@ -1,8 +1,8 @@
-import {AIRFIELDS,routeFor,approachFor,fieldPoint} from './missions.js?v=skybreak112-1102';
-import {airportForTeam} from './airport-operations.js?v=skybreak112-1102';
-import {terrainHeight,SEA_LEVEL} from './world.js?v=skybreak112-1102';
-import {strikeTarget,strikeEscape} from './sim.js?v=skybreak112-1102';
-import {relativePosition} from './view-axes.js?v=skybreak112-1102';
+import {AIRFIELDS,routeFor,approachFor,fieldPoint} from './missions.js?v=skybreak120-1104';
+import {airportForTeam} from './airport-operations.js?v=skybreak120-1104';
+import {terrainHeight,SEA_LEVEL} from './world.js?v=skybreak120-1104';
+import {strikeTarget,strikeEscape} from './sim.js?v=skybreak120-1104';
+import {relativePosition} from './view-axes.js?v=skybreak120-1104';
 
 export function airportStatus(g,p,field){
  if(field.id===p.homeBaseId)return{kind:'home',symbol:'H',label:'HOME · service',color:'#d5f58c'};
@@ -13,7 +13,7 @@ export function airportStatus(g,p,field){
  return{kind:'neutral',symbol:'—',label:'NEUTRAL · emergency fuel once; take off again',color:'#c9ced0'};
 }
 export function mapObjectives(g){
- if(g.mode==='strike')return[{...(g.bombed?strikeEscape(g):strikeTarget(g)),label:g.bombed?'ESCAPE':'TARGET'}];
+ if(g.mode==='strike')return[{...(g.bombed?strikeEscape(g):strikeTarget(g)),label:g.bombed?'LAND HOME':'TARGET'}];
  if(g.mode==='freeflight')return[];
  return g.pilots.filter(q=>q.objectiveRole==='transport'&&!q.dead).map(q=>({...q.pos,label:'TRANSPORT'}));
 }

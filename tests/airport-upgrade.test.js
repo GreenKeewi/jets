@@ -37,10 +37,10 @@ test('landed owned-base stop repairs components and refuels, enemy runway never 
  const g=createGame(),p=g.pilots[0];Object.assign(p,{landed:true,grounded:true,hp:50,engineHealth:.5,controlHealth:.5,fuelKg:100,speed:0,throttle:0});repairAtAirport(g,p,1);assert.equal(p.hp,58);assert(p.engineHealth>.5&&p.controlHealth>.5&&p.fuelKg>100);
  const hp=p.hp,fuel=p.fuelKg;p.pos=fieldPoint(AIRFIELDS.northpoint,0,0,3);repairAtAirport(g,p,1);assert.equal(p.hp,hp);assert.equal(p.fuelKg,fuel);
 });
-test('bomber never carries, replenishes or launches missiles; gun remains functional',()=>{
- const g=createGame({mode:'strike'}),p=airborne(g.pilots.find(p=>p.bomber));assert.equal(p.heat,0);assert.equal(p.radar,0);assert.equal(fullWeaponStores(p).heat,0);
- p.targetId=g.pilots.find(q=>q.team!==p.team).id;p.lock=3;p.heat=6;p.radar=4;step(g,{[p.id]:{fireHeat:true,fireRadar:true,fireGun:true}},1/60);assert.equal(g.missiles.filter(m=>m.ownerId===p.id).length,0);assert(p.gunShots>0);
+test('strike fighters retain missiles and guns while carrying four bombs on two racks',()=>{
+ const g=createGame({mode:'strike'}),p=airborne(g.pilots.find(p=>p.strikeAttacker));assert.equal(p.bomber,false);assert.equal(p.bombs,4);assert(p.heat+p.radar>0);step(g,{[p.id]:{fireGun:true}});assert(p.gunShots>0);
 });
+
 test('flight does not silently replenish ammunition away from home',()=>{
  const g=createGame({mode:'freeflight'}),p=airborne(g.pilots[0]);p.gunAmmo=20;for(let n=0;n<1500;n++)step(g,{host:{}},1/60);assert.equal(p.gunAmmo,20);
 });

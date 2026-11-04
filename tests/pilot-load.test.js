@@ -64,21 +64,11 @@ test('contact impulses do not cause sustained wear',()=>{
  assert(plane.contactLoad>40);assert.equal(plane.normalLoad,1);assert.equal(plane.hp,100);
 });
 
-test('supported jets alone receive a finite override envelope and ignore stale unsupported state',()=>{
- for(const aircraftId of ['fa18e','su37'])for(const dt of [1/30,1/60,1/144]){
-  let normal,override;
-  for(const off of [false,true]){
-   const plane={...p(),aircraftId,aoaLimiterOff:off},before={...plane};plane.pitch=.2;
-   limitFlightEnvelope(plane,before,dt);
-   const load=signedPilotLoad(physicalVelocity(before),physicalVelocity(plane),viewAxes(plane,plane.roll).up,dt);
-   assert(load<=(off?17:9)+1e-5);assert(load>(off?16.9:8.9));
-   if(off)override=plane.pitch;else normal=plane.pitch;
-  }
-  assert(override>normal);
- }
- for(const extra of [{aircraftId:'fa18e',bomber:true},{aircraftId:'su37',bomber:true}])assert.deepEqual(flightEnvelopeFor({...extra,aoaLimiterOff:true}),{min:-1.5,max:3.5});
- for(const aircraftId of ['f16',undefined,'unknown'])assert.deepEqual(flightEnvelopeFor({aircraftId,aoaLimiterOff:true}),{min:-3,max:9});
+test('limiter override preserves structural G ceilings at high speed while permitting more low-speed alpha',()=>{
+ for(const aircraftId of ['fa18e','su27']){const fast={...p(),aircraftId,aoaLimiterOff:false};const normal=flightEnvelopeFor(fast);fast.aoaLimiterOff=true;assert.deepEqual(flightEnvelopeFor(fast),normal);assert(normal.max<=9);const slow={...fast,speed:120};slow.aoaLimiterOff=false;const on=flightEnvelopeFor(slow).max;slow.aoaLimiterOff=true;assert(flightEnvelopeFor(slow).max>on);}
+ for(const aircraftId of ['f16',undefined,'unknown'])assert.deepEqual(flightEnvelopeFor({aircraftId,speed:400,aoaLimiterOff:true}),{min:-3,max:9});
 });
+
 test('tunnel cue is visible under sustained high load, recovers, and retains neutral legacy wire fields',()=>{
  const plane=p();for(let n=0;n<180;n++)advancePilotPhysiology(plane,9,1/60);
  assert(plane.gVision>.45&&plane.gVision<=G_EFFECTS.maxVision);assert.equal(plane.blackedOut,false);assert.equal(plane.gBlackoutTime,0);

@@ -77,5 +77,5 @@ test('faster thrust still respects drag, gravity, airbrakes and the Mach 2 hard 
  advance(level,2);advance(turn,2);advance(braked,2,{brake:true});
  assert(turn.speed<level.speed,'high-load turns must still cost energy');
  assert(braked.speed<level.speed,'airbrakes must still remove energy');
- const dive=plane({throttle:1.1,speed:685,pitch:-Math.PI/2});advance(dive,2);assert.equal(dive.speed,FLIGHT.maxFighterSpeed);
+ const dive=plane({throttle:1.1,speed:685,pitch:-Math.PI/2});advance(dive,2);assert.equal(dive.speed,670.56);
 });

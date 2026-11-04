@@ -32,10 +32,10 @@ test('HOME flyby repairs once per entry, cooldown consumes early entries, and re
  p.hp=50;p.pos=fieldPoint(AIRFIELDS.northpoint,0,0,60);g.time+=20;assert.equal(resupplyAtAirfield(g,p),null);assert.equal(p.hp,50);
  p.dead=true;p.hp=0;p.pos=fieldPoint(AIRFIELDS.home,0,0,60);p.resupplyLatched=false;assert.equal(resupplyAtAirfield(g,p),null);assert.equal(p.hp,0);
 });
-test('AoA key is a discrete rebindable action for F/A-18E and Su-37 only independent from advanced mode',()=>{
+test('AoA key is a discrete rebindable action for F/A-18E and Su-27 only independent from advanced mode',()=>{
  const input=keyboardInput(new Set(),new Set(['toggleAoaLimiter']));assert(input.toggleAoaLimiter);assert(peerInput(input));assert(serverInput(input));assert(!keyboardInput(new Set(['KeyO'])).toggleAoaLimiter);
  const saved=defaultBindings();delete saved.aoaLimiter;saved.gear=['KeyO'];const storage={getItem:key=>key===BINDINGS_KEY?JSON.stringify(saved):null,setItem(){}};const b=loadBindings(storage);assert.deepEqual(b.gear,['KeyO']);assert.notEqual(b.aoaLimiter[0],'KeyO');assert.equal(canonicalKey(b.aoaLimiter[0],b),'KeyO');
- for(const id of ['f16','fa18e','su37']){const g=createGame({aircraftId:id}),p=g.pilots[0];step(g,{host:input});assert.equal(p.aoaLimiterOff,id!=='f16');assert.equal(!!p.maneuverAssist,false);step(g,{host:{toggleManeuver:true}});assert(p.maneuverAssist);assert.equal(p.aoaLimiterOff,id!=='f16');}
+ for(const id of ['f16','fa18e','su27']){const g=createGame({aircraftId:id}),p=g.pilots[0];step(g,{host:input});assert.equal(p.aoaLimiterOff,id!=='f16');assert.equal(!!p.maneuverAssist,false);step(g,{host:{toggleManeuver:true}});assert(p.maneuverAssist);assert.equal(p.aoaLimiterOff,id!=='f16');}
 });
 test('remote snapshots reject incompatible stores and out-of-limit ammunition',()=>{
  const g=createGame(),copy=snapshot(g);copy.pilots[0].loadout.stations.unknown='radar';assert.equal(applySnapshot(g,copy),false);
@@ -43,7 +43,7 @@ test('remote snapshots reject incompatible stores and out-of-limit ammunition',(
 });
 
 test('old F-16, unsupported and bomber override state is cleared on ticks and snapshot apply',()=>{
- for(const aircraftId of ['f16','fa18e','su37'])for(const bomber of [false,true]){
+ for(const aircraftId of ['f16','fa18e','su27'])for(const bomber of [false,true]){
   const g=createGame({aircraftId}),p=g.pilots[0];Object.assign(p,{bomber,aoaLimiterOff:true});
   const clone=createGame();assert(applySnapshot(clone,snapshot(g)));
   const supported=!bomber&&aircraftId!=='f16';assert.equal(clone.pilots[0].aoaLimiterOff,supported);
@@ -53,7 +53,7 @@ test('old F-16, unsupported and bomber override state is cleared on ticks and sn
  assert(applySnapshot(legacy,copy));assert.equal(legacy.pilots[0].aoaLimiterOff,false);
 });
 test('new-jet airbrake deployment remains authoritative and bounded through snapshot replication',()=>{
- for(const aircraftId of ['fa18e','su37']){
+ for(const aircraftId of ['fa18e','su27']){
   const g=createGame({aircraftId}),p=g.pilots[0];step(g,{host:{toggleAirbrake:true}},1/60);
   assert(p.airbrake);assert(p.airbrakeDeployment>0&&p.airbrakeDeployment<1);
   const clone=createGame();assert(applySnapshot(clone,snapshot(g)));assert.equal(clone.pilots[0].airbrakeDeployment,p.airbrakeDeployment);

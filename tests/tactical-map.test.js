@@ -10,7 +10,7 @@ test('map uses north-up world coordinates and bounds airports/player/objectives'
  const g=createGame({mode:'strike'}),p=g.pilots[0],v=mapView(g,p);
  for(const q of [p.pos,...Object.values(AIRFIELDS),...mapObjectives(g)]){const a=mapPoint(q,v);assert(a.x>0&&a.x<600&&a.y>0&&a.y<600);}
  assert(mapPoint({x:v.x,z:v.z+1000},v).y<300);assert(mapPoint({x:v.x+1000,z:v.z},v).x<300);
- g.bombed=true;assert.equal(mapObjectives(g)[0].label,'ESCAPE');
+ g.bombed=true;assert.equal(mapObjectives(g)[0].label,'LAND HOME');
 });
 test('map exposes teammates and radar/selected hostile contacts, not distant hidden enemies',()=>{
  const g=createGame({teamSize:2}),p=g.pilots[0];for(const q of g.pilots)if(q.team!==p.team)q.pos={x:p.pos.x+10000,y:1000,z:p.pos.z};
